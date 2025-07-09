@@ -1,0 +1,10 @@
+.nav-body {
+    display: block;
+    width: 80px;
+    height: 728px;
+    background-color: white;
+}
+
+.nav-body img {
+    width: 60px;
+}

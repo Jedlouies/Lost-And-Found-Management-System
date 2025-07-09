@@ -1,0 +1,10 @@
+.login-body {
+    width: 100%;
+    background-image: url('/auth-background.jpg');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 735px;
+    align-content: center;
+    justify-items: center;
+}

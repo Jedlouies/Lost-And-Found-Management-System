@@ -1,0 +1,38 @@
+.header-container {
+    background-color: white;
+    height: 50px;
+    width: 100%;
+    align-content: center;
+    justify-content: center;
+    position: fixed;
+    z-index: 1000;
+    box-shadow: 0px 10px 20px rgb(0, 0, 0, 0.1);
+}
+
+.header-container button {
+    position: absolute;
+    top: 20%;
+    left: 90%;
+    width: 8%;
+    height: 30px;
+    font-weight: bold;
+    background-color: #384959;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.header-container button:hover {
+    background-color: rgb(255, 255, 255);
+    border: 1;
+    border-color: navy;
+    color: black;
+    box-shadow: black;
+    transition: ease-in-out .6s;
+}
+
+@media (max-width: 728px) {
+    .header-container button {
+        width: 100px;
+        left: 75%;
+    }
+}
