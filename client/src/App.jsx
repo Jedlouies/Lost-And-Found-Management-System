@@ -5,6 +5,13 @@ import LogInPage from "./pages/LogInPage";
 import DashboardPage from "./pages/DashboardPage";
 import HomePage from "./pages/HomePage";
 import { useAuth } from "./context/AuthContext"; 
+import LostItemsPage from "./pages/LostItemsPage";
+import SettingsPage from "./pages/SettingsPage";
+import FoundItemsPage from "./pages/FoundItemsPage";
+import ItemClaimedListPage from "./pages/ItemClaimedListPage";
+import UserProfilesPage from "./pages/UserProfilesPage";
+import MessagesPage from "./pages/MessagesPage";
+import NotificationPage from "./pages/NotificationPage";
 
 function App() {
   const { currentUser } = useAuth(); 
@@ -21,6 +28,76 @@ function App() {
             element={
               currentUser ? (
                 <DashboardPage />
+              ) : (
+                <></>
+              )
+            }
+          />
+          <Route
+            path="/admin/lost-items/:uid"
+            element={
+              currentUser ? (
+                <LostItemsPage />
+              ) : (
+                <></>
+              )
+            }
+          />
+          <Route
+            path="/admin/found-items/:uid"
+            element={
+              currentUser ? (
+                <FoundItemsPage />
+              ) : (
+                <></>
+              )
+            }
+          />
+          <Route
+            path="/admin/item-claimed-list/:uid"
+            element={
+              currentUser ? (
+                <ItemClaimedListPage />
+              ) : (
+                <></>
+              )
+            }
+          />
+          <Route
+            path="/admin/user-profiles/:uid"
+            element={
+              currentUser ? (
+                <UserProfilesPage />
+              ) : (
+                <></>
+              )
+            }
+          />
+          <Route
+            path="/admin/messages/:uid"
+            element={
+              currentUser ? (
+                <MessagesPage />
+              ) : (
+                <></>
+              )
+            }
+            />
+            <Route 
+              path="/admin/notifications/:uid"
+              element={
+                currentUser ? (
+                  <NotificationPage />
+                ) : (
+                  <></>
+                )
+              }
+              />
+            <Route
+            path="/admin/settings/:uid"
+            element={
+              currentUser ? (
+                <SettingsPage />
               ) : (
                 <></>
               )

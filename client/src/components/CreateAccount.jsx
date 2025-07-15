@@ -78,7 +78,7 @@ function CreateAccount() {
               <input className='create-input' type='password' placeholder='Confirm Password' ref={passwordConfirmRef} required />
             </Form.Group>
             <p>Already have an account?<strong onClick={handleLogin}> Login </strong></p>
-            <button disabled={loading} type='submit'>Submit</button>
+            <button disabled={loading} type='submit'>{loading ? 'Creating...' : 'Create'}</button>
           </Form>
         </Card.Body>
       </div>

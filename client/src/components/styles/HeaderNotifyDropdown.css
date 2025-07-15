@@ -1,0 +1,7 @@
+.notify-body {
+    width: 300px;
+    height: 140px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.25);
+}

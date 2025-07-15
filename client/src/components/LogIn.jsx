@@ -64,7 +64,7 @@ function LogIn() {
               <input className='create-input' type='password' placeholder='Password' ref={passwordRef} required />
             </Form.Group>
             <p>Don't have an account?<strong onClick={handleSignIn}> Create an account</strong></p>
-            <button disabled={loading} type='submit'>Submit</button>
+            <button disabled={loading} type='submit'>{loading ? 'Submitting...' : 'Submit'}</button>
           </Form>
         </Card.Body>
       </div>

@@ -11,10 +11,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "apexcharts": "^5.2.0",
     "bootstrap": "^5.3.7",
+    "bootstrap-icons": "^1.13.1",
     "firebase": "^11.10.0",
     "flowbite-react": "^0.11.8",
     "react": "^19.1.0",
+    "react-apexcharts": "^1.7.0",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",

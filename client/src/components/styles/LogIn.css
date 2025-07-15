@@ -1,12 +1,8 @@
 strong:hover{
     cursor: pointer;
-    color: blue;
+    color: rgb(245, 63, 75);
 }
 
-strong:hover{
-    cursor: pointer;
-    color: blue;
-}
 
 .input-fullname {
     display: flex;

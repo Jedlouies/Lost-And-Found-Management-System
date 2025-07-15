@@ -29,7 +29,7 @@ function signup(email, password, firstName, lastName, contactNumber, studentId) 
         displayName: `${firstName} ${lastName}`
       });
 
-      const defaultRole = 'user'; // 👈 role is hardcoded here
+      const defaultRole = 'user'; 
 
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
@@ -38,7 +38,7 @@ function signup(email, password, firstName, lastName, contactNumber, studentId) 
         firstName,
         lastName,
         studentId,
-        role: defaultRole, // 👈 assign role safely
+        role: defaultRole, 
       });
 
       await setDoc(doc(db, "studentIndex", String(studentId)), {
