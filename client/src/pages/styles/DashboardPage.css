@@ -22,6 +22,48 @@
     height: 610px;
 }
 
+.banner {
+    position: absolute;
+    background-color: black;
+    width: 1180px;
+    height: 100px;
+    border-radius: 10px;
+    top: 9%;
+    left: 17%;
+    box-shadow: 0px 2px 10px rgb(0, 0, 0, 0.5);
+}
+
+.banner img {
+    opacity: .7;
+    object-fit: cover;
+    width: 1180px;
+    height: 100px;
+    border-radius: 10px;
+}
+
+.banner strong {
+    top: 10%;
+    left: 90%;
+    color: white;
+    position: absolute;
+}
+
+.banner h1 {
+    position: absolute;
+    left: 2%;
+    color: #BDDDFC;
+}
+
+.banner h5 {
+    font-weight: 100;
+    position: absolute;
+    top: 50%;
+    left: 2%;
+    color: #BDDDFC;
+}
+
+
+
 .report-view {
     display: flex;
     position: absolute;

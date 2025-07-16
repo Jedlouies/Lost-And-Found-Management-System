@@ -15,7 +15,7 @@ function DashboardHeader() {
   const [notifyPanel, setNotifyPanel] = useState(false);
   const [firstName, setFirstName] = useState(localStorage.getItem('firstName') || '');
   const [lastName, setLastName] = useState(localStorage.getItem('lastName') || '');
-  const [profileURL, setProfileURL] = useState(localStorage.getItem('profileURL') || '')
+  const [profileURL, setProfileURL] = useState(localStorage.getItem('profileURL') || '');
   const dropdownRef = useRef(null);
   const notifyRef = useRef(null);
   const profileRef = useRef(null);

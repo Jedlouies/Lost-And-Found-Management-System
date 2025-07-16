@@ -41,7 +41,7 @@
     height: 1px;
 }
 
-.profile-body {
+.profiles-body {
     display: flex;
     flex-direction: row;
     align-content: center;
@@ -50,13 +50,13 @@
     align-items: center;
 }
 
-.profile-pic {
+.profiles-pic {
     border-radius: 40px;
     width: 30px;
     height: 30px;
 }
 
-.profile-body p {
+.profiles-body p {
     margin: 10px;
     display: flex;
     font-size: .7rem;

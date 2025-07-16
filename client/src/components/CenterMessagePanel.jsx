@@ -15,9 +15,11 @@ function CenterMessagePanel() {
   
         await signOut(auth);
   
-        localStorage.removeItem('profileURL');
-        localStorage.removeItem('firstName');
-        localStorage.removeItem('lastName');
+      localStorage.removeItem('profileURL');
+      localStorage.removeItem('designation');
+      localStorage.removeItem('coverURL');
+      localStorage.removeItem('firstName');
+      localStorage.removeItem('lastName');
   
         navigate('/log-in');
       } catch (error) {

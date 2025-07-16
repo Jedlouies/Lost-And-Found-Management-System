@@ -143,7 +143,7 @@ useEffect(() => {
     <div className={`account-dropdown ${dropDown ? 'dropDown' : ''}`} ref={dropdownRef}>
       <HeaderAccountDropdown />  
      </div>
-    <div className={`notify-panel ${notifyPanel ? 'notifyPanel' : ''}`} ref={notifyRef}>
+    <div className={`notify-panels ${notifyPanel ? 'notifyPanel' : ''}`} ref={notifyRef}>
       <HeaderNotifyDropdown />
     </div>
     </>

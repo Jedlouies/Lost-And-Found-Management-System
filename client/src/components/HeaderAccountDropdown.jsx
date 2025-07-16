@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase.jsx';
+import { getAuth, signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 import './styles/HeaderAccountDropdown.css';
 
 function HeaderAccountDropdown() {
@@ -9,6 +11,14 @@ function HeaderAccountDropdown() {
   const [firstName, setFirstName] = useState(localStorage.getItem('firstName') || '');
   const [lastName, setLastName] = useState(localStorage.getItem('lastName') || '');
   const [profileURL, setProfileURL] = useState(localStorage.getItem('profileURL') || '');
+  const navigate = useNavigate();
+  const auth = getAuth();
+  const user = auth.currentUser;  
+
+
+  const handleNavigate = (path) => {
+  navigate(path);
+};
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -63,8 +73,8 @@ function HeaderAccountDropdown() {
 
   return (
     <div className='account-dropdown-body'>
-      <div className='profile-body'>
-        <div className='profile-pic'>
+      <div className='profiles-body'>
+        <div className='profiles-pic'>
           {profileURL ? (
             <img
               src={profileURL}
@@ -87,7 +97,7 @@ function HeaderAccountDropdown() {
 
       <div className='line' />
 
-      <div className='account-dropdown-row'>
+      <div className={`account-dropdown-row ${location.pathname === `/dashboard/profile/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/dashboard/profile/${user?.uid}`)}>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person" viewBox="0 0 16 16">
           <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z" />
         </svg>

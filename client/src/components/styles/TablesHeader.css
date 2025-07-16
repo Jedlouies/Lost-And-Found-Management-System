@@ -72,17 +72,18 @@
     opacity: 1;
 }
 
-.notify-panel {
+.notify-panels {
     opacity: 0;
 }
 
 
 
-.notify-panel.notifyPanel{
+.notify-panels.notifyPanel{
     position: absolute;
-    top: 150%;
+    top: 6%;
     left: 73%;
     opacity: 1;
+    z-index: 100;
 }
 
 .dropdown-profile {

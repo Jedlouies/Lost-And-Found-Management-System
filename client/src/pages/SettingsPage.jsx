@@ -8,13 +8,17 @@ import './styles/SettingsPage.css';
 
 function SettingsPage() {
   const { currentUser } = useAuth();
-  const [image, setImage] = useState(null);
-  const [uploading, setUploading] = useState(false);
+
+  const [profileImage, setProfileImage] = useState(null);
+  const [coverImage, setCoverImage] = useState(null);
+  const [uploadingProfile, setUploadingProfile] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [profileURL, setProfileURL] = useState(localStorage.getItem('profileURL') || '');
+  const [coverURL, setCoverURL] = useState(localStorage.getItem('coverURL') || '');
 
   useEffect(() => {
-    const fetchProfileImage = async () => {
-      if (!currentUser || profileURL) return;
+    const fetchUserImages = async () => {
+      if (!currentUser) return;
 
       try {
         const userRef = doc(db, 'users', currentUser.uid);
@@ -22,59 +26,92 @@ function SettingsPage() {
 
         if (userSnap.exists()) {
           const userData = userSnap.data();
+
           if (userData.profileURL) {
             setProfileURL(userData.profileURL);
             localStorage.setItem('profileURL', userData.profileURL);
           }
+
+          if (userData.coverURL) {
+            setCoverURL(userData.coverURL);
+            localStorage.setItem('coverURL', userData.coverURL);
+          }
         }
       } catch (err) {
-        console.error('Failed to fetch profile image:', err);
+        console.error('Failed to fetch user images:', err);
       }
     };
 
-    fetchProfileImage();
-  }, [currentUser, profileURL]);
+    fetchUserImages();
+  }, [currentUser]);
 
-  const handleFileChange = (e) => {
+  const handleProfileChange = (e) => {
     if (e.target.files[0]) {
-      setImage(e.target.files[0]);
+      setProfileImage(e.target.files[0]);
     }
   };
 
-  const handleUpload = async () => {
-    if (!image || !currentUser) return alert('Missing image or user.');
-    setUploading(true);
+  const handleCoverChange = (e) => {
+    if (e.target.files[0]) {
+      setCoverImage(e.target.files[0]);
+    }
+  };
 
+  const uploadImage = async (file, folder, updateField) => {
     const formData = new FormData();
-    formData.append('file', image);
-    formData.append('upload_preset', 'profiles'); // ← Your Cloudinary preset
-    formData.append('folder', `users/${currentUser.uid}`);
+    formData.append('file', file);
+    formData.append('upload_preset', 'profiles'); 
+    formData.append('folder', folder); 
+
+    const res = await fetch('https://api.cloudinary.com/v1_1/dunltzf6e/image/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (!data.secure_url) throw new Error('Upload failed.');
+
+    const userRef = doc(db, 'users', currentUser.uid);
+    await updateDoc(userRef, {
+      [updateField]: data.secure_url,
+    });
+
+    localStorage.setItem(updateField, data.secure_url);
+    window.dispatchEvent(new Event('profileImageUpdated'));
+
+    return data.secure_url;
+  };
+
+  const handleProfileUpload = async () => {
+    if (!profileImage || !currentUser) return alert('Missing profile image or user.');
+    setUploadingProfile(true);
 
     try {
-      const res = await fetch('https://api.cloudinary.com/v1_1/dunltzf6e/image/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
-
-      const userRef = doc(db, 'users', currentUser.uid);
-      await updateDoc(userRef, {
-        profileURL: data.secure_url,
-      });
-
-      setProfileURL(data.secure_url);
-      localStorage.setItem('profileURL', data.secure_url);
-
-      // 👇 Notify other components (like HeaderAccountDropdown)
-      window.dispatchEvent(new Event('profileImageUpdated'));
-
+      const url = await uploadImage(profileImage, `users/${currentUser.uid}`, 'profileURL');
+      setProfileURL(url);
       alert('Profile image uploaded!');
     } catch (err) {
       console.error(err);
-      alert('Upload failed.');
+      alert('Profile upload failed.');
     }
 
-    setUploading(false);
+    setUploadingProfile(false);
+  };
+
+  const handleCoverUpload = async () => {
+    if (!coverImage || !currentUser) return alert('Missing cover image or user.');
+    setUploadingCover(true);
+
+    try {
+      const url = await uploadImage(coverImage, 'users/${currentUser.uid}', 'coverURL');
+      setCoverURL(url);
+      alert('Cover image uploaded!');
+    } catch (err) {
+      console.error(err);
+      alert('Cover upload failed.');
+    }
+
+    setUploadingCover(false);
   };
 
   return (
@@ -83,21 +120,41 @@ function SettingsPage() {
       <div className='settings-body'>
         <DashboardHeader />
 
-        <input type="file" accept="image/*" onChange={handleFileChange} />
-        <button onClick={handleUpload} disabled={uploading}>
-          {uploading ? 'Uploading...' : 'Upload Profile Image'}
-        </button>
+        <div className='upload-section1'>
+          <h3>Upload Profile Image</h3>
+          <input type="file" accept="image/*" onChange={handleProfileChange} />
+          <button onClick={handleProfileUpload} disabled={uploadingProfile}>
+            {uploadingProfile ? 'Uploading...' : 'Upload Profile Image'}
+          </button>
+          {profileURL && (
+            <div>
+              <p>Current Profile Image:</p>
+              <img
+                src={profileURL}
+                alt="Profile"
+                style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover' }}
+              />
+            </div>
+          )}
+        </div>
 
-        {profileURL && (
-          <div>
-            <p>Current Profile Image:</p>
-            <img
-              src={profileURL}
-              alt="Profile"
-              style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover' }}
-            />
-          </div>
-        )}
+        <div className='upload-section2'>
+          <h3>Upload Cover Image</h3>
+          <input type="file" accept="image/*" onChange={handleCoverChange} />
+          <button onClick={handleCoverUpload} disabled={uploadingCover}>
+            {uploadingCover ? 'Uploading...' : 'Upload Cover Image'}
+          </button>
+          {coverURL && (
+            <div>
+              <p>Current Cover Image:</p>
+              <img
+                src={coverURL}
+                alt="Cover"
+                style={{ width: '100%', maxWidth: '500px', height: 'auto', borderRadius: '10px', objectFit: 'cover' }}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

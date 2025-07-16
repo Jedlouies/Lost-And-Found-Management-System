@@ -12,6 +12,7 @@ import ItemClaimedListPage from "./pages/ItemClaimedListPage";
 import UserProfilesPage from "./pages/UserProfilesPage";
 import MessagesPage from "./pages/MessagesPage";
 import NotificationPage from "./pages/NotificationPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   const { currentUser } = useAuth(); 
@@ -28,6 +29,16 @@ function App() {
             element={
               currentUser ? (
                 <DashboardPage />
+              ) : (
+                <></>
+              )
+            }
+          />
+          <Route
+            path="/dashboard/profile/:uid"
+            element={
+              currentUser ? (
+                <ProfilePage />
               ) : (
                 <></>
               )

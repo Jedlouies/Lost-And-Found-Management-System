@@ -28,6 +28,8 @@ function NavigationBar() {
       await signOut(auth);
 
       localStorage.removeItem('profileURL');
+      localStorage.removeItem('designation');
+      localStorage.removeItem('coverURL');
       localStorage.removeItem('firstName');
       localStorage.removeItem('lastName');
 

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import NavigationBar from '../components/NavigationBar'
 import './styles/DashboardPage.css'
 import DashboardHeader from '../components/DashboardHeader'
@@ -9,6 +9,31 @@ import FeedBackChart from '../components/FeedBackChart'
 
 
 function DashboardPage() {
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+    const formattedDate = currentDateTime.toLocaleDateString('en-PH', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  const formattedTime = currentDateTime.toLocaleTimeString('en-PH', {
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  });
+
+
   return (
     <>
       <NavigationBar />
@@ -24,6 +49,12 @@ function DashboardPage() {
               </svg>
               <h4>Report Overview</h4>
             </div>
+        </div>
+        <div className='banner'>
+            <img src="/landing-page-img.png" alt="img" />
+            <h1>Welcome to the System</h1>
+            <h5>{formattedDate}</h5>
+            <strong>{formattedTime}</strong>
         </div>
         <div className='graph'>
             <ClaimedLostFoundChart />

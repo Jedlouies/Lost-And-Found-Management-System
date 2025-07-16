@@ -13,6 +13,7 @@
   white-space: nowrap;
   font-size: 1rem;
   cursor: pointer;
+  opacity: 0;
 }
 
 .nav-body img {
@@ -30,6 +31,10 @@
 
 .nav-body.expanded {
     width: 200px;
+}
+
+.nav-body.expanded span {
+    opacity: 1;
 }
 
 .nav-body.expanded .slogan{
