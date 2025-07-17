@@ -14,12 +14,26 @@ function CenterMessagePanel() {
       try {
   
         await signOut(auth);
-  
-      localStorage.removeItem('profileURL');
-      localStorage.removeItem('designation');
+        
+      localStorage.removeItem('address');
+      localStorage.removeItem('bio');
+      localStorage.removeItem('contactNumber');
       localStorage.removeItem('coverURL');
+      localStorage.removeItem('designation');
+      localStorage.removeItem('educationalAttainment');
+      localStorage.removeItem('email');
       localStorage.removeItem('firstName');
+      localStorage.removeItem('gender');
       localStorage.removeItem('lastName');
+      localStorage.removeItem('middleName');
+      localStorage.removeItem('profileURL');
+      localStorage.removeItem('role');
+      localStorage.removeItem('studentId');
+      localStorage.removeItem('uid');
+      localStorage.removeItem('yearsOfService');
+      localStorage.removeItem('hideAddInfoPanel');
+
+
   
         navigate('/log-in');
       } catch (error) {

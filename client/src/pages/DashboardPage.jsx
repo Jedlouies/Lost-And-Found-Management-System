@@ -5,11 +5,18 @@ import DashboardHeader from '../components/DashboardHeader'
 import ClaimedLostFoundChart from '../components/ClaimedLostFoundChart'
 import WeeklyUsersCard from '../components/WeeklyUsersCard'
 import FeedBackChart from '../components/FeedBackChart'
+import AdminAddInfoPanel from '../components/AdminAddInfoPanel'
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { useAuth } from '../context/AuthContext';
 
 
 
 function DashboardPage() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [isPanelVisible, setIsPanelVisible] = useState(false);
+  const { currentUser } = useAuth();
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -18,6 +25,18 @@ function DashboardPage() {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!currentUser) return;
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      if (userDoc.exists()) {
+        setUserData(userDoc.data());
+      }
+    };
+
+    fetchData();
+  }, [currentUser]);
 
     const formattedDate = currentDateTime.toLocaleDateString('en-PH', {
     weekday: 'long',
@@ -33,6 +52,23 @@ function DashboardPage() {
     hour12: true
   });
 
+   const hasEmptyFields = userData
+    ? Object.values(userData).some((value) => value === "")
+    : false;
+
+  
+    useEffect(() => {
+  if (hasEmptyFields) {
+
+    const timeout = setTimeout(() => {
+      setIsPanelVisible(true);
+    }, 100);
+    return () => clearTimeout(timeout);
+  } else {
+    setIsPanelVisible(false);
+  }
+}, [hasEmptyFields]);
+
 
   return (
     <>
@@ -41,6 +77,15 @@ function DashboardPage() {
        <div className='nav'>
         <DashboardHeader />
        </div>
+       <div className='add-info'>
+            {hasEmptyFields && (
+      <div className={`add-info-panel ${isPanelVisible ? 'show' : ''}`}>
+        <AdminAddInfoPanel />
+      </div>
+    )}
+
+      </div>
+
         <div className='dashboard-container'>
             <h1>Dashboard</h1>
             <div className='report-view'>

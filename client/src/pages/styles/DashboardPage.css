@@ -114,3 +114,28 @@
     top: 67%;
     left: 65%;
 }
+
+.add-info {
+    transition: all 1s ease;
+    position: absolute;
+    top: 78%;
+    left: 65%;
+    z-index: 1000;
+}
+
+.add-info-panel {
+  position: fixed;
+  top: 75%;
+  width: 350px;
+  right: 0;
+  transition: right 0.4s ease;
+  z-index: 999;
+}
+
+.add-info-panel.show {
+  top: 75%;
+  right: 170px; 
+}
+
+
+

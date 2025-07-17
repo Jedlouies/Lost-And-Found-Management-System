@@ -51,3 +51,19 @@
 .container-details h1 {
     font-weight: 900;
 }
+
+.profile-other-details {
+    position: absolute;
+    line-height: 10px;
+    left: 5%;
+    top: 65%;
+}
+
+.profile-other-details p{
+
+    color: #475C6F;
+}
+
+.profile-other-details strong:hover{
+    color: #475C6F;
+}

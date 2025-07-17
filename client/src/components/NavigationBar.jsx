@@ -22,23 +22,6 @@ function NavigationBar() {
 
 };
 
-  const handleLogout = async () => {
-    try {
-
-      await signOut(auth);
-
-      localStorage.removeItem('profileURL');
-      localStorage.removeItem('designation');
-      localStorage.removeItem('coverURL');
-      localStorage.removeItem('firstName');
-      localStorage.removeItem('lastName');
-
-      navigate('/log-in');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
-
   return (
     <div className={`nav-body ${expanded ? 'expanded' : ''}`}>
       <img src="/spotsync-logo-navy.png" alt="img" />

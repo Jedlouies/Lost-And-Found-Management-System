@@ -18,7 +18,7 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
 
-function signup(email, password, firstName, lastName, contactNumber, studentId) {
+function signup(email, password, firstName, lastName, contactNumber, studentId, profileURL, coverURL, designation, address, gender, yearsOfService, middleName, educationalAttainment, bio) {
   console.log("SIGNUP INPUT:", { email, password, firstName, lastName, contactNumber, studentId });
 
   return createUserWithEmailAndPassword(auth, email, password)
@@ -29,7 +29,8 @@ function signup(email, password, firstName, lastName, contactNumber, studentId) 
         displayName: `${firstName} ${lastName}`
       });
 
-      const defaultRole = 'user'; 
+      const defaultRole = 'user';
+      const defaultValue = ''; 
 
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
@@ -38,6 +39,15 @@ function signup(email, password, firstName, lastName, contactNumber, studentId) 
         firstName,
         lastName,
         studentId,
+        profileURL: defaultValue,
+        coverURL: defaultValue,
+        designation: defaultValue,
+        address: defaultValue,
+        yearsOfService: defaultValue,
+        middleName: defaultValue,
+        gender: defaultValue,
+        educationalAttainment: defaultValue,
+        bio: defaultValue,
         role: defaultRole, 
       });
 
