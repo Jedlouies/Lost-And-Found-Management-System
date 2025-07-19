@@ -97,7 +97,7 @@ function DashboardPage() {
         </div>
         <div className='banner'>
             <img src="/landing-page-img.png" alt="img" />
-            <h1>Welcome to the System</h1>
+            <h1>Welcome to SpotSync!</h1>
             <h5>{formattedDate}</h5>
             <strong>{formattedTime}</strong>
         </div>

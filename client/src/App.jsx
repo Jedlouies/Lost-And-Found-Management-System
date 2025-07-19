@@ -3,7 +3,7 @@ import LandingPage from "./pages/LandingPage";
 import SignInPage from "./pages/SignInPage";
 import LogInPage from "./pages/LogInPage";
 import DashboardPage from "./pages/DashboardPage";
-import HomePage from "./pages/HomePage";
+import HomePage from "./user_pages/HomePage";
 import { useAuth } from "./context/AuthContext"; 
 import LostItemsPage from "./pages/LostItemsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -13,6 +13,13 @@ import UserProfilesPage from "./pages/UserProfilesPage";
 import MessagesPage from "./pages/MessagesPage";
 import NotificationPage from "./pages/NotificationPage";
 import ProfilePage from "./pages/ProfilePage";
+import UserLostItemsPage from "./user_pages/UserLostItemsPage";
+import UserFoundItemsPage from "./user_pages/UserFoundItemsPage";
+import UserProfilePage from "./user_pages/UserProfilePage";
+import UserSettingsPage from "./user_pages/UserSettingsPage";
+import UserLostItemDetailPage from "./user_pages/UserLostItemDetailPage";
+import UserLostProcedurePage from "./user_pages/UserLostProcedurePage";
+
 
 function App() {
   const { currentUser } = useAuth(); 
@@ -124,7 +131,68 @@ function App() {
               )
             }
           />
-        </Routes>
+          <Route
+            path="/users/lost-items/:uid"
+            element={
+              currentUser ? (
+                <UserLostItemsPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+           <Route
+            path="/users/found-items/:uid"
+            element={
+              currentUser ? (
+                <UserFoundItemsPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/home/profile/:uid"
+            element={
+              currentUser ? (
+                <UserProfilePage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/users/settings/:uid"
+            element={
+              currentUser ? (
+                <UserSettingsPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/users/lost-items/procedure/:uid"
+            element={
+              currentUser ? (
+                <UserLostProcedurePage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/users/lost-items/procedure/item-details/:uid"
+            element={
+              currentUser ? (
+                <UserLostItemDetailPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          
+        </Routes>        
       </BrowserRouter>
     </div>
   );

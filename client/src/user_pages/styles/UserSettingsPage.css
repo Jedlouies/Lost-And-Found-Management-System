@@ -1,0 +1,17 @@
+.settings-body {
+    background-color: #D9D9D9;
+    width: 1455px;
+    height: 728px;
+    margin-left: 80px;
+}
+
+.upload-section1 {
+    position: absolute;
+    top: 10%;
+}
+
+.user-info-form {
+    position: absolute;
+    top: 10%;
+    left: 45%;
+}

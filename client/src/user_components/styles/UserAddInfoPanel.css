@@ -1,0 +1,64 @@
+.admin-add-info-body{
+    position: absolute;
+    display: flex;
+    background-color: white;
+    width: 500px;
+    height: 150px;
+    border-radius: 20px;
+    box-shadow: 4px 5px 5px rgb(0, 0, 0, 0.5);
+    padding: 10px;
+}
+
+.admin-add-info-body p{
+    width: 400px;
+    color: black;
+    font-size: 12px;
+    text-align: left;
+    margin-left: 10px;
+}
+
+.add-actions {
+    position: absolute;
+    top: 72%;
+    left: 19%;
+}
+
+.continue{
+    width: 190px;
+    border-radius: 10px;
+    border: none;
+    margin-left: 5px;
+    background-color: #475C6F;
+}
+
+.continue:hover {
+    background-color: #CFE5F9;
+    color: #475C6F;
+    border: 1px solid #475C6F;
+}
+
+.admin-add-info-body strong:hover{
+    color: black;
+    cursor: normal;
+}
+
+.later {
+    color: #475C6F;
+    width: 190px;
+    border-radius: 10px;
+    border: none;
+    margin-left: 5px;
+    border: 1px solid #475C6F;
+    background-color: white;
+}
+
+.later:hover {
+    background-color: #CFE5F9;
+}
+
+
+
+.admin-add-info-body svg{
+    position: relative;
+    top: 20%;
+}

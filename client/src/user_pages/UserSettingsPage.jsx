@@ -4,9 +4,10 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import NavigationBar from '../components/NavigationBar';
 import DashboardHeader from '../components/DashboardHeader';
-import './styles/SettingsPage.css';
+import './styles/UserSettingsPage.css';
+import UserNavigationBar from '../user_components/UserNavigationBar';
 
-function SettingsPage() {
+function UserSettingsPage() {
   const { currentUser } = useAuth();
 
   const [profileImage, setProfileImage] = useState(null);
@@ -20,17 +21,21 @@ function SettingsPage() {
   const [middleName, setMiddleName] = useState('');
   const [email, setEmail] = useState(localStorage.getItem('email') || '');
   const [contactNumber, setContactNumber] = useState(localStorage.getItem('contactNumber') || '');
+  const [course, setCourse] = useState('');
+  const [section, setSection] = useState('');
+  const [yearLevel, setYearLevel] = useState('');
+  const [birthdate, setBirthdate] = useState('');
   const [bio, setBio] = useState('');
-  const [designation, setDesignation] = useState('');
+  const [designation, setDesignation] = useState('1');
   const [gender, setGender] = useState('');
-  const [yearsOfService, setYearsOfService] = useState('');
-  const [educationalAttainment, setEducationalAttainment] = useState('');
+  const [yearsOfService, setYearsOfService] = useState('1');
+  const [educationalAttainment, setEducationalAttainment] = useState('1');
   const [address, setAddress] = useState('');
 
   const updateUserInfo = async (uid, updatedData) => {
     try {
       const userRef = doc(db, 'users', uid);
-      await updateDoc(userRef, updatedData);s
+      await updateDoc(userRef, updatedData);
     } catch (error) {
       console.error("Error updating user info:", error);
     }
@@ -51,7 +56,12 @@ function SettingsPage() {
       gender,
       yearsOfService,
       address,
+      course,
+      section,
+      yearLevel,
+      birthdate,
     };
+
     updateUserInfo(currentUser.uid, updatedData);
   };
 
@@ -76,7 +86,15 @@ function SettingsPage() {
           setYearsOfService(userData.yearsOfService || '');
           setEducationalAttainment(userData.educationalAttainment || '');
           setAddress(userData.address);
+          setCourse(userData.course || '');
+          setSection(userData.section || '');
+          setYearLevel(userData.yearLevel || '');
+          setBirthdate(userData.birthdate || '');
 
+          localStorage.setItem('course', userData.course || '');
+          localStorage.setItem('section', userData.section || '');
+          localStorage.setItem('yearLevel', userData.yearLevel || '');
+          localStorage.setItem('birthdate', userData.birthdate || '');
           localStorage.setItem('role', userData.role || '');
           localStorage.setItem('designation', userData.designation || '');
           localStorage.setItem('firstName', userData.firstName || '');
@@ -170,7 +188,7 @@ function SettingsPage() {
 
   return (
     <>
-      <NavigationBar />
+      <UserNavigationBar />
       <div className='settings-body'>
         <DashboardHeader />
 
@@ -210,11 +228,14 @@ function SettingsPage() {
           <input placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} />
           <input placeholder='Contact Number' value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} />
           <input placeholder='Gender' value={gender} onChange={(e) => setGender(e.target.value)} />
-          <input placeholder='Years of Service' value={yearsOfService} onChange={(e) => setYearsOfService(e.target.value)} />
-          <input placeholder='Educational Attainment' value={educationalAttainment} onChange={(e) => setEducationalAttainment(e.target.value)} />
           <textarea placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} />
-          <input placeholder='Designation' value={designation} onChange={(e) => setDesignation(e.target.value)} />
           <input placeholder='Address' value={address} onChange={(e) => setAddress(e.target.value)} />
+          <input placeholder='Course' value={course} onChange={(e) => setCourse(e.target.value)} />
+          <input placeholder='Section' value={section} onChange={(e) => setSection(e.target.value)} />
+          <input placeholder='Year Level' value={yearLevel} onChange={(e) => setYearLevel(e.target.value)} />
+          <label>Birthdate:</label>
+          <input type='date' value={birthdate} onChange={(e) => setBirthdate(e.target.value)} />
+
 
           <button onClick={handleUpdate}>Save Changes</button>
         </div>
@@ -223,4 +244,4 @@ function SettingsPage() {
   );
 }
 
-export default SettingsPage;
+export default UserSettingsPage;

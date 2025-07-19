@@ -63,18 +63,17 @@
 
 .lost-item-table th {
   color: black;             
-  padding: 30px 30px;       
+  padding: 16px 30px;       
   text-align: center;         
   font-weight: bold;       
-  font-size: 12px;
-  height: 10px;       
+  font-size: 12px;       
 }
 
 .lost-item-table thead {
   background-color: #9EBAD6;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
-  height: 20px;
+  height: 50px;
   width: 100%;
 }
 
@@ -91,9 +90,8 @@
   font-size: 12px;
   justify-items: center;
   justify-content: center;
-  text-align: center; 
+  text-align: center;          
 }
-
 
 
 .body-row:hover {
@@ -152,7 +150,7 @@
     position: absolute;
     top: 8%;
     left: 65%;
-    width: 500px;
+    width: 540px;
     height: 40px;
     padding: 5px;
     justify-items: center;
@@ -175,7 +173,6 @@
 .lost-item-table th:nth-child(1),
 .lost-item-table td:nth-child(1) {
     width: 9%;
-    text-wrap: wrap;
 }
 
 .lost-item-table th:nth-child(2),
@@ -213,4 +210,3 @@
 .lost-item-table td:nth-child(8) {
     width: 14%;
 }
-

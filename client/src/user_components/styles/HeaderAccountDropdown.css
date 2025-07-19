@@ -1,0 +1,64 @@
+.account-dropdown-body {
+    margin-top: 40px;
+    padding-left: 10px;
+    border-radius: 10px;
+    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.25);
+    background-color: #ffffff;
+    width: 140px;
+    height: 200px;
+    align-content: center;
+}
+
+.account-dropdown-body p {
+    color: black;
+}
+
+.account-dropdown-row {
+    padding: 5px;
+    gap: 5px;
+    font-size: 12px;
+    justify-items: center;
+    align-content: center;
+    align-items: center;
+    text-align: center;
+    display: flex;
+    width: 90%;
+    height: 30px;
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.account-dropdown-row p{
+    margin-top: 10px;
+}
+
+.account-dropdown-row:hover {
+    background-color: #dee9f0;
+}
+
+.line {
+    width: 90%;
+    height: 1px;
+}
+
+.profiles-body {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    width: 90%;
+    height: 40px;
+    align-items: center;
+}
+
+.profiles-pic {
+    border-radius: 40px;
+    width: 30px;
+    height: 30px;
+}
+
+.profiles-body p {
+    margin: 10px;
+    display: flex;
+    font-size: .7rem;
+    font-weight: bold;
+}

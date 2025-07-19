@@ -1,14 +1,15 @@
 import React, { useRef, useState, useEffect, use } from 'react'
-import './styles/ProfilePage.css'
-import { useAuth } from '../context/AuthContext';
+import './styles/UserProfilePage.css'
+import { useAuth } from '../context/AuthContext.jsx';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase.jsx';
 import { getAuth } from 'firebase/auth';
 import NavigationBar from '../components/NavigationBar.jsx'
 import BlankHeader from '../components/BlankHeader.jsx'
 import { useNavigate } from 'react-router-dom';
+import UserNavigationBar from '../user_components/UserNavigationBar.jsx';
 
-function ProfilePage() {
+function UserProfilePage() {
   const {currentUser} = useAuth();
   const [profileURL, setProfileURL] = useState(localStorage.getItem('profileURL') || '');
   const [coverURL, setCoverURL] = useState(localStorage.getItem('coverURL') || '');
@@ -99,7 +100,7 @@ function ProfilePage() {
 
   return (
     <>
-    <NavigationBar />
+    <UserNavigationBar />
     <div className='profile-body'>
       <BlankHeader />
       <div className='profile-container'>
@@ -137,7 +138,7 @@ function ProfilePage() {
             <h4 style={{fontStyle: 'italic', fontWeight: '100'}}>{role.charAt(0).toUpperCase() + role.slice(1)}</h4>
             
           </div>
-          <div className={`profile-quick-action ${location.pathname === `/admin/settings/${user?.uid}` ? 'active' : ''}`} onClick={() => handleEdit(`/admin/settings/${user?.uid}`)}>
+          <div className={`profile-quick-action ${location.pathname === `/users/settings/${user?.uid}` ? 'active' : ''}`} onClick={() => handleEdit(`/users/settings/${user?.uid}`)}>
               <button>Change Password</button>
               <button>Edit Profile</button>
           </div>
@@ -162,4 +163,4 @@ function ProfilePage() {
   )
 }
 
-export default ProfilePage
+export default UserProfilePage
