@@ -1,10 +1,10 @@
 .nav-body {
     display: block;
     width: 80px;
-    height: 728px;
+    height: 745px;
     transition: width 0.3s ease;
     background-color: white;
-    position: absolute;
+    position: fixed;
     justify-items: center;
     z-index: 1000;
 }

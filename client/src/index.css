@@ -1,8 +1,8 @@
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-
+  width: 1400px;
   font-weight: 400;
-
+  overflow-x: hidden;
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;

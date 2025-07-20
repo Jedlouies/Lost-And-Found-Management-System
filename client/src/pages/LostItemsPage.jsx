@@ -9,12 +9,12 @@ import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
 function LostItemsPage() {
-  const [items, setItems] = useState([]); // Firestore data
+  const [items, setItems] = useState([]); 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const itemsPerPage = 6;
 
-  // Fetch data from Firestore
+
   useEffect(() => {
     const fetchLostItems = async () => {
       try {
@@ -31,7 +31,7 @@ function LostItemsPage() {
     fetchLostItems();
   }, []);
 
-  // Filter items by search query
+
   const filteredItems = items.filter(item =>
     item.itemName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
