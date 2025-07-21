@@ -18,7 +18,9 @@ import UserFoundItemsPage from "./user_pages/UserFoundItemsPage";
 import UserProfilePage from "./user_pages/UserProfilePage";
 import UserSettingsPage from "./user_pages/UserSettingsPage";
 import UserLostItemDetailPage from "./user_pages/UserLostItemDetailPage";
+import UserFoundItemDetailPage from "./user_pages/UserFoundItemDetailPage";
 import UserLostProcedurePage from "./user_pages/UserLostProcedurePage";
+import UserFoundProcedurePage from "./user_pages/UserFoundProcedurePage";
 
 
 function App() {
@@ -186,6 +188,26 @@ function App() {
             element={
               currentUser ? (
                 <UserLostItemDetailPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/users/found-items/procedure/:uid"
+            element={
+              currentUser ? (
+                <UserFoundProcedurePage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/users/found-items/procedure/item-details/:uid"
+            element={
+              currentUser ? (
+                <UserFoundItemDetailPage />
               ) : (
                <></>
               )

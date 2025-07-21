@@ -3,7 +3,7 @@
     top: 7%;
     background-color: #D9D9D9;
     width: 1455px;
-    height: 1400px;
+    height: 1200px;
     margin-left: 80px;
 }
 
@@ -140,24 +140,32 @@
 
 .home-lost-container {
     position: relative;
-    left: 1%;
     display: flex;
     flex-direction: row;
+    padding: 15px;
     gap: 20px;
     width: 100%;
-    height: 400px;
+    height: 420px;
     top: 20%;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
 }
 
 .home-found-container {
     position: relative;
-    background-color: blueviolet;
+    display: flex;
+    flex-direction: row;
+    padding: 15px;
+    gap: 20px;
     width: 100%;
-    height: 400px;
+    height: 420px;
     top: 29%;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
 }
 
 .lost-item-card {
+    transition: all ease-in-out 0.5s;
     width: 300px;
     background-color: #cbcbcb;
     text-align: center;
@@ -195,5 +203,25 @@
     text-align: left;
     color: black;
     font-style: italic;
+    transition: all ease-in-out 0.5s;
 }
 
+.lost-item-card:hover {
+    scale: 1.05;
+    transition: all ease-in-out 0.5s;
+}
+
+.more-details-button:hover {
+    color: #859db5;
+}
+
+.more-details-button svg:hover {
+    color: #859db5;
+}
+
+
+.card-more-details {
+    position: relative;
+    left: -60%;
+    top: 80%;
+}

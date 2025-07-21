@@ -95,7 +95,6 @@ function LostItemsPage() {
             </div>
 
 
-          {/* Table */}
           <div>
             <table className='lost-item-table'>
               <thead>
@@ -163,7 +162,6 @@ function LostItemsPage() {
                           </svg>
                         )}
 
-                        {/* Dropdown with 3 dots */}
                         <Dropdown style={{ position: 'absolute', top: 25, right: 10 }}>
                           <Dropdown.Toggle
                             as="div"
@@ -184,8 +182,6 @@ function LostItemsPage() {
                             <Dropdown.Item onClick={() => console.log(`Archive ${item.id}`)}>Archive</Dropdown.Item>
                           </Dropdown.Menu>
                         </Dropdown>
-
-                        {/* Visible 3-dots icon */}
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           width="25"

@@ -1,49 +1,80 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import UserNavigationBar from '../user_components/UserNavigationBar'
 import './styles/HomePage.css'
 import HomeHeader from '../user_components/HomeHeader'
-import ClaimedLostFoundChart from '../components/ClaimedLostFoundChart'
-import WeeklyUsersCard from '../components/WeeklyUsersCard'
-import FeedBackChart from '../components/FeedBackChart'
 import UserAddInfoPanel from '../user_components/UserAddInfoPanel'
-import { collection, doc, getDocs } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
-
-
 
 function HomePage() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [isPanelVisible, setIsPanelVisible] = useState(false);
   const { currentUser } = useAuth();
   const [userData, setUserData] = useState(null);
-  const [items, setItems] = useState([]);
+  const [lostItems, setLostItems] = useState([]);
+  const [foundItems, setFoundItems] = useState([]);
+  const lostContainerRef = useRef(null);
+  const foundContainerRef = useRef(null);
 
-
+  // Fetch Lost and Found Items
   useEffect(() => {
-    const fetchLostItems = async () => {
+    const fetchItems = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, 'lostItems'));
-        const lostItems = querySnapshot.docs.map(doc => ({
+        // Fetch Lost Items
+        const lostSnapshot = await getDocs(collection(db, 'lostItems'));
+        const lostData = lostSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
         }));
-        setItems(lostItems);
+        setLostItems(lostData);
+
+        // Fetch Found Items
+        const foundSnapshot = await getDocs(collection(db, 'foundItems'));
+        const foundData = foundSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setFoundItems(foundData);
+
       } catch (error) {
-        console.error("Error fetching lost items:", error);
+        console.error("Error fetching items:", error);
       }
     };
-    fetchLostItems();
+
+    fetchItems();
   }, []);
 
+  // Live Date & Time
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentDateTime(new Date());
     }, 1000);
-
     return () => clearInterval(interval);
   }, []);
 
+  // Add horizontal scroll on wheel
+  useEffect(() => {
+    const addHorizontalScroll = (container) => {
+      if (!container) return;
+      const handleWheel = (e) => {
+        e.preventDefault();
+        container.scrollLeft += e.deltaY;
+      };
+      container.addEventListener("wheel", handleWheel, { passive: false });
+      return () => container.removeEventListener("wheel", handleWheel);
+    };
+
+    const lostCleanup = addHorizontalScroll(lostContainerRef.current);
+    const foundCleanup = addHorizontalScroll(foundContainerRef.current);
+
+    return () => {
+      if (lostCleanup) lostCleanup();
+      if (foundCleanup) foundCleanup();
+    };
+  }, []);
+
+  // Fetch current user data
   useEffect(() => {
     const fetchData = async () => {
       if (!currentUser) return;
@@ -52,11 +83,11 @@ function HomePage() {
         setUserData(userDoc.data());
       }
     };
-
     fetchData();
   }, [currentUser]);
 
-    const formattedDate = currentDateTime.toLocaleDateString('en-PH', {
+  // Date & Time Formatting
+  const formattedDate = currentDateTime.toLocaleDateString('en-PH', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -70,90 +101,105 @@ function HomePage() {
     hour12: true
   });
 
-   const hasEmptyFields = userData
+  // Check if user data has empty fields
+  const hasEmptyFields = userData
     ? Object.values(userData).some((value) => value === "")
     : false;
 
-  
-    useEffect(() => {
-  if (hasEmptyFields) {
+  useEffect(() => {
+    if (hasEmptyFields) {
+      const timeout = setTimeout(() => {
+        setIsPanelVisible(true);
+      }, 100);
+      return () => clearTimeout(timeout);
+    } else {
+      setIsPanelVisible(false);
+    }
+  }, [hasEmptyFields]);
 
-    const timeout = setTimeout(() => {
-      setIsPanelVisible(true);
-    }, 100);
-    return () => clearTimeout(timeout);
-  } else {
-    setIsPanelVisible(false);
-  }
-}, [hasEmptyFields]);
+  // Sort Lost and Found Items
+  const recentLostItems = [...lostItems]
+    .sort((a, b) => new Date(b.dateLost) - new Date(a.dateLost))
+    .slice(0, 20);
 
-const recentItems = [...items]
-.sort((a,b) => new Date(b.dateLost) - new Date(a.dateLost))
-.slice(0, 20);
-
+  const recentFoundItems = [...foundItems]
+    .sort((a, b) => new Date(b.dateFound) - new Date(a.dateFound))
+    .slice(0, 20);
 
   return (
     <>
       <UserNavigationBar />
-    <div className='home-body'>
-       <div className='nav'>
-        <HomeHeader />
-       </div>
-       <div className='add-info'>
-            {hasEmptyFields && (
-      <div className={`add-info-panel ${isPanelVisible ? 'show' : ''}`}>
-        <UserAddInfoPanel />
-      </div>
-    )}
+      <div className='home-body'>
+        <div className='nav'>
+          <HomeHeader />
+        </div>
 
-      </div>
+        {/* Add Info Panel */}
+        <div className='add-info'>
+          {hasEmptyFields && (
+            <div className={`add-info-panel ${isPanelVisible ? 'show' : ''}`}>
+              <UserAddInfoPanel />
+            </div>
+          )}
+        </div>
 
         <div className='home-container'>
-            <h1>Home</h1>   
+          <h1>Home</h1>
         </div>
+
+        {/* Banner */}
         <div className='banner'>
-            <img src="/landing-page-img.png" alt="img" />
-            <h1>Welcome to SpotSync!</h1>
-            <h5>{formattedDate}</h5>
-            <strong>{formattedTime}</strong>
+          <img src="/landing-page-img.png" alt="img" />
+          <h1>Welcome to SpotSync!</h1>
+          <h5>{formattedDate}</h5>
+          <strong>{formattedTime}</strong>
         </div>
-        <h1 style={{fontSize: '30px', alignItems: 'center', top: '15%', fontWeight: '500'}}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-bag-x" viewBox="0 0 16 16" style={{marginRight: '10px'}}>
-            <path fill-rule="evenodd" d="M6.146 8.146a.5.5 0 0 1 .708 0L8 9.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 10l1.147 1.146a.5.5 0 0 1-.708.708L8 10.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 10 6.146 8.854a.5.5 0 0 1 0-.708"/>
-            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
-          </svg>
+
+        <h1 style={{ fontSize: '30px', alignItems: 'center', top: '15%', fontWeight: '500' }}>
           Lost Items
         </h1>
-        <div className="home-lost-container">
-          {recentItems.length > 0 ? (
-            recentItems.map((items, index) => (
+        <h4 style={{ position: 'absolute', top: '15%', left: '90%', color: '#475C6F', cursor: 'pointer' }}>More</h4>
+        <div className="home-lost-container" ref={lostContainerRef}>
+          {recentLostItems.length > 0 ? (
+            recentLostItems.map((item, index) => (
               <div className="lost-item-card" key={index}>
                 <div className="lost-card-image">
-                  {items.images && items.images.length > 0 ? (
-                    <img src={items.images[0]} alt={items.itemName} 
-                    style={{
-                      width: '300px',
-                      height: '200px',
-                      objectFit: 'cover'
-                    }}
+                  {item.images && item.images.length > 0 ? (
+                    <img
+                      src={item.images[0]}
+                      alt='img'
+                      style={{ width: '300px', height: '200px', objectFit: 'cover' }}
                     />
                   ) : (
                     <div className="placeholder-image">No Image</div>
                   )}
                 </div>
                 <div className="card-details">
-                  <h4>{items.itemName}</h4>
+                  <h4>{item.itemName}</h4>
                   <div className='own'>
-                    <img src={items.personalInfo?.profileURL} alt="" style={{width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover'}}/>
-                    <p> <strong>{items.personalInfo?.firstName} {items.personalInfo?.lastName}</strong> <br />
-                      {items.personalInfo?.course} Student
-                    </p>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-quote" viewBox="0 0 16 16" style={{position: 'absolute', top: '75%'}}>
-                      <path d="M12 12a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1h-1.388q0-.527.062-1.054.093-.558.31-.992t.559-.683q.34-.279.868-.279V3q-.868 0-1.52.372a3.3 3.3 0 0 0-1.085.992 4.9 4.9 0 0 0-.62 1.458A7.7 7.7 0 0 0 9 7.558V11a1 1 0 0 0 1 1zm-6 0a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1H4.612q0-.527.062-1.054.094-.558.31-.992.217-.434.559-.683.34-.279.868-.279V3q-.868 0-1.52.372a3.3 3.3 0 0 0-1.085.992 4.9 4.9 0 0 0-.62 1.458A7.7 7.7 0 0 0 3 7.558V11a1 1 0 0 0 1 1z"/>
-                    </svg>
+                    <img
+                      src={item.personalInfo?.profileURL}
+                      alt=""
+                      style={{ width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover' }}
+                    />
                     <p>
-                      {items.personalInfo?.howItLost}
+                      <strong>{item.personalInfo?.firstName} {item.personalInfo?.lastName}</strong><br />
+                      {item.personalInfo?.course} Student
                     </p>
+                    <div className='card-more-details'>
+                      <p style={{ position: 'absolute', top: '100%', marginLeft: '50px', width: '200px', fontSize: '12px' }}>
+                        {item.howItemLost && item.howItemLost.length > 120
+                          ? item.howItemLost.slice(0, 120) + "..."
+                          : item.howItemLost}
+                      </p>
+                      <p className='more-details-button' style={{ fontStyle: 'normal', fontWeight: 'bold', position: 'absolute', top: '200%', marginLeft: '170px', fontSize: '12px', cursor: 'pointer', width: '200px' }}>
+                        More Details
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16" style={{ marginLeft: '10px' }}>
+                          <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
+                        </svg>
+
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -162,21 +208,61 @@ const recentItems = [...items]
             <p>No recent lost items found.</p>
           )}
         </div>
-        <h1 style={{fontSize: '30px', alignItems: 'center', top: '52%', fontWeight: '500'}}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-bag-x" viewBox="0 0 16 16" style={{marginRight: '10px'}}>
-            <path fill-rule="evenodd" d="M6.146 8.146a.5.5 0 0 1 .708 0L8 9.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 10l1.147 1.146a.5.5 0 0 1-.708.708L8 10.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 10 6.146 8.854a.5.5 0 0 1 0-.708"/>
-            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
-          </svg>
+        <h1 style={{ fontSize: '30px', alignItems: 'center', top: '57%', fontWeight: '500' }}>
           Found Items
         </h1>
-         <div className='home-found-container'>
-
+        <h4 style={{ position: 'absolute', top: '57%', left: '90%', color: '#475C6F', cursor: 'pointer' }}>More</h4>
+        <div className="home-found-container" ref={foundContainerRef}>
+          {recentFoundItems.length > 0 ? (
+            recentFoundItems.map((item, index) => (
+              <div className="lost-item-card" key={index}>
+                <div className="lost-card-image">
+                  {item.images && item.images.length > 0 ? (
+                    <img
+                      src={item.images[0]}
+                      alt='img'
+                      style={{ width: '300px', height: '200px', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <div className="placeholder-image">No Image</div>
+                  )}
+                </div>
+                <div className="card-details">
+                  <h4>{item.itemName}</h4>
+                  <div className='own'>
+                    <img
+                      src={item.personalInfo?.profileURL}
+                      alt=""
+                      style={{ width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover' }}
+                    />
+                    <p>
+                      <strong>{item.personalInfo?.firstName} {item.personalInfo?.lastName}</strong><br />
+                      {item.personalInfo?.course} Student
+                    </p>
+                    <div className='card-more-details'>
+                      <p style={{ position: 'absolute', top: '100%', marginLeft: '50px', width: '200px', fontSize: '12px' }}>
+                        {item.howItemFound && item.howItemFound.length > 120
+                          ? item.howItemFound.slice(0, 120) + "..."
+                          : item.howItemFound || "No description provided"}
+                      </p>
+                      <p className='more-details-button' style={{ fontStyle: 'normal', fontWeight: 'bold', position: 'absolute', top: '200%', marginLeft: '170px', fontSize: '12px', cursor: 'pointer', width: '200px', justifyContent: 'center' }}>
+                        More Details
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16" style={{ marginLeft: '10px' }}>
+                          <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
+                        </svg>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>No recent found items found.</p>
+          )}
         </div>
-        
-    </div>
-
+      </div>
     </>
   )
 }
 
-export default HomePage
+export default HomePage;
