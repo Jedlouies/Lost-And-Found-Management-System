@@ -21,6 +21,8 @@ import UserLostItemDetailPage from "./user_pages/UserLostItemDetailPage";
 import UserFoundItemDetailPage from "./user_pages/UserFoundItemDetailPage";
 import UserLostProcedurePage from "./user_pages/UserLostProcedurePage";
 import UserFoundProcedurePage from "./user_pages/UserFoundProcedurePage";
+import MatchItems from "./user_pages/MatchItems";
+import FoundMatchResults from "./user_pages/FoundMatchResults";
 
 
 function App() {
@@ -208,6 +210,26 @@ function App() {
             element={
               currentUser ? (
                 <UserFoundItemDetailPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/users/lost-items/ai-matching/:uid"
+            element={
+              currentUser ? (
+                <MatchItems />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/users/found-items/matching/:uid"
+            element={
+              currentUser ? (
+                <FoundMatchResults />
               ) : (
                <></>
               )

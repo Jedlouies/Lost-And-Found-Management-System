@@ -1,4 +1,4 @@
-.user-lost-procedure-body {
+.user-found-procedure-body {
     position: absolute;
     top: 9%;
     left: 6%;
@@ -11,22 +11,48 @@
     box-shadow: 0px 2px 5px rgb(0, 0, 0, 0.7);
 }
 
-.user-lost-procedure-body h1 {
+.user-found-procedure-body h1 {
     font-weight: bold;
     font-size: 20px;
     font-weight: 1000;
     color: #475C6F;
 }
 
+.found-item-form input, 
+.found-item-form label{
+    margin-bottom: 15px;
+    margin-left: 20px;
+    width: 100px;
+    color: #475C6F;
+}
 
+.found-item-form textarea {
+    background-color: transparent;
+    border-radius: 10px;
+    width: 1000px;
+    height: 160px;
+    margin-left: 20px;
+    resize: none;
+    border: 2px solid #475C6F;
+}
 
-.user-lost-procedure-body svg {
+.found-item-form input {
+    background-color: transparent;
+    border-radius: 10px;
+}
+
+.found-item-form input::placeholder {
+    color: #475C6F;
+    opacity: 50%;
+}
+
+.user-found-procedure-body svg {
     position: absolute;
     top: 7%;
     left: 3%;
 }
 
-.user-lost-procedure-body p {
+.user-found-procedure-body p {
     position: absolute;
     font-size: 20px;
     top: 25%;
@@ -34,7 +60,7 @@
     color: black;
 }
 
-.user-lost-procedure-body button{
+.user-found-procedure-body button{
     position: absolute;
     top: 85%;
     left: 40%;
@@ -44,7 +70,7 @@
     height: 40px;
 }
 
-.user-lost-procedure-body button:hover{
+.user-found-procedure-body button:hover{
     background-color: #CFE5F9;
     color: black;
 }

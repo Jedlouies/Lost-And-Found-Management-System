@@ -3,11 +3,12 @@ import './styles/UserFoundItemDetailPage.css';
 import UserFoundItemsPage from './UserFoundItemsPage';
 import { db } from '../firebase'; 
 import { addDoc, collection, doc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { useAuth } from '../context/AuthContext'; 
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom'; 
 
 function UserFoundItemDetailPage() {
   const { currentUser } = useAuth();
-
+  const navigate = useNavigate();
 
   const [itemName, setItemName] = useState('');
   const [dateFound, setDateFound] = useState('');
@@ -60,6 +61,7 @@ useEffect(() => {
       setYearLevel(userData.yearLevel || '');
       setBirthdate(userData.birthdate || '');
 
+
       setFounder(`${userData.firstName || ''} ${userData.lastName || ''}`);
     }
   };
@@ -72,7 +74,7 @@ useEffect(() => {
   };
 
 
-  const uploadLostItemImage = async (file, folder) => {
+  const uploadFoundItemImage = async (file, folder) => {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('upload_preset', 'found-items'); 
@@ -89,117 +91,122 @@ useEffect(() => {
   };
 
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     if (!currentUser) return alert('You must be logged in to submit a report.');
 
     setIsSubmitting(true);
     try {
       const imageURLs = [];
-
       if (images && images.length > 0) {
         for (let i = 0; i < images.length; i++) {
-          const url = await uploadLostItemImage(images[i], `found-items/${currentUser.uid}`);
+          const url = await uploadFoundItemImage(images[i], `found-items/${currentUser.uid}`);
           imageURLs.push(url);
         }
       }
 
-    
-    await addDoc(collection(db, 'foundItems'), {
-      uid: currentUser.uid,
-      images: imageURLs,
-      itemName,
-      dateFound,
-      locationFound,
-      founder,
-      owner,
-      claimStatus,
-      category,
-      itemDescription,
-      howItemFound,
-      personalInfo: {
-        firstName,
-        middleName,
-        lastName,
-        email,
-        contactNumber,
-        address,
-        profileURL,
-        coverURL,
-        course,
-        section,
-        yearLevel,
-        birthdate,
-      },
-      createdAt: serverTimestamp(),
-    });
+      // Add found item to Firestore
+      const docRef = await addDoc(collection(db, 'foundItems'), {
+        uid: currentUser.uid,
+        images: imageURLs,
+        itemName,
+        dateFound,
+        locationFound,
+        founder,
+        owner,
+        claimStatus,
+        category,
+        itemDescription,
+        howItemFound,
+        personalInfo: {
+          firstName,
+          middleName,
+          lastName,
+          email,
+          contactNumber,
+          address,
+          profileURL,
+          coverURL,
+          course,
+          section,
+          yearLevel,
+          birthdate,
+        },
+        createdAt: serverTimestamp(),
+      });
 
       alert('Found item report submitted successfully!');
 
+      // Trigger matching process
+      const matchResponse = await fetch("http://localhost:4000/api/match/found-to-lost", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uidFound: docRef.id }),
+      });
 
-      setItemName('');
-      setDateFound('');
-      setLocationFound('');
-      setCategory('');
-      setItemDescription('');
-      setHowItemFound('');
-      setImages(null);
+      if (!matchResponse.ok) throw new Error("Matching failed");
+      const matches = await matchResponse.json();
+
+      // Redirect to MatchItems page with match results
+      navigate(`/users/found-items/matching/${currentUser.uid}`, { state: { matches } });
+
     } catch (error) {
       console.error(error);
-      alert('Failed to submit lost item report.');
+      alert('Failed to submit found item report.');
     }
     setIsSubmitting(false);
   };
-
+  
   return (
     <>
       <UserFoundItemsPage />
-      <div className="user-lost-procedure-body">
+      <div className="user-found-procedure-body">
+        <p style={{position: 'absolute', fontSize: '15px', left: '82%', top: '5%', width: '200px'}}>
+          <strong>NOTE: </strong>
+          To achieve a more successful matching process, 
+          it is essential to provide accurate and complete 
+          data. Precise information minimizes errors and 
+          ensures that the system can generate the most 
+          relevant and reliable results. 
+          Incomplete or incorrect details can lead to 
+          mismatches, reducing the overall effectiveness 
+          of the process. Therefore, supplying exact data 
+          and information significantly enhances the 
+          accuracy and success of the matching outcome.
+        </p>
         <h1>Report Found Form</h1>
-        <form className="lost-item-form" onSubmit={handleSubmit}>
+        <form className="found-item-form" onSubmit={handleSubmit}>
    
           <label>Item Images:</label>
-          <input type="file" multiple accept="image/*" onChange={handleImageChange} />
+          <input type="file" multiple accept="image/*" onChange={handleImageChange} style={{width: '1000px', border: '2px solid #475C6F'}} required/>
 
+          <br />
           <label>Item Name:</label>
-          <input type="text" value={itemName} onChange={(e) => setItemName(e.target.value)} required />
+          <input type="text" value={itemName} placeholder='e.g Nike Cap' onChange={(e) => setItemName(e.target.value)} style={{width: '1000px'}} required />
+          <br />
 
           <label>Date Found:</label>
-          <input type="date" value={dateFound} onChange={(e) => setDateFound(e.target.value)} required />
+          <input type="date" value={dateFound} onChange={(e) => setDateFound(e.target.value)} style={{width: '200px'}} required />
 
           <label>Location Found:</label>
-          <input type="text" value={locationFound} onChange={(e) => setLocationFound(e.target.value)} required />
+          <input type="text" value={locationFound} placeholder=' e.g Building 42 - CEA Complex' onChange={(e) => setLocationFound(e.target.value)} style={{width: '400px'}} required />
 
           <label>Category:</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} required>
+          <select value={category} onChange={(e) => setCategory(e.target.value)} style={{width: '140px', borderRadius: '10px', backgroundColor: 'transparent', border: '2px solid #475C6F', color: '#475C6F'}} required>
             <option value="">Select Category</option>
             <option value="Electronics">Electronics</option>
             <option value="Documents">Documents</option>
             <option value="Accessories">Accessories</option>
             <option value="Others">Others</option>
           </select>
-
+          <br />
           <label>Item Description:</label>
-          <textarea value={itemDescription} onChange={(e) => setItemDescription(e.target.value)} required />
-
+          <textarea value={itemDescription} onChange={(e) => setItemDescription(e.target.value)} style={{color: '#475C6F'}} required />
+          <br />
           <label>How Item Was Found:</label>
-          <textarea value={howItemFound} onChange={(e) => setHowItemFound(e.target.value)} required />
+          <textarea value={howItemFound} onChange={(e) => setHowItemFound(e.target.value)} style={{color: '#475C6F'}} required />
 
 
-          <label>Founder:</label>
-          <input type="text" value={founder} readOnly />
-
-
-          <label>Owner:</label>
-          <input type="text" value={owner} readOnly />
-
-
-          <label>Claim Status:</label>
-          <select value={claimStatus} onChange={(e) => setClaimStatus(e.target.value)}>
-            <option value="unclaimed">Unclaimed</option>
-            <option value="claimed">Claimed</option>
-            <option value="pending">Pending</option>
-          </select>
 
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Submitting...' : 'Submit Report'}
@@ -210,4 +217,4 @@ useEffect(() => {
   );
 }
 
-export default UserFoundItemDetailPage;
+export default UserFoundItemDetailPage; 

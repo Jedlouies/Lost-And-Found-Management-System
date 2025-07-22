@@ -1,0 +1,20 @@
+.p-6 {
+    position: absolute;
+    top: 8%;
+    left: 8%;
+    display: flex;
+}
+
+.matching-results {
+    font-size: 10px;
+    line-height: 0px;
+    position: absolute;
+    top: 23%;
+    margin-left: 100px;
+}
+
+.owner-info {
+    line-height: 0px;
+    margin-top: 10px;
+    color: black;
+}

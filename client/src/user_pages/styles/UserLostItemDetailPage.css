@@ -18,7 +18,33 @@
     color: #475C6F;
 }
 
+.lost-item-form input, 
+.lost-item-form label{
+    margin-bottom: 15px;
+    margin-left: 20px;
+    width: 100px;
+    color: #475C6F;
+}
 
+.lost-item-form textarea {
+    background-color: transparent;
+    border-radius: 10px;
+    width: 1000px;
+    height: 160px;
+    margin-left: 20px;
+    resize: none;
+    border: 2px solid #475C6F;
+}
+
+.lost-item-form input {
+    background-color: transparent;
+    border-radius: 10px;
+}
+
+.lost-item-form input::placeholder {
+    color: #475C6F;
+    opacity: 50%;
+}
 
 .user-lost-procedure-body svg {
     position: absolute;

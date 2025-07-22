@@ -156,51 +156,52 @@ useEffect(() => {
     <>
       <UserLostItemsPage />
       <div className="user-lost-procedure-body">
+        <p style={{position: 'absolute', fontSize: '15px', left: '82%', top: '5%', width: '200px'}}>
+          <strong>NOTE: </strong>
+          To achieve a more successful matching process, 
+          it is essential to provide accurate and complete 
+          data. Precise information minimizes errors and 
+          ensures that the system can generate the most 
+          relevant and reliable results. 
+          Incomplete or incorrect details can lead to 
+          mismatches, reducing the overall effectiveness 
+          of the process. Therefore, supplying exact data 
+          and information significantly enhances the 
+          accuracy and success of the matching outcome.
+        </p>
         <h1>Report Lost Form</h1>
         <form className="lost-item-form" onSubmit={handleSubmit}>
    
           <label>Item Images:</label>
-          <input type="file" multiple accept="image/*" onChange={handleImageChange} />
+          <input type="file" multiple accept="image/*" onChange={handleImageChange} style={{width: '1000px', border: '2px solid #475C6F'}} required/>
 
+          <br />
           <label>Item Name:</label>
-          <input type="text" value={itemName} onChange={(e) => setItemName(e.target.value)} required />
+          <input type="text" value={itemName} placeholder='e.g Nike Cap' onChange={(e) => setItemName(e.target.value)} style={{width: '1000px'}} required />
+          <br />
 
           <label>Date Lost:</label>
-          <input type="date" value={dateLost} onChange={(e) => setDateLost(e.target.value)} required />
+          <input type="date" value={dateLost} onChange={(e) => setDateLost(e.target.value)} style={{width: '200px'}} required />
 
           <label>Location Lost:</label>
-          <input type="text" value={locationLost} onChange={(e) => setLocationLost(e.target.value)} required />
+          <input type="text" value={locationLost} placeholder=' e.g Building 42 - CEA Complex' onChange={(e) => setLocationLost(e.target.value)} style={{width: '400px'}} required />
 
           <label>Category:</label>
-          <select value={category} onChange={(e) => setCategory(e.target.value)} required>
+          <select value={category} onChange={(e) => setCategory(e.target.value)} style={{width: '140px', borderRadius: '10px', backgroundColor: 'transparent', border: '2px solid #475C6F', color: '#475C6F'}} required>
             <option value="">Select Category</option>
             <option value="Electronics">Electronics</option>
             <option value="Documents">Documents</option>
             <option value="Accessories">Accessories</option>
             <option value="Others">Others</option>
           </select>
-
+          <br />
           <label>Item Description:</label>
-          <textarea value={itemDescription} onChange={(e) => setItemDescription(e.target.value)} required />
-
+          <textarea value={itemDescription} onChange={(e) => setItemDescription(e.target.value)} style={{color: '#475C6F'}} required />
+          <br />
           <label>How Item Was Lost:</label>
-          <textarea value={howItemLost} onChange={(e) => setHowItemLost(e.target.value)} required />
+          <textarea value={howItemLost} onChange={(e) => setHowItemLost(e.target.value)} style={{color: '#475C6F'}} required />
 
 
-          <label>Founder:</label>
-          <input type="text" value={founder} readOnly />
-
-
-          <label>Owner:</label>
-          <input type="text" value={owner} readOnly />
-
-
-          <label>Claim Status:</label>
-          <select value={claimStatus} onChange={(e) => setClaimStatus(e.target.value)}>
-            <option value="unclaimed">Unclaimed</option>
-            <option value="claimed">Claimed</option>
-            <option value="pending">Pending</option>
-          </select>
 
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Submitting...' : 'Submit Report'}
