@@ -1,4 +1,4 @@
-.lost-item-body {
+.lost2-item-body {
     position: absolute;
     top: 7%;
     background-color: #D9D9D9;
@@ -8,7 +8,7 @@
 }
 
 
-.lost-item-body h1 {
+.lost2-item-body h1 {
     color: #475C6F;
     position: absolute;
     top: 1%;
@@ -21,6 +21,29 @@
     padding: 10px;
     width: 1455px;
     height: 610px;
+}
+
+.page-lost-container {
+    top: 10%;
+    position: absolute;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 15px;
+    gap: 20px;
+    width: 1400px;
+    height: 630px;
+    top: 15%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+
+    scrollbar-width: none;
+}
+
+.found-item-card img {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    width: inherit;
 }
 
 .searchBar input {
@@ -82,6 +105,16 @@
   background-color: transparent;
   height: 50px;
   width: 100%;
+}
+
+.found-item-card {
+    transition: all ease-in-out 0.5s;
+    width: 300px;
+    height: 400px;
+    background-color: #cbcbcb;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0px 2px 5px rgb(0, 0, 0, 0.5);
 }
 
 .lost-item-table td {

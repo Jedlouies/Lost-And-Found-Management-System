@@ -23,6 +23,7 @@ import UserLostProcedurePage from "./user_pages/UserLostProcedurePage";
 import UserFoundProcedurePage from "./user_pages/UserFoundProcedurePage";
 import MatchItems from "./user_pages/MatchItems";
 import FoundMatchResults from "./user_pages/FoundMatchResults";
+import LostMatchResults from "./user_pages/LostMatchResults";
 
 
 function App() {
@@ -230,6 +231,16 @@ function App() {
             element={
               currentUser ? (
                 <FoundMatchResults />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/users/lost-items/matching/:uid"
+            element={
+              currentUser ? (
+                <LostMatchResults />
               ) : (
                <></>
               )

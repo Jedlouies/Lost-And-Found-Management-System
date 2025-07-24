@@ -39,6 +39,8 @@ function UserFoundItemDetailPage() {
   const [address, setAddress] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMatching, setIsMatching] = useState(false);
+
 
 
 useEffect(() => {
@@ -135,9 +137,9 @@ const handleSubmit = async (e) => {
         createdAt: serverTimestamp(),
       });
 
-      alert('Found item report submitted successfully!');
+      setIsMatching(true);
 
-      // Trigger matching process
+      
       const matchResponse = await fetch("http://localhost:4000/api/match/found-to-lost", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -155,6 +157,7 @@ const handleSubmit = async (e) => {
       alert('Failed to submit found item report.');
     }
     setIsSubmitting(false);
+    setIsMatching(false);
   };
   
   return (
@@ -208,8 +211,8 @@ const handleSubmit = async (e) => {
 
 
 
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Submitting...' : 'Submit Report'}
+          <button type="submit" disabled={isSubmitting || isMatching}>
+            {isMatching ? 'Matching Items...' : isSubmitting ? 'Submitting...' : 'Submit Report'}
           </button>
         </form>
       </div>

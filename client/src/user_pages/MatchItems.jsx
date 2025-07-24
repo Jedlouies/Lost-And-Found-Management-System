@@ -2,9 +2,6 @@ import React, { useState, useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 
-/* ------------------------
-   Progress Bar Component
-------------------------- */
 const ProgressBar = ({ value }) => {
   const percentage = Math.min(Math.max(value, 0), 100); // Clamp 0-100
   let color = "bg-red-500";

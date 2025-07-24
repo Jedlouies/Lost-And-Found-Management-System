@@ -205,7 +205,7 @@ function HomePage() {
               </div>
             ))
           ) : (
-            <p>No recent lost items found.</p>
+            <p style={{color: 'black'}}>No recent lost items found.</p>
           )}
         </div>
         <h1 style={{ fontSize: '30px', alignItems: 'center', top: '57%', fontWeight: '500' }}>
@@ -257,7 +257,7 @@ function HomePage() {
               </div>
             ))
           ) : (
-            <p>No recent found items found.</p>
+            <p style={{color: 'black'}}>No recent found items found.</p>
           )}
         </div>
       </div>

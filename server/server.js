@@ -177,26 +177,65 @@ app.post("/api/match/lost-to-found", async (req, res) => {
   try {
     const { uidLost } = req.body;
 
+    // Fetch the lost item
     const lostDoc = await db.collection("lostItems").doc(uidLost).get();
-    if (!lostDoc.exists) {
-      return res.status(404).json({ error: "Lost item not found." });
-    }
+    if (!lostDoc.exists) return res.status(404).json({ error: "Lost item not found." });
+
     const lostItem = lostDoc.data();
 
-    const foundItemsSnap = await db.collection("foundItems").get();
-    const foundItems = foundItemsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    // Fetch all found items
+    const foundSnapshot = await db.collection("foundItems").get();
+    const matches = [];
 
-    const results = [];
-    for (const foundItem of foundItems) {
-      const match = await calculateMatchScore(lostItem, foundItem);
-      results.push({ foundId: foundItem.id, ...match });
+    for (const foundDoc of foundSnapshot.docs) {
+      const foundItem = foundDoc.data();
+
+      // --- Compute text similarity ---
+      const nameScore = compareTextFields(lostItem.itemName || "", foundItem.itemName || "");
+      const descScore = compareTextFields(lostItem.itemDescription || "", foundItem.itemDescription || "");
+      const locationScore = compareTextFields(lostItem.locationLost || "", foundItem.locationFound || "");
+      const categoryScore = compareTextFields(lostItem.category || "", foundItem.category || "");
+
+      const overallTextScore =
+        nameScore * 0.4 + descScore * 0.35 + locationScore * 0.15 + categoryScore * 0.1;
+
+      // --- Compute image similarity ---
+      const lostImageUrl = Array.isArray(lostItem.images) ? lostItem.images[0] : lostItem.images;
+      const foundImageUrl = Array.isArray(foundItem.images) ? foundItem.images[0] : foundItem.images;
+
+      const imageScore = (lostImageUrl && foundImageUrl)
+        ? await compareImages(lostImageUrl, foundImageUrl)
+        : 0;
+
+      const overallScore = overallTextScore * 0.6 + imageScore * 0.4;
+
+      // --- Prepare match result ---
+      const matchData = {
+        transactionId: generateTransactionId(),
+        lostItem: { ...lostItem, id: uidLost },
+        foundItem: { ...foundItem, id: foundDoc.id },
+        scores: {
+          nameScore: parseFloat(nameScore.toFixed(2)),
+          descriptionScore: parseFloat(descScore.toFixed(2)),
+          locationScore: parseFloat(locationScore.toFixed(2)),
+          categoryScore: parseFloat(categoryScore.toFixed(2)),
+          imageScore: parseFloat(imageScore.toFixed(2)),
+          overallTextScore: parseFloat(overallTextScore.toFixed(2)),
+          overallScore: parseFloat(overallScore.toFixed(2)),
+        },
+        createdAt: new Date().toISOString()
+      };
+
+      // Save match to Firestore
+      await db.collection("matches").add(matchData);
+
+      matches.push(matchData);
     }
 
-results.sort((a, b) => b.overallScore - a.overallScore);
-res.json(results.slice(0, 4));
+    // Sort matches by overall score (descending)
+    matches.sort((a, b) => b.scores.overallScore - a.scores.overallScore);
 
-
-    res.json(results);
+    res.json(matches);
   } catch (error) {
     console.error("Error in /api/match/lost-to-found:", error);
     res.status(500).json({ error: "Internal server error." });
