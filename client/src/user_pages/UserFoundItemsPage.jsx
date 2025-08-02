@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import UserNavigationBar from '../user_components/UserNavigationBar';
 import './styles/UserLostItemPage.css'; // You can reuse the same styles
-import UserLostHeader from '../user_components/UserLostHeader';
+import UserFoundHeader from '../user_components/UserFoundHeader';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { collection, doc, getDocs, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -52,7 +52,7 @@ function UserFoundItemsPage() {
     <>
       <UserNavigationBar />
       <div className='found-item-body'>
-        <UserLostHeader /> 
+        <UserFoundHeader /> 
         <h1 style={{ fontSize: '30px', alignItems: 'center', top: '9%', fontWeight: '500', marginLeft: '20px', color: '#475C6F' }}>
           Found Items
         </h1>

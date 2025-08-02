@@ -93,7 +93,7 @@ useEffect(() => {
   };
 
 
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!currentUser) return alert('You must be logged in to submit a report.');
 
@@ -107,7 +107,6 @@ const handleSubmit = async (e) => {
         }
       }
 
-      // Add found item to Firestore
       const docRef = await addDoc(collection(db, 'foundItems'), {
         uid: currentUser.uid,
         images: imageURLs,
@@ -139,7 +138,6 @@ const handleSubmit = async (e) => {
 
       setIsMatching(true);
 
-      
       const matchResponse = await fetch("http://localhost:4000/api/match/found-to-lost", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -149,7 +147,38 @@ const handleSubmit = async (e) => {
       if (!matchResponse.ok) throw new Error("Matching failed");
       const matches = await matchResponse.json();
 
-      // Redirect to MatchItems page with match results
+      const top4Matches = matches.slice(0, 4);
+
+      await addDoc(collection(db, 'itemManagement'), {
+        itemId: docRef.id, 
+        uid: currentUser.uid,
+        images: imageURLs,
+        itemName,
+        dateSubmitted: new Date().toISOString(),
+        type: "Found",  
+        location: locationFound,
+        category,
+        status: "Pending",
+        highestMatchingRate: top4Matches?.[0]?.scores?.overallScore ?? 0,
+        topMatches: top4Matches,
+        personalInfo: {
+          firstName,
+          middleName,
+          lastName,
+          email,
+          contactNumber,
+          address,
+          profileURL,
+          coverURL,
+          course,
+          section,
+          yearLevel,
+          birthdate,
+        },
+        createdAt: serverTimestamp(),
+      });
+
+     
       navigate(`/users/found-items/matching/${currentUser.uid}`, { state: { matches } });
 
     } catch (error) {
@@ -163,6 +192,7 @@ const handleSubmit = async (e) => {
   return (
     <>
       <UserFoundItemsPage />
+      <div className='background'/>
       <div className="user-found-procedure-body">
         <p style={{position: 'absolute', fontSize: '15px', left: '82%', top: '5%', width: '200px'}}>
           <strong>NOTE: </strong>

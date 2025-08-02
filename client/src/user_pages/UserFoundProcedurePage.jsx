@@ -53,6 +53,7 @@ function UserFoundProcedurePage() {
     <>
     <div className='body'>
           <UserLostItemsPage />
+          <div className='background'/>
     <div className='user-found-procedure-body'>
        <h1>Item Found Procedures</h1>
       <svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" fill="orange" class="bi bi-exclamation-octagon" viewBox="0 0 16 16">

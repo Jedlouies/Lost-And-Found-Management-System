@@ -1,0 +1,273 @@
+.manage-item-body {
+    position: relative;
+    top: 7%;
+    background-color: #D9D9D9;
+    width: 1455px;
+    height: 728px;
+    margin-left: 80px;
+}
+
+.manage-item-body h1 {
+    color: #475C6F;
+    position: absolute;
+    top: 1%;
+    font-weight: bolder;
+}
+
+.manage-item-container {
+    position: absolute;
+    top: 8%;
+    padding: 10px;
+    width: 1455px;
+    height: 610px;
+}
+
+.searchBar input {
+    position: absolute;
+    width: 700px;
+    border-radius: 5px;
+    top: 9%;
+    left: 3%;
+    background-color: #D9D9D9;
+    color: #475C6F;
+    border: 1px solid #475C6F;
+}
+
+.searchBar svg {
+    position: absolute;
+    top: 9.5%;
+    left: 1%;
+}
+
+.searchBar input:focus {
+    border-color: #475C6F;
+}
+
+.searchBar input::placeholder{
+    font-style: italic;
+    padding: 2px;
+}
+
+.manage-item-table {
+    font-size: 12px;
+    display: block;
+    position: absolute;
+    top: 15%;
+    background-color: #cccaca;
+    width: 1400px;
+    height: 570px;
+    border-radius: 10px;
+    
+}
+
+.manage-item-table th {
+  color: black;             
+  padding: 17px 30px;       
+  text-align: center;         
+  font-weight: bold;       
+  font-size: 12px;
+  text-align: center;
+}
+
+.manage-item-table thead {
+  background-color: #9EBAD6;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  height: 50px;
+  width: 100%;
+}
+
+.manage-item-table tbody {
+  background-color: transparent;
+  height: 50px;
+  width: 100%;
+}
+
+.manage-item-table td {
+  color: black;             
+  padding: 16px 20px;       
+  text-align: left;            
+  font-size: 12px;
+  justify-items: center;
+  justify-content: center;
+  text-align: center;
+
+}
+
+.status-cell {
+  padding: 4px 10px;
+  border-radius: 20px;
+  color: black;
+  font-weight: bold;
+  text-transform: capitalize;
+  display: inline-block;
+  min-width: 80px;
+  text-align: center;
+}
+
+.status-pending {
+  background-color: #FFA25F;
+}
+
+.status-cancelled {
+  background-color: #FF6A6C;
+}
+
+.status-posted {
+  background-color: #13FF65;
+}
+
+
+
+.body-row:hover {
+    background-color:#c9d4e0;
+}
+
+.body-row {
+    border-bottom: 1px solid black
+}
+
+.item-image {
+    position: relative;
+    border-radius: 40px;
+    background-color: aliceblue;
+    width: 40px;
+    height: 40px;
+}
+
+.founder-details {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-items: center;
+    text-align: left;
+}
+
+.owner-details {
+    text-align: left;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-items: center;
+}
+
+.personal-info {
+    height: 20px;
+    line-height: 1px;
+}
+
+.footer {
+    width: 5%;
+    position: absolute;
+    top: 90%;
+    left: 1%;
+}
+
+.footer button{
+    color: #475C6F;
+    background-color: transparent;
+    box-shadow: none;
+    border: none;
+}
+
+.actions-row {
+    display: flex;
+    flex-direction: row;
+    position: absolute;
+    top: 8%;
+    left: 65%;
+    width: 500px;
+    height: 40px;
+    padding: 5px;
+    justify-items: center;
+    align-content: center;
+    gap: 10px;
+    color: #475C6F;
+}
+
+.actions-row button {
+    color: #475C6F;
+    border-radius: 5px;
+    background-color: transparent;
+    border: 1px solid #475C6F;
+}
+
+.actions-row button:hover {
+    background-color: #c9d4e0;
+}
+
+.highest-matching-rate-full {
+    position: relative;
+    width: 100px;
+    height: 10px;
+    border: 1px solid black;
+    background-color: transparent;
+    border-radius: 5px;
+}
+
+.manage-highest-matching-rate {
+    position: relative;
+    background-color: green;
+    height: 10px;
+    border-radius: 5px;
+}
+
+.manage-item-table th:nth-child(1),
+.manage-item-table td:nth-child(1) {
+    width: 9%;
+    white-space: nowrap;
+}
+
+.manage-item-table th:nth-child(2),
+.manage-item-table td:nth-child(2) {
+    width: 8%; 
+    white-space: nowrap;
+    
+}
+
+.manage-item-table th:nth-child(3),
+.manage-item-table td:nth-child(3) {
+    width: 10%;
+    white-space: nowrap;
+}
+
+.manage-item-table th:nth-child(4),
+.manage-item-table td:nth-child(4) {
+    width: 12%;
+    white-space: nowrap;
+}
+
+.manage-item-table th:nth-child(5),
+.manage-item-table td:nth-child(5) {
+    width: 12%;
+    white-space: nowrap;
+}
+
+.manage-item-table th:nth-child(6),
+.manage-item-table td:nth-child(6) {
+    width: 15%;
+    white-space: nowrap;
+}
+
+.manage-item-table th:nth-child(7),
+.manage-item-table td:nth-child(7) {
+    width: 15%;
+    white-space: nowrap;
+}
+
+.manage-item-table th:nth-child(8) {
+    width: 30%;
+    white-space: nowrap;
+}
+.manage-item-table td:nth-child(8) {
+    width: 11%;
+    white-space: nowrap;
+}
+.manage-item-table th:nth-child(9),
+.manage-item-table td:nth-child(9) {
+    width: 10%;
+    white-space: nowrap;
+}
+
+
+
