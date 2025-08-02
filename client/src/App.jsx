@@ -24,6 +24,7 @@ import UserFoundProcedurePage from "./user_pages/UserFoundProcedurePage";
 import MatchItems from "./user_pages/MatchItems";
 import FoundMatchResults from "./user_pages/FoundMatchResults";
 import LostMatchResults from "./user_pages/LostMatchResults";
+import ItemManagementPage from "./user_pages/ItemManagementPage";
 
 
 function App() {
@@ -241,6 +242,16 @@ function App() {
             element={
               currentUser ? (
                 <LostMatchResults />
+              ) : (
+               <></>
+              )
+            }
+          />
+           <Route
+            path="/users/item-management/:uid"
+            element={
+              currentUser ? (
+                <ItemManagementPage />
               ) : (
                <></>
               )

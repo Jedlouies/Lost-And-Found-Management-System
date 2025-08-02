@@ -175,42 +175,49 @@
 .found-item-table th:nth-child(1),
 .found-item-table td:nth-child(1) {
     width: 9%;
-    text-wrap: wrap;
+    white-space: nowrap;
 }
 
 .found-item-table th:nth-child(2),
 .found-item-table td:nth-child(2) {
     width: 8%;
+    white-space: nowrap;
 }
 
 .found-item-table th:nth-child(3),
 .found-item-table td:nth-child(3) {
     width: 10%;
+    white-space: nowrap;
 }
 
 /* Continue for the rest of the columns */
 .found-item-table th:nth-child(4),
 .found-item-table td:nth-child(4) {
     width: 12%;
+    white-space: nowrap;
 }
 
 .found-item-table th:nth-child(5),
 .found-item-table td:nth-child(5) {
     width: 12%;
+    white-space: nowrap;
 }
 
 .found-item-table th:nth-child(6),
 .found-item-table td:nth-child(6) {
     width: 15%;
+    white-space: nowrap;
 }
 
 .found-item-table th:nth-child(7),
 .found-item-table td:nth-child(7) {
     width: 15%;
+    white-space: nowrap;
 }
 
 .found-item-table th:nth-child(8),
 .found-item-table td:nth-child(8) {
     width: 14%;
+    white-space: nowrap;
 }
 

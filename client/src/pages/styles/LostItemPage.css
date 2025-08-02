@@ -176,42 +176,49 @@
 .lost-item-table th:nth-child(1),
 .lost-item-table td:nth-child(1) {
     width: 9%;
-    text-wrap: wrap;
+    white-space: nowrap;
 }
 
 .lost-item-table th:nth-child(2),
 .lost-item-table td:nth-child(2) {
     width: 8%;
+    white-space: nowrap;
 }
 
 .lost-item-table th:nth-child(3),
 .lost-item-table td:nth-child(3) {
     width: 10%;
+    white-space: nowrap;
 }
 
 /* Continue for the rest of the columns */
 .lost-item-table th:nth-child(4),
 .lost-item-table td:nth-child(4) {
     width: 12%;
+    white-space: nowrap;
 }
 
 .lost-item-table th:nth-child(5),
 .lost-item-table td:nth-child(5) {
     width: 12%;
+    white-space: nowrap;
 }
 
 .lost-item-table th:nth-child(6),
 .lost-item-table td:nth-child(6) {
     width: 15%;
+    white-space: nowrap;
 }
 
 .lost-item-table th:nth-child(7),
 .lost-item-table td:nth-child(7) {
     width: 15%;
+    white-space: nowrap;
 }
 
 .lost-item-table th:nth-child(8),
 .lost-item-table td:nth-child(8) {
     width: 14%;
+    white-space: nowrap;
 }
 

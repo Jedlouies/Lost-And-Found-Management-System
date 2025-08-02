@@ -139,7 +139,6 @@ function LostItemsPage() {
                     </td>
                     <td>
                       <div className='owner-details'>
-                  
                           <img src={item.personalInfo?.profileURL} alt="" style={{width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover'}}/>
                         <div className='personal-info'>
                           <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>{item.personalInfo?.firstName} {item.personalInfo?.lastName}</p>
@@ -202,8 +201,6 @@ function LostItemsPage() {
                   </tr>
                 )}
               </tbody>
-
-              {/* Pagination */}
               <tfoot>
                 <tr className='footer'>
                   <td colSpan="8" style={{ textAlign: 'center', padding: '10px 0' }}>
