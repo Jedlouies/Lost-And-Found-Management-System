@@ -157,11 +157,20 @@ function UserLostItemDetailPage() {
   return (
     <>
       <UserLostItemsPage />
+      <div className='background'/>
       <div className="user-lost-procedure-body">
         <p style={{ position: 'absolute', fontSize: '15px', left: '82%', top: '5%', width: '200px' }}>
           <strong>NOTE: </strong>
           To achieve a more successful matching process, 
-          it is essential to provide accurate and complete data...
+          it is essential to provide accurate and complete 
+          data. Precise information minimizes errors and 
+          ensures that the system can generate the most 
+          relevant and reliable results. 
+          Incomplete or incorrect details can lead to 
+          mismatches, reducing the overall effectiveness 
+          of the process. Therefore, supplying exact data 
+          and information significantly enhances the 
+          accuracy and success of the matching outcome.
         </p>
         <h1>Report Lost Form</h1>
         <form className="lost-item-form" onSubmit={handleSubmit}>
