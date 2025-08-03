@@ -18,7 +18,8 @@
 
 ### Step 3: Create environment file to store the project secret API keys
        1. Goto the client folder and create a file '.env'
-       2. Message chembee in messenger for the api keys values (if we upload it here in the github it will become a violation that will turn into a totally
+       2. Message chembee in messenger for the api keys values (if we upload it here 
+       in the github it will become a violation that will turn into a totally
        unusable keys)
        3. Same procedure in the server folder create a file named '.env'
 
@@ -31,10 +32,12 @@
 
 # DISCLAIMER
        1. There are still buttons that are not functionable specially in the user side of the system
-       2. If you wish to become an admin instead of user after registration send your user ID that is available in the route above
+       2. If you wish to become an admin instead of user after registration send
+       your user ID that is available in the route above
 <img width="1918" height="974" alt="image" src="https://github.com/user-attachments/assets/a560a79a-5f73-41fb-be79-6ecae838de5f" />
 
-       3. the button from message to below are still not available but clickable it will redirect you to the admin instead.
+       3. the button from message to below are still not available but clickable 
+       it will redirect you to the admin instead.
 <img width="1965" height="909" alt="image" src="https://github.com/user-attachments/assets/6858ec12-6c69-4f60-9eae-9470bbdd015e" />
 
        4. You may encounter responsive issues such as imbalance buttons and screens
