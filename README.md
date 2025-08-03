@@ -12,7 +12,7 @@
        5. paste the git URL 'https://github.com/Jedlouies/Lost-And-Found-Management-System.git'
        6. pick desired path
        7. click clone
-### Step 2: Install depencies in both of the client and server directory
+### Step 2: Install dependencies in both of the client and server directory
        Goto your cloned repository navigate to the client & server folder and command
        'npm install'  to install all the packages on each folder
 
