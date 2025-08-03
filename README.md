@@ -32,7 +32,7 @@
 # DISCLAIMER
        1. There are still buttons that are not functionable specially in the user side of the system
        2. If you wish to become an admin instead of user after registration send your user ID that is available in the route above
-       <img width="1919" height="45" alt="image" src="https://github.com/user-attachments/assets/a9ab7896-35c5-45ac-b9d2-5a532e2c4de7" />
+<img width="1919" height="45" alt="image" src="https://github.com/user-attachments/assets/a9ab7896-35c5-45ac-b9d2-5a532e2c4de7" />
        
        3. the button from message to below are still not available but clickable it will redirect you to the admin instead.
        <img width="99" height="432" alt="image" src="https://github.com/user-attachments/assets/71a0f5fe-25b5-4869-aa65-e8d928137d49" />
