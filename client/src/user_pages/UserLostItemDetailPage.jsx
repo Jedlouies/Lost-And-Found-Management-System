@@ -35,6 +35,7 @@ function UserLostItemDetailPage() {
   const [contactNumber, setContactNumber] = useState('');
   const [address, setAddress] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMatching, setIsMatching] = useState(false);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -123,10 +124,6 @@ function UserLostItemDetailPage() {
         },
         createdAt: serverTimestamp(),
       });
-
-      alert('Lost item report submitted successfully!');
-
-      // Trigger Lost-to-Found matching
       const matchResponse = await fetch("http://localhost:4000/api/match/lost-to-found", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -136,22 +133,47 @@ function UserLostItemDetailPage() {
       if (!matchResponse.ok) throw new Error("Matching failed");
       const matches = await matchResponse.json();
 
+      const top4Matches = matches.slice(0, 4);
+
+      await addDoc(collection(db, 'itemManagement'), {
+              itemId: docRef.id, 
+              uid: currentUser.uid,
+              images: imageURLs,
+              itemName,
+              dateSubmitted: new Date().toISOString(),
+              type: "Lost",  
+              location: locationLost,
+              category,
+              status: "Posted",
+              highestMatchingRate: top4Matches?.[0]?.scores?.overallScore ?? 0,
+              topMatches: top4Matches,
+              personalInfo: {
+                firstName,
+                middleName,
+                lastName,
+                email,
+                contactNumber,
+                address,
+                profileURL,
+                coverURL,
+                course,
+                section,
+                yearLevel,
+                birthdate,
+              },
+              createdAt: serverTimestamp(),
+            });
+
    
       navigate(`/users/lost-items/matching/${currentUser.uid}`, { state: { matches } });
 
-      // Reset form
-      setItemName('');
-      setDateLost('');
-      setLocationLost('');
-      setCategory('');
-      setItemDescription('');
-      setHowItemLost('');
-      setImages(null);
+  
     } catch (error) {
       console.error(error);
       alert('Failed to submit lost item report.');
     }
     setIsSubmitting(false);
+    setIsMatching(false);
   };
 
   return (

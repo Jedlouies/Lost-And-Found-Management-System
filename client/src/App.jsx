@@ -25,6 +25,9 @@ import MatchItems from "./user_pages/MatchItems";
 import FoundMatchResults from "./user_pages/FoundMatchResults";
 import LostMatchResults from "./user_pages/LostMatchResults";
 import ItemManagementPage from "./user_pages/ItemManagementPage";
+import UserMessagesPage from "./user_pages/UserMessagesPage";
+import UserNotificationPage from "./user_pages/UserNotificationPage";
+import TransactionPage from "./pages/TransactionPage";
 
 
 function App() {
@@ -124,6 +127,16 @@ function App() {
                 <SettingsPage />
               ) : (
                 <></>
+              )
+            }
+          />
+          <Route
+            path="/admin/transcation/:uid"
+            element={
+              currentUser ? (
+                <TransactionPage />
+              ) : (
+               <></>
               )
             }
           />
@@ -257,6 +270,27 @@ function App() {
               )
             }
           />
+           <Route
+            path="/users/messages/:uid"
+            element={
+              currentUser ? (
+                <UserMessagesPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/users/notifications/:uid"
+            element={
+              currentUser ? (
+                <UserNotificationPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+
           
         </Routes>        
       </BrowserRouter>

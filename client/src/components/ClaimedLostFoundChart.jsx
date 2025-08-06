@@ -7,7 +7,6 @@ function ClaimedLostFoundChart() {
     colors: ["#1A56DB", "#F43F5E", "#10B981"],
     chart: {
     type: "bar",
-    height: 320,
     fontFamily: "Inter, sans-serif",
     toolbar: {
       show: true,
@@ -34,7 +33,7 @@ function ClaimedLostFoundChart() {
     tooltip: {
       shared: true,
       intersect: false,
-      style: { fontFamily: "Inter, sans-serif" },
+      style: { fontFamily: "Inter, sans-serif"},
     },
     states: {
       hover: { filter: { type: "darken", value: 1 } },
@@ -136,7 +135,7 @@ function ClaimedLostFoundChart() {
 
   return (
     <div className="body">
-      <Chart options={options} series={series} type="bar" height={220} />
+      <Chart options={options} series={series} type="bar" height={'100%'} />
     </div>
   );
 }

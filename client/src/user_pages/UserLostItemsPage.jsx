@@ -22,6 +22,7 @@ function UserLostItemsPage() {
   const [foundItems, setFoundItems] = useState([]);
   const lostContainerRef = useRef(null);
   const foundContainerRef = useRef(null);
+  const [selectedCategory, setSelectedCategory] = useState('');
 
   useEffect(() => {
       const fetchItems = async () => {
@@ -77,9 +78,15 @@ function UserLostItemsPage() {
         }, [hasEmptyFields]);
       
         // Sort Lost and Found Items
-        const recentLostItems = [...lostItems]
-          .sort((a, b) => new Date(b.dateLost) - new Date(a.dateLost))
-          .slice(0, 20);
+        const filteredLostItems = [...lostItems]
+          .filter(item => {
+            const matchesSearch = item.itemName?.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesCategory = selectedCategory === '' || item.category === selectedCategory;
+            return matchesSearch && matchesCategory;
+          })
+          .sort((a, b) => new Date(b.dateLost) - new Date(a.dateLost)); // sort after filter
+
+
       
         const recentFoundItems = [...foundItems]
           .sort((a, b) => new Date(b.dateFound) - new Date(a.dateFound))
@@ -94,9 +101,49 @@ function UserLostItemsPage() {
         <h1 style={{ fontSize: '30px', alignItems: 'center', top: '9%', fontWeight: '500' , marginLeft: '20px', color: '#475C6F'}}>
           Lost Items
         </h1>
+        
+        <div className='user-lost-searchBar'>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#475C6F" className="bi bi-search" viewBox="0 0 16 16">
+              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+            </svg>
+            <input
+              type="text"
+              placeholder='Search'
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <select
+              name="category"
+              id="category"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              style={{
+                position: 'relative',
+                left: '80%',
+                width: '150px',
+                borderRadius: '5px',
+                backgroundColor: 'transparent',
+                border: '1px solid #475C6F',
+                color: '#475C6F',
+                cursor: 'pointer',
+                height: '27px'
+              }}
+            >
+              <option value="">All Categories</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Documents">Documents</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Others">Others</option>
+            </select>
+        </div>
+        <div className='right-upper-panel'>
+              <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-bookmark" viewBox="0 0 16 16">
+                <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/>
+              </svg>
+        </div>
         <div className="page-lost-container" ref={lostContainerRef}>
-          {recentLostItems.length > 0 ? (
-            recentLostItems.map((item, index) => (
+          {filteredLostItems.length > 0 ? (
+            filteredLostItems.map((item, index) => (
               <div className="found-item-card" key={index}>
                 <div className="lost-card-image">
                   {item.images && item.images.length > 0 ? (
@@ -127,7 +174,7 @@ function UserLostItemsPage() {
                           ? item.howItemLost.slice(0, 120) + "..."
                           : item.howItemLost}
                       </p>
-                      <p className='more-details-button' style={{ fontStyle: 'normal', fontWeight: 'bold', position: 'absolute', top: '200%', marginLeft: '170px', fontSize: '12px', cursor: 'pointer', width: '200px' }}>
+                      <p className='more-details-button' style={{ fontStyle: 'normal', fontWeight: 'bold', position: 'absolute', top: '200%', marginLeft: '150px', fontSize: '12px', cursor: 'pointer', width: '200px' }}>
                         More Details
                         <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16" style={{ marginLeft: '10px' }}>
                           <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>

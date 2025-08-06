@@ -2,7 +2,7 @@
     position: relative;
     display: flex;
     background-color: #475C6F;
-    width: 1455px;
+    min-width: 100%;
     height: 50px;
     align-items: center;
 }
@@ -33,11 +33,13 @@
 
 .header-right-tables {
     gap: 10px;
+    position: relative;
     display: flex;
-    margin-left: 1270px;
     justify-content: center;
-    align-items: center;
+    align-items: end;
     text-align: center;
+    margin-left: auto;
+    margin-right: 150px;
 }
 
 .profile {

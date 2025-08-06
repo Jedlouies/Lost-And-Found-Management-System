@@ -12,7 +12,7 @@ const WeeklyUsersCard = () => {
     ],
     options: {
       chart: {
-        height: 320,
+        height: 200,
         type: 'line',
         zoom: {
           enabled: false,
@@ -49,7 +49,7 @@ const WeeklyUsersCard = () => {
 
   return (
     <div id="chart" className='chart'>
-      <ReactApexChart options={state.options} series={state.series} type="line" height={200} />
+      <ReactApexChart options={state.options} series={state.series} type="line" height={'300'} />
     </div>
   );
 };

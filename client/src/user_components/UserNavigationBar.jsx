@@ -55,20 +55,14 @@ function UserNavigationBar() {
           </svg>
           {expanded && <span>Item Management</span>}
       </div>
-      <div className={`nav-buttons  ${location.pathname === `/users/item-management//${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/user/item-management/${user?.uid}`)}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
-            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
-          </svg>
-          {expanded && <span>User Profiles</span>}
-      </div>
-      <div className={`nav-buttons  ${location.pathname === `/admin/messages/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/admin/messages/${user?.uid}`)}>
+      <div className={`nav-buttons  ${location.pathname === `/users/messages/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/users/messages/${user?.uid}`)}>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-left-dots" viewBox="0 0 16 16">
             <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/>
             <path d="M5 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
           </svg>
           {expanded && <span>Messages</span>}
       </div>
-      <div className={`nav-buttons  ${location.pathname === `/admin/notifications/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/admin/notifications/${user?.uid}`)}>
+      <div className={`nav-buttons  ${location.pathname === `/users/notifications/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/users/notifications/${user?.uid}`)}>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bell" viewBox="0 0 16 16">
               <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6"/>
             </svg>
@@ -81,7 +75,7 @@ function UserNavigationBar() {
             </svg>
             {expanded && <span>Settings</span>}
       </div>
-      <div className='nav-buttons'style={{marginBottom: '60px'}} onClick={toggleMessage}>
+      <div className='nav-buttons'style={{marginBottom: '120px'}} onClick={toggleMessage}>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-left" viewBox="0 0 16 16">
               <path fill-rule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0z"/>
               <path fill-rule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708z"/>

@@ -148,7 +148,7 @@ function HomePage() {
         </div>
 
         {/* Banner */}
-        <div className='banner'>
+        <div className='banner2'>
           <img src="/landing-page-img.png" alt="img" />
           <h1>Welcome to SpotSync!</h1>
           <h5>{formattedDate}</h5>
@@ -156,7 +156,11 @@ function HomePage() {
         </div>
 
         <h1 style={{ fontSize: '30px', alignItems: 'center', top: '15%', fontWeight: '500' }}>
-          Lost Items
+          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-bag-x" viewBox="0 0 16 16" style={{ marginRight: '10px', color: '#475C6F' }}>
+            <path fill-rule="evenodd" d="M6.146 8.146a.5.5 0 0 1 .708 0L8 9.293l1.146-1.147a.5.5 0 1 1 .708.708L8.707 10l1.147 1.146a.5.5 0 0 1-.708.708L8 10.707l-1.146 1.147a.5.5 0 0 1-.708-.708L7.293 10 6.146 8.854a.5.5 0 0 1 0-.708"/>
+            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
+          </svg>
+        Lost Items
         </h1>
         <h4 style={{ position: 'absolute', top: '15%', left: '90%', color: '#475C6F', cursor: 'pointer' }}>More</h4>
         <div className="home-lost-container" ref={lostContainerRef}>
@@ -192,7 +196,7 @@ function HomePage() {
                           ? item.howItemLost.slice(0, 120) + "..."
                           : item.howItemLost}
                       </p>
-                      <p className='more-details-button' style={{ fontStyle: 'normal', fontWeight: 'bold', position: 'absolute', top: '200%', marginLeft: '170px', fontSize: '12px', cursor: 'pointer', width: '200px' }}>
+                      <p className='more-details-button' style={{ fontStyle: 'normal', fontWeight: 'bold', position: 'absolute', top: '200%', marginLeft: '150px', fontSize: '12px', cursor: 'pointer', width: '200px' }}>
                         More Details
                         <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16" style={{ marginLeft: '10px' }}>
                           <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
@@ -209,6 +213,10 @@ function HomePage() {
           )}
         </div>
         <h1 style={{ fontSize: '30px', alignItems: 'center', top: '57%', fontWeight: '500' }}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-bag-check" viewBox="0 0 16 16" style={{ marginRight: '10px', color: '#475C6F' }}>
+            <path fill-rule="evenodd" d="M10.854 8.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L7.5 10.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+            <path d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5h12v9a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z"/>
+          </svg>
           Found Items
         </h1>
         <h4 style={{ position: 'absolute', top: '57%', left: '90%', color: '#475C6F', cursor: 'pointer' }}>More</h4>

@@ -4,6 +4,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import NavigationBar from '../components/NavigationBar';
 import DashboardHeader from '../components/DashboardHeader';
+import UserBlankHeader from '../user_components/UserBlankHeader';
 import './styles/UserSettingsPage.css';
 import UserNavigationBar from '../user_components/UserNavigationBar';
 
@@ -190,7 +191,7 @@ function UserSettingsPage() {
     <>
       <UserNavigationBar />
       <div className='settings-body'>
-        <DashboardHeader />
+        <UserBlankHeader />
 
         <div className='upload-section1'>
           <h3>Upload Profile Image</h3>

@@ -1,11 +1,4 @@
-.header-body {
-    position: relative;
-    display: flex;
-    background-color: #475C6F;
-    width: 1455px;
-    height: 50px;
-    align-items: center;
-}
+
 
 .header-body button {
     padding: 5px;
@@ -34,7 +27,8 @@
 .header-right-lost {
     gap: 10px;
     display: flex;
-    margin-left: 1200px;
+    margin-left: auto;
+    margin-right: 200px;
     justify-content: center;
     align-items: center;
     text-align: center;

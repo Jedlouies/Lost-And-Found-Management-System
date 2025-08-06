@@ -162,7 +162,7 @@ useEffect(() => {
            <p onClick={toggleDropDown}>{lastName}</p>
         </div>
     </div>
-    <div className={`account-dropdown ${dropDown ? 'dropDown' : ''}`} ref={dropdownRef}>
+    <div  className={`account-dropdown ${dropDown ? 'dropDown' : ''}`} ref={dropdownRef}>
       <HeaderAccountDropdown />  
      </div>
     <div className={`notify-panel ${notifyPanel ? 'notifyPanel' : ''}`} ref={notifyRef}>

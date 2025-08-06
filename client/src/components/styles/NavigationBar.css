@@ -1,7 +1,7 @@
 .nav-body {
     display: block;
     width: 80px;
-    height: 728px;
+    min-height: 100%;
     transition: width 0.3s ease;
     background-color: white;
     position: absolute;
