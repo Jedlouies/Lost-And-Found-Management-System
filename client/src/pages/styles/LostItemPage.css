@@ -3,14 +3,14 @@
     top: 7%;
     background-color: #D9D9D9;
     min-width: 100%;
-    min-height: 120vh;
+    min-height: 130vh;
     margin-left: 80px;
 }
 
 .lost-item-body h1 {
     color: #475C6F;
     position: absolute;
-    top: 1%;
+    top: 4%;
     font-weight: bolder;
 }
 
@@ -19,6 +19,7 @@
     top: 8%;
     padding: 10px;
     min-width: 98%;
+    margin-top: -30px;
     height: 610px;
 }
 
@@ -229,3 +230,8 @@
     white-space: nowrap;
 }
 
+@media (min-width: 1701px) {
+    .lost-item-container {
+        margin-top: -60px;
+    }
+}

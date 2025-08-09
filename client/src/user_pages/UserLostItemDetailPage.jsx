@@ -197,7 +197,7 @@ function UserLostItemDetailPage() {
         <h1>Report Lost Form</h1>
         <form className="lost-item-form" onSubmit={handleSubmit}>
           <label>Item Images:</label>
-          <input type="file" multiple accept="image/*" onChange={handleImageChange} style={{ width: '1000px', border: '2px solid #475C6F' }} required />
+          <input type="file" multiple accept="image/*" onChange={handleImageChange} style={{ width: '1000px', border: '2px solid #475C6F'}} required />
           <br />
           <label>Item Name:</label>
           <input type="text" value={itemName} placeholder='e.g Nike Cap' onChange={(e) => setItemName(e.target.value)} style={{ width: '1000px' }} required />

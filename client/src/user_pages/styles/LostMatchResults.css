@@ -111,3 +111,10 @@
     background-color: #BDDDFC;
     color: black;
 }
+
+@media (min-width: 1701px) {
+    .matching-card {
+        margin-right: 140px;
+    }
+
+}

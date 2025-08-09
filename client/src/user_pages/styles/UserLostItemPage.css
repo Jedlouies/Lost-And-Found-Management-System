@@ -30,7 +30,7 @@
     grid-template-columns: repeat(4, 1fr);
     padding: 15px;
     gap: 20px;
-    width: 100%;
+    width: 95%;
     height: 100vh;
     top: 15%;
     overflow-x: hidden;
@@ -299,4 +299,14 @@
 .lost-item-table th:nth-child(8),
 .lost-item-table td:nth-child(8) {
     width: 14%;
+}
+
+
+@media (min-width: 1701px) {
+    .page-lost-container {
+        width: 100%;
+        height: 100vh;
+        grid-template-columns: repeat(5, 1fr);
+        column-gap: 0.1px;
+    }
 }

@@ -87,3 +87,14 @@
     align-items: center;
     padding: 10px;
 }
+
+@media (min-width: 1701px) {
+    .home-header-body {
+        min-width: 100%;
+    }
+    .home-header-right {
+        margin-left: auto;
+        margin-right: 100px;
+    }
+    
+}

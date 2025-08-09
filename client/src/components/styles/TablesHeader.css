@@ -112,3 +112,9 @@
     padding: 3px;
     border-radius: 5px;
 }
+
+@media (min-width: 1701px) {
+    .header-right-table {
+        margin-left: 85%;
+    }
+}

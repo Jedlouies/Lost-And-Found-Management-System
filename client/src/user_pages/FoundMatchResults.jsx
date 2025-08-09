@@ -43,7 +43,7 @@ export default function FoundMatchResults() {
         return (
           <div key={index} className='matching-card'>
             
-            <p className="text-lg font-bold text-blue-600 mb-2" style={{position: 'relative', color: 'black', marginLeft: '45%', fontSize: '50px', fontWeight: 'bold', color: '#475C6F'}}>
+            <p className="text-lg font-bold text-blue-600 mb-2" style={{position: 'relative', color: 'black', marginLeft: '45%', fontSize: '50px', fontWeight: 'bold'}}>
               {index + 1}
             </p>
               <h2 className="text-lg font-semibold mb-1" style={{ color: 'black', fontSize: '24px ', fontWeight: 'bold' }}>

@@ -75,3 +75,15 @@
     color: black;
 }
 
+
+@media (min-width: 1701px) {
+    .lost-item-form input, 
+    .lost-item-form label {
+        width: 150px;
+        height: 50px;
+    }
+    .lost-item-form textarea {
+        width: 1100px;
+    }
+    
+}
