@@ -7,12 +7,21 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import { getAuth } from "firebase/auth";
 
 function FoundItemsPage() {
   const [items, setItems] = useState([]); 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const itemsPerPage = 6;
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  const navigate = useNavigate();
+  const handleNavigate = (path) => {
+    navigate(path);
+  };
 
 
   useEffect(() => {
@@ -66,6 +75,8 @@ function FoundItemsPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
+          <button className={`processClaimBtn  ${location.pathname === `/admin/transactions/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/admin/transactions/${user?.uid}`)}>Process Claim</button>
+          <button className='foundVerificationbtn'>Found Verification</button>
           <div className='actions-row' style={{width: '500px'}}>
                 <button>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-archive" viewBox="0 0 16 16" style={{marginRight: '5px'}}>

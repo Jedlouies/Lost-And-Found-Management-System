@@ -32,7 +32,7 @@
 }
 
 .header-right-table {
-    position: fixed;
+    position: absolute;
     gap: 10px;
     display: flex;
     margin-left: 82%;

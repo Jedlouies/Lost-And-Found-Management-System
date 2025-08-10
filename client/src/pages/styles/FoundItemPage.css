@@ -146,6 +146,37 @@
     border: none;
 }
 
+.processClaimBtn {
+    position: absolute;
+    top: 9%;
+    left: 1%;
+    width: 150px;
+    height: 30px;
+    border-radius: 5px;
+    background-color: #475C6F;
+    color: white;
+    border: none;
+}
+
+.processClaimBtn:hover {
+    background-color: #3b4a5a;
+}
+.foundVerificationbtn:hover {
+    background-color: #3b4a5a;
+}
+
+.foundVerificationbtn {
+    position: absolute;
+    top: 9%;
+    left: 12%;
+    width: 150px;
+    height: 30px;
+    border-radius: 5px;
+    background-color: #475C6F;
+    color: white;
+    border: none;
+}
+
 .actions-row {
     display: flex;
     flex-direction: row;

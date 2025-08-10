@@ -51,7 +51,7 @@ function UserFoundProcedurePage() {
 
   return (
     <>
-    <div className='body'>
+    <div className='pro-body'>
           <UserLostItemsPage />
           <div className='background'/>
     <div className='user-found-procedure-body'>

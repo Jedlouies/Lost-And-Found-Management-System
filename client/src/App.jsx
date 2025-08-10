@@ -131,7 +131,7 @@ function App() {
             }
           />
           <Route
-            path="/admin/transcation/:uid"
+            path="/admin/transactions/:uid"
             element={
               currentUser ? (
                 <TransactionPage />

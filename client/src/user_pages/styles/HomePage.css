@@ -143,6 +143,7 @@
     height: 420px;
     top: 20%;
     overflow-x: hidden;
+    overflow-y: visible;
     scroll-behavior: smooth;
 }
 
@@ -156,6 +157,7 @@
     height: 420px;
     top: 29%;
     overflow-x: hidden;
+    overflow-y: visible;
     scroll-behavior: smooth;
 }
 

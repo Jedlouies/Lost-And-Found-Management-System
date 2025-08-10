@@ -119,6 +119,7 @@ useEffect(() => {
         category,
         itemDescription,
         howItemFound,
+        status: 'pending',
         personalInfo: {
           firstName,
           middleName,

@@ -50,13 +50,14 @@ function UserFoundItemsPage() {
     .sort((a, b) => new Date(b.dateFound) - new Date(a.dateFound))
     .slice(0, 20);
 
-  const filteredLostItems = [...foundItems]
+  const filteredFoundItems = [...foundItems]
           .filter(item => {
             const matchesSearch = item.itemName?.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesCategory = selectedCategory === '' || item.category === selectedCategory;
-            return matchesSearch && matchesCategory;
+            const notPending = item.status?.toLowerCase() !== 'pending';
+            return matchesSearch && matchesCategory && notPending;
           })
-          .sort((a, b) => new Date(b.dateLost) - new Date(a.dateLost)); // sort after filter
+          .sort((a, b) => new Date(b.dateLost) - new Date(a.dateLost)); 
 
 
   return (
@@ -108,8 +109,8 @@ function UserFoundItemsPage() {
         </div>
 
         <div className="page-lost-container" ref={foundContainerRef}>
-          {filteredLostItems.length > 0 ? (
-            filteredLostItems.map((item, index) => (
+          {filteredFoundItems.length > 0 ? (
+            filteredFoundItems.map((item, index) => (
               <div className="found-item-card" key={index}>
                 <div className="lost-card-image">
                   {item.images && item.images.length > 0 ? (
