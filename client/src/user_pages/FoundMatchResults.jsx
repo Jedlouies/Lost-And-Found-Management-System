@@ -91,8 +91,8 @@ export default function FoundMatchResults() {
                   <p style={{ color: 'black' }}>
                     <strong>Location Similarity:</strong> {scores.locationScore || 0}%
                   </p>
-                   <div className='progress-bar-full'>
-                  <div
+                  <div className='progress-bar-full'>
+                    <div
                       className="progress-bar-percentage"
                       style={{ width: `${(scores.locationScore || 0) * 1.9}px` }}
                     ></div>

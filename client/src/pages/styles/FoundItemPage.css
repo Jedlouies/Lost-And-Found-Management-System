@@ -54,7 +54,7 @@
     flex-direction: column;
     position: absolute;
     top: 15%;
-    background-color: #cccaca;
+    background-color: white;
     min-width: 93%;
     height: 570px;
     border-radius: 10px;
@@ -148,7 +148,7 @@
 
 .processClaimBtn {
     position: absolute;
-    top: 9%;
+    top: 12%;
     left: 1%;
     width: 150px;
     height: 30px;
@@ -167,7 +167,7 @@
 
 .foundVerificationbtn {
     position: absolute;
-    top: 9%;
+    top: 12%;
     left: 12%;
     width: 150px;
     height: 30px;
@@ -181,12 +181,12 @@
     display: flex;
     flex-direction: row;
     position: absolute;
-    top: 8%;
+    top: 10%;
     left: 62%;
     width: 500px;
     height: 40px;
     padding: 5px;
-    margin-left: -20px;
+    margin-left: -100px;
     justify-items: center;
     align-content: center;
     gap: 10px;

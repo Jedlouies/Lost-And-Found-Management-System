@@ -62,7 +62,7 @@ function FoundItemsPage() {
       <NavigationBar />
       <div className='found-item-body'>
         <TablesHeader />
-        <div className='found-item-container'>
+        <div className='found-item-container' style={{position: 'absolute', top: '80px'}}>
           <h1>Found Items</h1>
           <div className='searchBar'>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#475C6F" className="bi bi-search" viewBox="0 0 16 16">
@@ -77,7 +77,7 @@ function FoundItemsPage() {
           </div>
           <button className={`processClaimBtn  ${location.pathname === `/admin/transactions/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/admin/transactions/${user?.uid}`)}>Process Claim</button>
           <button className='foundVerificationbtn'>Found Verification</button>
-          <div className='actions-row' style={{width: '500px'}}>
+          <div className='actions-row' style={{width: '500px', marginTop: '10px'}}>
                 <button>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-archive" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
                   <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
@@ -107,7 +107,7 @@ function FoundItemsPage() {
 
 
           <div>
-            <table className='found-item-table'>
+            <table className='found-item-table' style={{marginTop: '30px'}}>
               <thead>
                 <tr>
                   <th style={{minWidth: '180px'}}>Item ID No.</th>
