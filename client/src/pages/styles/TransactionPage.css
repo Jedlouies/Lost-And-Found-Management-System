@@ -6,3 +6,7 @@
     height: 120vh;
     margin-left: 80px;
 }
+
+.transaction-content p{
+    color: black;
+}
