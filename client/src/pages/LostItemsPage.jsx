@@ -113,7 +113,7 @@ function LostItemsPage() {
                 {displayedItems.length > 0 ? (
                   displayedItems.map((item, index) => (
                     <tr className='body-row' key={index}>
-                      <td >{item.id}</td>
+                      <td >{item.itemId}</td>
                       <td>
                         {item.images && item.images.length > 0 ? (
                           <img src={item.images[0]} alt={item.itemName} style={{ width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover' }} />

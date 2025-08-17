@@ -82,99 +82,102 @@ function UserLostItemDetailPage() {
     return data.secure_url;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!currentUser) return alert('You must be logged in to submit a report.');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!currentUser) return alert('You must be logged in to submit a report.');
 
-    setIsSubmitting(true);
-    try {
-      const imageURLs = [];
-      if (images && images.length > 0) {
-        for (let i = 0; i < images.length; i++) {
-          const url = await uploadLostItemImage(images[i], `lost-items/${currentUser.uid}`);
-          imageURLs.push(url);
-        }
+  setIsSubmitting(true);
+  try {
+    const imageURLs = [];
+    if (images && images.length > 0) {
+      for (let i = 0; i < images.length; i++) {
+        const url = await uploadLostItemImage(images[i], `lost-items/${currentUser.uid}`);
+        imageURLs.push(url);
       }
-
-      const docRef = await addDoc(collection(db, 'lostItems'), {
-        uid: currentUser.uid,
-        images: imageURLs,
-        itemName,
-        dateLost,
-        locationLost,
-        founder,
-        owner,
-        claimStatus,
-        category,
-        itemDescription,
-        howItemLost,
-        personalInfo: {
-          firstName,
-          middleName,
-          lastName,
-          email,
-          contactNumber,
-          address,
-          profileURL,
-          coverURL,
-          course,
-          section,
-          yearLevel,
-          birthdate,
-        },
-        createdAt: serverTimestamp(),
-      });
-      const matchResponse = await fetch("http://localhost:4000/api/match/lost-to-found", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uidLost: docRef.id }),
-      });
-
-      if (!matchResponse.ok) throw new Error("Matching failed");
-      const matches = await matchResponse.json();
-
-      const top4Matches = matches.slice(0, 4);
-
-      await addDoc(collection(db, 'itemManagement'), {
-              itemId: docRef.id, 
-              uid: currentUser.uid,
-              images: imageURLs,
-              itemName,
-              dateSubmitted: new Date().toISOString(),
-              type: "Lost",  
-              location: locationLost,
-              category,
-              status: "Posted",
-              highestMatchingRate: top4Matches?.[0]?.scores?.overallScore ?? 0,
-              topMatches: top4Matches,
-              personalInfo: {
-                firstName,
-                middleName,
-                lastName,
-                email,
-                contactNumber,
-                address,
-                profileURL,
-                coverURL,
-                course,
-                section,
-                yearLevel,
-                birthdate,
-              },
-              createdAt: serverTimestamp(),
-            });
-
-   
-      navigate(`/users/lost-items/matching/${currentUser.uid}`, { state: { matches } });
-
-  
-    } catch (error) {
-      console.error(error);
-      alert('Failed to submit lost item report.');
     }
-    setIsSubmitting(false);
-    setIsMatching(false);
-  };
+
+    // ✅ Generate custom itemId
+    const customItemId = `ITM-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const docRef = await addDoc(collection(db, 'lostItems'), {
+      itemId: customItemId,
+      uid: currentUser.uid,
+      images: imageURLs,
+      itemName,
+      dateLost,
+      locationLost,
+      founder,
+      owner,
+      claimStatus,
+      category,
+      itemDescription,
+      howItemLost,
+      personalInfo: {
+        firstName,
+        middleName,
+        lastName,
+        email,
+        contactNumber,
+        address,
+        profileURL,
+        coverURL,
+        course,
+        section,
+        yearLevel,
+        birthdate,
+      },
+      createdAt: serverTimestamp(),
+    });
+
+    const matchResponse = await fetch("http://localhost:4000/api/match/lost-to-found", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uidLost: docRef.id }),
+    });
+
+    if (!matchResponse.ok) throw new Error("Matching failed");
+    const matches = await matchResponse.json();
+
+    const top4Matches = matches.slice(0, 4);
+
+    await addDoc(collection(db, 'itemManagement'), {
+      itemId: customItemId,  // ✅ use same ID
+      uid: currentUser.uid,
+      images: imageURLs,
+      itemName,
+      dateSubmitted: new Date().toISOString(),
+      type: "Lost",  
+      location: locationLost,
+      category,
+      status: "Posted",
+      highestMatchingRate: top4Matches?.[0]?.scores?.overallScore ?? 0,
+      topMatches: top4Matches,
+      personalInfo: {
+        firstName,
+        middleName,
+        lastName,
+        email,
+        contactNumber,
+        address,
+        profileURL,
+        coverURL,
+        course,
+        section,
+        yearLevel,
+        birthdate,
+      },
+      createdAt: serverTimestamp(),
+    });
+
+    navigate(`/users/lost-items/matching/${currentUser.uid}`, { state: { matches } });
+
+  } catch (error) {
+    console.error(error);
+    alert('Failed to submit lost item report.');
+  }
+  setIsSubmitting(false);
+  setIsMatching(false);
+};
 
   return (
     <>

@@ -60,7 +60,7 @@
         <NavigationBar />
         <div className='transaction-body'>
           <BlankHeader />
-          <div style={{ position: 'relative', width: '1400px', top: '-30%', left: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ position: 'relative', width: '1400px', top: '-40%', left: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-search" viewBox="0 0 16 16">
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
             </svg>
@@ -123,10 +123,31 @@
             {selectedMatch?.lostItem ? (
               <div className='itemLostTransaction'>
                  <h2>Lost Item</h2>
-                <img src={selectedMatch.lostItem.images} alt="img" style={{width: '300px', height: '300px', borderRadius: '10px', objectFit: 'cover'}}/>
+                <img src={selectedMatch.lostItem.images} alt="img" style={{width: '250px', height: '250px', borderRadius: '10px', objectFit: 'cover'}}/>
                 <p style={{fontSize: '30px', fontWeight: 'bolder'}}> {selectedMatch.lostItem.itemName}</p>
-                <p><strong>Description:</strong> {selectedMatch.lostItem.itemDescription}</p>
-                
+                <span style={{fontSize: '10px'}}>Item ID Number: {selectedMatch.lostItem.itemId}</span>
+                <div style={{width: '70%', display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#F0F0F0', padding: '10px', borderRadius: '10px'}}> 
+                  <img src={selectedMatch.lostItem.personalInfo?.profileURL} alt=""  style={{width: '50px', height: '50px', borderRadius: '30px', objectFit: 'cover'}}/>
+                  <div style={{display: 'flex', flexDirection: 'column', height: '90%'}}>
+                    <span style={{fontSize: '15px', fontWeight: 'bold'}}>{selectedMatch.lostItem.personalInfo?.firstName} {selectedMatch.lostItem.personalInfo?.lastName}</span>
+                    <span style={{fontSize: '15px'}}>{selectedMatch.lostItem.personalInfo.course}</span>
+                    
+                  </div>
+                  
+                </div>
+                <div className='item-transaction-details'>
+                  <div>
+                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>Date Lost:</strong> {selectedMatch.lostItem.dateLost}</p>
+                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>Category:</strong> {selectedMatch.lostItem.category}</p>
+                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>Location Lost:</strong> {selectedMatch.lostItem.locationLost}</p>
+                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>Claim Status:</strong> {selectedMatch.lostItem.claimStatus}</p>
+
+                  </div>
+                  <div>
+                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>Description:</strong> {selectedMatch.lostItem.itemDescription}</p>
+                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>How item lost:</strong> {selectedMatch.lostItem.howItemLost}</p>
+                  </div>
+                </div>         
               </div>
             ) : (
               <p>No lost item details</p>
@@ -246,16 +267,43 @@
             {selectedMatch?.foundItem ? (
               <div className='itemFoundTransaction'>
                 <h2>Found Item</h2>
-                <img src={selectedMatch.foundItem.images} alt="img" style={{width: '300px', height: '300px', borderRadius: '10px', objectFit: 'cover'}}/>
+                <img src={selectedMatch.foundItem.images} alt="img" style={{width: '250px', height: '250px', borderRadius: '10px', objectFit: 'cover'}}/>
                 <p style={{fontSize: '30px', fontWeight: 'bolder'}}> {selectedMatch.foundItem.itemName}</p>
-                <p><strong>Description:</strong> {selectedMatch.foundItem.itemDescription}</p>
-                {/* Add other foundItem fields */}
+                <span style={{fontSize: '10px'}}>Item ID Number: {selectedMatch.foundItem.itemId}</span>
+                <div style={{width: '70%', display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#F0F0F0', padding: '10px', borderRadius: '10px'}}> 
+                  <img src={selectedMatch.foundItem.personalInfo?.profileURL} alt=""  style={{width: '50px', height: '50px', borderRadius: '30px', objectFit: 'cover'}}/>
+                  <div style={{display: 'flex', flexDirection: 'column', height: '90%'}}>
+                    <span style={{fontSize: '15px', fontWeight: 'bold'}}>{selectedMatch.foundItem.personalInfo?.firstName} {selectedMatch.foundItem.personalInfo?.lastName}</span>
+                    <span style={{fontSize: '15px'}}>{selectedMatch.foundItem.personalInfo.course}</span>
+                    
+                  </div>
+                  
+                </div>
+                <div className='item-transaction-details'>
+                  <div>
+                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>Date Found:</strong> {selectedMatch.foundItem.dateFound}</p>
+                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>Category:</strong> {selectedMatch.foundItem.category}</p>
+                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>Location Found:</strong> {selectedMatch.foundItem.locationFound}</p>
+                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>Claim Status:</strong> {selectedMatch.foundItem.claimStatus}</p>
+
+                  </div>
+                  <div>
+                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>Description:</strong> {selectedMatch.foundItem.itemDescription}</p>
+                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>How item found:</strong> {selectedMatch.foundItem.howItemFound}</p>
+                  </div>
+                </div>         
               </div>
             ) : (
               <p>No found item details</p>
             )}
           </div>
+          <button style={{position: 'absolute', top: '92%', left: '75%', width: '200px', height: '40px', borderRadius: '20px', border: '2px solid #475C6F', backgroundColor: 'transparent', color: '#475C6F', gap: '10px'}}>Process 
+             <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-forward" viewBox="0 0 16 16">
+              <path d="M9.502 5.513a.144.144 0 0 0-.202.134V6.65a.5.5 0 0 1-.5.5H2.5v2.9h6.3a.5.5 0 0 1 .5.5v1.003c0 .108.11.176.202.134l3.984-2.933.042-.028a.147.147 0 0 0 0-.252l-.042-.028zM8.3 5.647a1.144 1.144 0 0 1 1.767-.96l3.994 2.94a1.147 1.147 0 0 1 0 1.946l-3.994 2.94a1.144 1.144 0 0 1-1.767-.96v-.503H2a.5.5 0 0 1-.5-.5v-3.9a.5.5 0 0 1 .5-.5h6.3z"/>
+            </svg>
+          </button>
         </div>
+        
       </>
     );
   }

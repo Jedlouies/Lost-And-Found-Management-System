@@ -24,6 +24,7 @@
 }
 
 .page-lost-container {
+    background-color: #D9D9D9;
     top: 10%;
     position: absolute;
     display: grid;
@@ -31,7 +32,7 @@
     padding: 15px;
     gap: 20px;
     width: 95%;
-    height: 100vh;
+    height: 110vh;
     top: 15%;
     overflow-x: hidden;
     overflow-y: scroll;

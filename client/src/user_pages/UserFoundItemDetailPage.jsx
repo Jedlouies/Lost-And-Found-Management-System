@@ -93,102 +93,105 @@ useEffect(() => {
   };
 
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!currentUser) return alert('You must be logged in to submit a report.');
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!currentUser) return alert('You must be logged in to submit a report.');
 
-    setIsSubmitting(true);
-    try {
-      const imageURLs = [];
-      if (images && images.length > 0) {
-        for (let i = 0; i < images.length; i++) {
-          const url = await uploadFoundItemImage(images[i], `found-items/${currentUser.uid}`);
-          imageURLs.push(url);
-        }
+  setIsSubmitting(true);
+  try {
+    const imageURLs = [];
+    if (images && images.length > 0) {
+      for (let i = 0; i < images.length; i++) {
+        const url = await uploadFoundItemImage(images[i], `found-items/${currentUser.uid}`);
+        imageURLs.push(url);
       }
-
-      const docRef = await addDoc(collection(db, 'foundItems'), {
-        uid: currentUser.uid,
-        images: imageURLs,
-        itemName,
-        dateFound,
-        locationFound,
-        founder,
-        owner,
-        claimStatus,
-        category,
-        itemDescription,
-        howItemFound,
-        status: 'pending',
-        personalInfo: {
-          firstName,
-          middleName,
-          lastName,
-          email,
-          contactNumber,
-          address,
-          profileURL,
-          coverURL,
-          course,
-          section,
-          yearLevel,
-          birthdate,
-        },
-        createdAt: serverTimestamp(),
-      });
-
-      setIsMatching(true);
-
-      const matchResponse = await fetch("http://localhost:4000/api/match/found-to-lost", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uidFound: docRef.id }),
-      });
-
-      if (!matchResponse.ok) throw new Error("Matching failed");
-      const matches = await matchResponse.json();
-
-      const top4Matches = matches.slice(0, 4);
-
-      await addDoc(collection(db, 'itemManagement'), {
-        itemId: docRef.id, 
-        uid: currentUser.uid,
-        images: imageURLs,
-        itemName,
-        dateSubmitted: new Date().toISOString(),
-        type: "Found",  
-        location: locationFound,
-        category,
-        status: "Pending",
-        highestMatchingRate: top4Matches?.[0]?.scores?.overallScore ?? 0,
-        topMatches: top4Matches,
-        personalInfo: {
-          firstName,
-          middleName,
-          lastName,
-          email,
-          contactNumber,
-          address,
-          profileURL,
-          coverURL,
-          course,
-          section,
-          yearLevel,
-          birthdate,
-        },
-        createdAt: serverTimestamp(),
-      });
-
-     
-      navigate(`/users/found-items/matching/${currentUser.uid}`, { state: { matches } });
-
-    } catch (error) {
-      console.error(error);
-      alert('Failed to submit found item report.');
     }
-    setIsSubmitting(false);
-    setIsMatching(false);
-  };
+
+    // ✅ Generate custom itemId
+    const customItemId = `ITM-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(100 + Math.random() * 900)}`;
+
+    const docRef = await addDoc(collection(db, 'foundItems'), {
+      itemId: customItemId,
+      uid: currentUser.uid,
+      images: imageURLs,
+      itemName,
+      dateFound,
+      locationFound,
+      founder,
+      owner,
+      claimStatus,
+      category,
+      itemDescription,
+      howItemFound,
+      status: 'pending',
+      personalInfo: {
+        firstName,
+        middleName,
+        lastName,
+        email,
+        contactNumber,
+        address,
+        profileURL,
+        coverURL,
+        course,
+        section,
+        yearLevel,
+        birthdate,
+      },
+      createdAt: serverTimestamp(),
+    });
+
+    setIsMatching(true);
+
+    const matchResponse = await fetch("http://localhost:4000/api/match/found-to-lost", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uidFound: docRef.id }),
+    });
+
+    if (!matchResponse.ok) throw new Error("Matching failed");
+    const matches = await matchResponse.json();
+
+    const top4Matches = matches.slice(0, 4);
+
+    await addDoc(collection(db, 'itemManagement'), {
+      itemId: customItemId,  // ✅ use same ID
+      uid: currentUser.uid,
+      images: imageURLs,
+      itemName,
+      dateSubmitted: new Date().toISOString(),
+      type: "Found",  
+      location: locationFound,
+      category,
+      status: "Pending",
+      highestMatchingRate: top4Matches?.[0]?.scores?.overallScore ?? 0,
+      topMatches: top4Matches,
+      personalInfo: {
+        firstName,
+        middleName,
+        lastName,
+        email,
+        contactNumber,
+        address,
+        profileURL,
+        coverURL,
+        course,
+        section,
+        yearLevel,
+        birthdate,
+      },
+      createdAt: serverTimestamp(),
+    });
+
+    navigate(`/users/found-items/matching/${currentUser.uid}`, { state: { matches } });
+
+  } catch (error) {
+    console.error(error);
+    alert('Failed to submit found item report.');
+  }
+  setIsSubmitting(false);
+  setIsMatching(false);
+};
   
   return (
     <>

@@ -23,8 +23,17 @@ app.get("/", (req, res) => {
   res.send("AI-Powered Matching API is running!");
 });
 
+// --- Transaction ID Generator ---
 function generateTransactionId() {
   return 'TX-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
+}
+
+// --- Item ID Generator ---
+function generateItemId() {
+  const part1 = Math.floor(100 + Math.random() * 900);   // 3 digits
+  const part2 = Math.floor(1000 + Math.random() * 9000); // 4 digits
+  const part3 = Math.floor(100 + Math.random() * 900);   // 3 digits
+  return `ITM-${part1}-${part2}-${part3}`;
 }
 
 /* --------------------------------------------------
@@ -155,6 +164,7 @@ app.post("/api/match/found-to-lost", async (req, res) => {
 
       const matchData = {
         transactionId: generateTransactionId(),
+        itemId: generateItemId(),   
         lostItem: { ...lostItem, id: lostDoc.id },
         foundItem: { ...foundItem, id: uidFound },
         scores,
@@ -194,6 +204,7 @@ app.post("/api/match/lost-to-found", async (req, res) => {
 
       const matchData = {
         transactionId: generateTransactionId(),
+        itemId: generateItemId(),   
         lostItem: { ...lostItem, id: uidLost },
         foundItem: { ...foundItem, id: foundDoc.id },
         scores,

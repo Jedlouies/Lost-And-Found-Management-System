@@ -25,7 +25,7 @@ useEffect(() => {
       const managementItems = managementSnap.docs.map(doc => {
         const data = doc.data();
         return {
-          id: doc.id,
+          id: data.itemId,
           itemName: data.itemName || 'Unnamed',
           images: data.images || [],
           date: data.dateSubmitted || 'N/A',
