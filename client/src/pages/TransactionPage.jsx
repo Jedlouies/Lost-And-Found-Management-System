@@ -11,11 +11,18 @@
     const navigate = useNavigate();
     const auth = getAuth();
     const user = auth.currentUser;
+    
 
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedMatch, setSelectedMatch] = useState(null);
+
+     const handleNavigate = (path) => {
+  navigate(path);
+  setExpanded(prev => !prev);
+
+};
 
     useEffect(() => {
       const fetchMatches = async () => {
@@ -60,7 +67,7 @@
         <NavigationBar />
         <div className='transaction-body'>
           <BlankHeader />
-          <div style={{ position: 'relative', width: '1400px', top: '-40%', left: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ position: 'absolute', width: '1400px', top: '10%', left: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-search" viewBox="0 0 16 16">
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
             </svg>
@@ -297,11 +304,20 @@
               <p>No found item details</p>
             )}
           </div>
-          <button style={{position: 'absolute', top: '92%', left: '75%', width: '200px', height: '40px', borderRadius: '20px', border: '2px solid #475C6F', backgroundColor: 'transparent', color: '#475C6F', gap: '10px'}}>Process 
-             <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-forward" viewBox="0 0 16 16">
-              <path d="M9.502 5.513a.144.144 0 0 0-.202.134V6.65a.5.5 0 0 1-.5.5H2.5v2.9h6.3a.5.5 0 0 1 .5.5v1.003c0 .108.11.176.202.134l3.984-2.933.042-.028a.147.147 0 0 0 0-.252l-.042-.028zM8.3 5.647a1.144 1.144 0 0 1 1.767-.96l3.994 2.94a1.147 1.147 0 0 1 0 1.946l-3.994 2.94a1.144 1.144 0 0 1-1.767-.96v-.503H2a.5.5 0 0 1-.5-.5v-3.9a.5.5 0 0 1 .5-.5h6.3z"/>
-            </svg>
-          </button>
+         <button
+          className={`transaction-process-btn ${location.pathname === `/admin/process-claim/${selectedMatch?.id}` ? "active" : ""}`}
+          onClick={() =>
+            navigate(`/admin/process-claim/${selectedMatch?.id}`, {
+              state: { match: selectedMatch }, // 🔹 Pass lost & found items here
+            })
+          }
+        >
+          Process
+          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-forward" viewBox="0 0 16 16">
+            <path d="M9.502 5.513a.144.144 0 0 0-.202.134V6.65a.5.5 0 0 1-.5.5H2.5v2.9h6.3a.5.5 0 0 1 .5.5v1.003c0 .108.11.176.202.134l3.984-2.933.042-.028a.147.147 0 0 0 0-.252l-.042-.028zM8.3 5.647a1.144 1.144 0 0 1 1.767-.96l3.994 2.94a1.147 1.147 0 0 1 0 1.946l-3.994 2.94a1.144 1.144 0 0 1-1.767-.96v-.503H2a.5.5 0 0 1-.5-.5v-3.9a.5.5 0 0 1 .5-.5h6.3z"/>
+          </svg>
+        </button>
+
         </div>
         
       </>

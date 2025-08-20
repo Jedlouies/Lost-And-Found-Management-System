@@ -28,6 +28,7 @@ import ItemManagementPage from "./user_pages/ItemManagementPage";
 import UserMessagesPage from "./user_pages/UserMessagesPage";
 import UserNotificationPage from "./user_pages/UserNotificationPage";
 import TransactionPage from "./pages/TransactionPage";
+import ProcessClaimPage from "./pages/ProcessClaimPage";
 
 
 function App() {
@@ -135,6 +136,16 @@ function App() {
             element={
               currentUser ? (
                 <TransactionPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/admin/process-claim/:uid"
+            element={
+              currentUser ? (
+                <ProcessClaimPage />
               ) : (
                <></>
               )
@@ -290,6 +301,7 @@ function App() {
               )
             }
           />
+          
 
           
         </Routes>        

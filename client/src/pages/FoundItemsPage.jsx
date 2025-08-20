@@ -146,18 +146,47 @@ function FoundItemsPage() {
                     </td>
                     <td>
                       <div className='owner-details'>
-                        <div className='profile' style={{width: '50px', height: '50px', alignItems: 'center', justifyContent: 'center'}}> 
-                          <svg xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" class="bi bi-person-slash" viewBox="0 0 16 16">
-                            <path d="M13.879 10.414a2.501 2.501 0 0 0-3.465 3.465zm.707.707-3.465 3.465a2.501 2.501 0 0 0 3.465-3.465m-4.56-1.096a3.5 3.5 0 1 1 4.949 4.95 3.5 3.5 0 0 1-4.95-4.95ZM11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m.256 7a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1z"/>
-                          </svg>
-                        </div>
-                  
-                        <div className='personal-info'>
-                          <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>{'Unknown'}</p>
-                          <p style={{ fontStyle: 'italic', color: 'black' }}>{'Unknown'}</p>
-                        </div>
+                        {item.claimedBy ? (
+                          <>
+                            {item.claimedBy.profileURL ? (
+                              <img 
+                                src={item.claimedBy.profileURL} 
+                                alt="Owner" 
+                                style={{width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover'}} 
+                              />
+                            ) : (
+                              <div className='profile' style={{width: '50px', height: '50px', alignItems: 'center', justifyContent: 'center'}}> 
+                                <svg xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" className="bi bi-person" viewBox="0 0 16 16">
+                                  <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                                  <path fillRule="evenodd" d="M14 14s-1-1.5-6-1.5S2 14 2 14s1-4 6-4 6 4 6 4z"/>
+                                </svg>
+                              </div>
+                            )}
+
+                            <div className='personal-info'>
+                              <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>
+                                {item.claimedBy.firstName} {item.claimedBy.lastName}
+                              </p>
+                              <p style={{ fontStyle: 'italic', color: 'black' }}>
+                                {item.claimedBy.course || 'Unknown'}
+                              </p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className='profile' style={{width: '50px', height: '50px', alignItems: 'center', justifyContent: 'center'}}> 
+                              <svg xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" className="bi bi-person-slash" viewBox="0 0 16 16">
+                                <path d="M13.879 10.414a2.501 2.501 0 0 0-3.465 3.465zm.707.707-3.465 3.465a2.501 2.501 0 0 0 3.465-3.465m-4.56-1.096a3.5 3.5 0 1 1 4.949 4.95 3.5 3.5 0 0 1-4.95-4.95ZM11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m.256 7a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1z"/>
+                              </svg>
+                            </div>
+                            <div className='personal-info'>
+                              <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>Unknown</p>
+                              <p style={{ fontStyle: 'italic', color: 'black' }}>Unknown</p>
+                            </div>
+                          </>
+                        )}
                       </div>
-                    </td>                      
+                    </td>
                   
                       <td style={{ position: 'relative' }}>
                         

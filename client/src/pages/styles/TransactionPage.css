@@ -8,11 +8,11 @@
 }
 
 .transaction-content {
-    position: relative;
+    position: absolute;
     display: flex;
     align-content: center;
     justify-content: center;
-    top: -35%;
+    top: 20%;
     left: 20px;
     width: 90%;
     height: 70%;
@@ -60,4 +60,22 @@
 
 .item-transaction-details div{
     width: 50%;
+}
+
+.transaction-process-btn {
+    position: absolute; 
+    top: 92%; 
+    left: 75%; 
+    width: 200px; 
+    height: 40px; 
+    border-radius: 20px; 
+    border: 2px solid #475C6F; 
+    background-color: transparent; 
+    color: #475C6F; 
+    gap: 10px;
+}
+
+.transaction-process-btn:hover {
+    background-color: #475C6F;
+    color: white;
 }
