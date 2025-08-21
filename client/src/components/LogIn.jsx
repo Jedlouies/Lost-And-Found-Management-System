@@ -64,7 +64,36 @@ function LogIn() {
               <input className='create-input' type='password' placeholder='Password' ref={passwordRef} required />
             </Form.Group>
             <p>Don't have an account?<strong onClick={handleSignIn}> Create an account</strong></p>
-            <button disabled={loading} type='submit'>{loading ? 'Submitting...' : 'Submit'}</button>
+            <button
+              disabled={loading}
+              type="Submit"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "10px", // space between spinner and text
+                backgroundColor: "#BDDDFC",
+                color: "black",
+                padding: "10px 20px",
+                border: "none",
+                borderRadius: "8px",
+                cursor: loading ? "not-allowed" : "pointer",
+              }}
+            >
+              {loading ? (
+                <>
+                  <img
+                    src="/Spin.gif"
+                    alt="Loading..."
+                    style={{ width: "20px", height: "20px" }}
+                  />
+                  <span>Logging in...</span>
+                </>
+              ) : (
+                "Submit"
+              )}
+            </button>
+
           </Form>
         </Card.Body>
       </div>

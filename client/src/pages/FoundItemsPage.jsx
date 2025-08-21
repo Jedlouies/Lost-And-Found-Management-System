@@ -6,7 +6,15 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { 
+  collection, 
+  getDocs, 
+  getDoc, 
+  doc, 
+  updateDoc, 
+  query, 
+  where 
+} from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from "firebase/auth";
 
@@ -40,6 +48,55 @@ function FoundItemsPage() {
     fetchLostItems();
   }, []);
 
+
+
+const handleVerifyItem = async (foundDocId) => {
+  try {
+    // 1. Get the foundItems document first by its Firestore ID
+    const foundDocRef = doc(db, "foundItems", foundDocId);
+    const foundDocSnap = await getDoc(foundDocRef);
+
+    if (!foundDocSnap.exists()) {
+      throw new Error(`No foundItems document with ID: ${foundDocId}`);
+    }
+
+    // Extract the itemId field
+    const { itemId } = foundDocSnap.data();
+
+    if (!itemId) {
+      throw new Error(`foundItems doc ${foundDocId} has no itemId field`);
+    }
+
+    // 2. Update the foundItems document
+    await updateDoc(foundDocRef, { status: "posted" });
+
+    // 3. Find the corresponding item in itemManagement by itemId
+    const manageQuery = query(
+      collection(db, "itemManagement"),
+      where("itemId", "==", itemId)
+    );
+    const manageSnap = await getDocs(manageQuery);
+
+    if (manageSnap.empty) {
+      throw new Error(`No itemManagement document with itemId: ${itemId}`);
+    }
+
+    for (const docSnap of manageSnap.docs) {
+      await updateDoc(docSnap.ref, { status: "posted" });
+    }
+
+    // 4. Update local state so UI reflects the change
+    setItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === foundDocId ? { ...item, status: "posted" } : item
+      )
+    );
+
+    console.log(`✅ Item ${itemId} verified successfully!`);
+  } catch (error) {
+    console.error("❌ Error verifying item:", error);
+  }
+};
 
   const filteredItems = items.filter(item =>
     item.itemName?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -76,7 +133,6 @@ function FoundItemsPage() {
             />
           </div>
           <button className={`processClaimBtn  ${location.pathname === `/admin/transactions/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/admin/transactions/${user?.uid}`)}>Process Claim</button>
-          <button className='foundVerificationbtn'>Found Verification</button>
           <div className='actions-row' style={{width: '500px', marginTop: '10px'}}>
                 <button>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-archive" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
@@ -146,11 +202,11 @@ function FoundItemsPage() {
                     </td>
                     <td>
                       <div className='owner-details'>
-                        {item.claimedBy ? (
+                        {item.claimeBy ? (
                           <>
-                            {item.claimedBy.profileURL ? (
+                            {item.claimeBy.profileURL ? (
                               <img 
-                                src={item.claimedBy.profileURL} 
+                                src={item.claimeBy.profileURL} 
                                 alt="Owner" 
                                 style={{width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover'}} 
                               />
@@ -165,10 +221,10 @@ function FoundItemsPage() {
 
                             <div className='personal-info'>
                               <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>
-                                {item.claimedBy.firstName} {item.claimedBy.lastName}
+                                {item.claimeBy.firstName} {item.claimeBy.lastName}
                               </p>
                               <p style={{ fontStyle: 'italic', color: 'black' }}>
-                                {item.claimedBy.course || 'Unknown'}
+                                {item.claimeBy.course || 'Unknown'}
                               </p>
                             </div>
                           </>
@@ -220,7 +276,7 @@ function FoundItemsPage() {
                           <Dropdown.Menu>
                             <Dropdown.Item onClick={() => console.log(`View Details of ${item.id}`)}>View Details</Dropdown.Item>
                             <Dropdown.Item onClick={() => console.log(`Archive ${item.id}`)}>Archive</Dropdown.Item>
-                            <Dropdown.Item onClick={() => console.log(`Archive ${item.id}`)}>Process Claim</Dropdown.Item>
+                            <Dropdown.Item onClick={() => handleVerifyItem(item.id)}>Verify Item</Dropdown.Item>
                           </Dropdown.Menu>
                         </Dropdown>
                         <svg

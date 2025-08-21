@@ -245,9 +245,39 @@ const handleSubmit = async (e) => {
 
 
 
-          <button type="submit" disabled={isSubmitting || isMatching}>
-            {isMatching ? 'Matching Items...' : isSubmitting ? 'Submitting...' : 'Submit Report'}
+          <button
+            type="submit"
+            disabled={isSubmitting || isMatching}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "10px",
+              backgroundColor: "#BDDDFC",
+              color: "black",
+              padding: "12px 25px",
+              border: "none",
+              borderRadius: "10px",
+              cursor: isSubmitting || isMatching ? "not-allowed" : "pointer",
+              fontSize: "16px",
+              fontWeight: "500",
+            }}
+          >
+            {isMatching ? (
+              <>
+                <img src="/Spin.gif" alt="Loading..." style={{ width: "20px", height: "20px" }} />
+                <span>Matching Items...</span>
+              </>
+            ) : isSubmitting ? (
+              <>
+                <img src="/Spin.gif" alt="Loading..." style={{ width: "20px", height: "20px" }} />
+                <span>Submitting Report...</span>
+              </>
+            ) : (
+              "Submit Report"
+            )}
           </button>
+
         </form>
       </div>
     </>

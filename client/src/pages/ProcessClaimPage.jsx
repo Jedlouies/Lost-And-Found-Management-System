@@ -17,6 +17,7 @@ function ProcessClaimPage() {
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
+  const [loading, setLoading] = useState(false);
 
   const { matchId } = useParams();
   const location = useLocation();
@@ -24,7 +25,7 @@ function ProcessClaimPage() {
   const matchData = location.state?.match || null;
 
 
-  // ✅ Enumerate available cameras
+
   useEffect(() => {
     const updateDevices = async () => {
       try {
@@ -32,7 +33,7 @@ function ProcessClaimPage() {
         const videoDevices = allDevices.filter((d) => d.kind === "videoinput");
         setDevices(videoDevices);
 
-        // If selected camera is unplugged, fallback to default (first cam)
+       
         if (
           selectedDeviceId &&
           !videoDevices.find((d) => d.deviceId === selectedDeviceId)
@@ -40,7 +41,7 @@ function ProcessClaimPage() {
           setSelectedDeviceId(videoDevices[0]?.deviceId || null);
         }
 
-        // If no selection yet, set default
+        
         if (!selectedDeviceId && videoDevices.length > 0) {
           setSelectedDeviceId(videoDevices[0].deviceId);
         }
@@ -51,7 +52,7 @@ function ProcessClaimPage() {
 
     updateDevices();
 
-    // Listen for device changes (plug/unplug)
+    
     navigator.mediaDevices.ondevicechange = updateDevices;
 
     return () => {
@@ -59,7 +60,7 @@ function ProcessClaimPage() {
     };
   }, [selectedDeviceId]);
 
-  // ✅ Start camera stream
+ 
   const startCamera = async () => {
     try {
       if (!selectedDeviceId) return;
@@ -86,7 +87,7 @@ function ProcessClaimPage() {
     return () => stopCamera();
   }, [selectedDeviceId]);
 
-  // ✅ Capture still photo
+ 
   const capturePhoto = () => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -99,7 +100,7 @@ function ProcessClaimPage() {
     }
   };
 
-  // ✅ Handle QR scan
+  
   const handleScan = async (result, error) => {
     if (result) {
       const text = result?.text || "";
@@ -128,7 +129,7 @@ function ProcessClaimPage() {
 
       setQrResult(parsedResult);
 
-      // 🔹 Search Firestore user by studentId
+      
       try {
         const q = query(collection(db, "users"), where("studentId", "==", idNumber));
         const querySnapshot = await getDocs(q);
@@ -162,8 +163,10 @@ const finalizeClaim = async () => {
     return;
   }
 
+  setLoading(true); 
+
   try {
-    // ✅ Update Lost Item
+    
     if (matchData.lostItem?.itemId) {
       const lostQuery = query(
         collection(db, "lostItems"),
@@ -182,7 +185,7 @@ const finalizeClaim = async () => {
       }
     }
 
-    // ✅ Update Found Item
+   
     if (matchData.foundItem?.itemId) {
       const foundQuery = query(
         collection(db, "foundItems"),
@@ -195,18 +198,19 @@ const finalizeClaim = async () => {
         await updateDoc(doc(db, "foundItems", foundDocId), {
           claimStatus: "claimed",
           founder: matchData.foundItem.personalInfo || null,
-          claimeBy: matchData.lostItem?.personalInfo || null,
+          claimedBy: matchData.lostItem?.personalInfo || null,
           claimantPhoto: capturedImage,
         });
       }
     }
 
-    alert("✅ Claim successfully processed!");
-    // go back after success (optional)
-
+    
+    navigate(`/admin/found-items/${userData.id}`);
   } catch (err) {
     console.error("Error finalizing claim:", err);
     alert("❌ Error finalizing claim.");
+  } finally {
+    setLoading(false); 
   }
 };
 
@@ -215,17 +219,17 @@ const finalizeClaim = async () => {
       <NavigationBar />
       <div className="process-claim-page">
         <BlankHeader />
-        <h1 style={{ position: "absolute", top: "6%", left: "1%" }}>
+        <h1 style={{ position: "absolute", top: "6%", left: "1%", color: '#475C6F' }}>
           Process Claim
         </h1>
 
-        {/* Camera Switcher */}
+        
         <div style={{ position: "absolute", top: "7%", left: "25%" }}>
-          <label style={{ color: "black", fontWeight: "bold" }}>Select Camera:</label>
+          <label style={{ color: "black", fontWeight: "bold", color: '#475C6F' }}>Select Camera:</label>
           <select
             value={selectedDeviceId || ""}
             onChange={(e) => setSelectedDeviceId(e.target.value)}
-            style={{ marginLeft: "10px", padding: "5px" }}
+            style={{ marginLeft: "10px", padding: "5px", backgroundColor: '#475C6F', borderRadius: '5px'}}
           >
             {devices.map((device, idx) => (
               <option key={idx} value={device.deviceId}>
@@ -235,7 +239,7 @@ const finalizeClaim = async () => {
           </select>
         </div>
 
-        {/* Selfie Camera Preview */}
+       
         <div className="camera-container">
           <video ref={videoRef} autoPlay playsInline />
         </div>
@@ -246,7 +250,7 @@ const finalizeClaim = async () => {
 
         <canvas ref={canvasRef} style={{ display: "none" }} />
 
-        {/* Captured Image */}
+        
         {capturedImage && (
           <div className="captured-section">
             <img
@@ -261,7 +265,7 @@ const finalizeClaim = async () => {
           </div>
         )}
 
-        {/* QR Scanner */}
+
         <div className="qr-scanner-container" style={{ position: "absolute" }}>
           <QrReader
             onResult={handleScan}
@@ -277,7 +281,7 @@ const finalizeClaim = async () => {
           />
         </div>
 
-        {/* Parsed QR result */}
+     
         {qrResult && (
           <div className="qr-result">
             <p>Scanned ID Info:</p>
@@ -287,7 +291,7 @@ const finalizeClaim = async () => {
           </div>
         )}
 
-        {/* Firestore user account */}
+    
         {userData && (
           <div className="qr-results" style={{ marginTop: "160px" }}>
             <p><b>Matched User Account:</b></p>
@@ -314,23 +318,42 @@ const finalizeClaim = async () => {
             )}
           </div>
         )}
-        <button
+          <button
             onClick={finalizeClaim}
+            disabled={loading}
             style={{
-                position: "absolute",
-                bottom: "5%",
-                left: "40%",
-                padding: "12px 25px",
-                fontSize: "18px",
-                backgroundColor: "#475C6F",
-                color: "white",
-                border: "none",
-                borderRadius: "10px",
-                cursor: "pointer",
+              position: "absolute",
+              bottom: "5%",
+              height: "50px",
+              width: "250px",
+              top: "76%",
+              left: "40%",
+              padding: "12px 25px",
+              fontSize: "18px",
+              backgroundColor: "#475C6F",
+              color: "white",
+              border: "none",
+              borderRadius: "10px",
+              cursor: loading ? "not-allowed" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "10px", 
             }}
-            >
-            ✅ Finish Claim
-            </button>
+          >
+            {loading ? (
+              <>
+                <img
+                  src="/Spin.gif"
+                  alt="Loading..."
+                  style={{ width: "25px", height: "25px" }}
+                />
+                <span>Storing data...</span>
+              </>
+            ) : (
+              "Complete"
+            )}
+          </button>
 
       </div>
     </>

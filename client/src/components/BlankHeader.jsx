@@ -111,7 +111,7 @@ useEffect(() => {
             <img
               src={profileURL}
               alt='Profile'
-              style={{ width: '30px', height: '30px', borderRadius: '50%' }}
+              style={{ width: '30px', height: '30px', borderRadius: '50%', objectFit: 'cover' }}
             />
           ) : (
             <div

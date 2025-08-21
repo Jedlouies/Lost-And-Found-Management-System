@@ -41,7 +41,7 @@
     align-items: center;
     max-width: 500px;
     min-width: 500px;
-    min-height: 600px;
+    min-height: 620px;
     padding: 20px;
     background-color: white;
     border-radius: 20px;
@@ -64,7 +64,7 @@
 
 .transaction-process-btn {
     position: absolute; 
-    top: 92%; 
+    top: 94%; 
     left: 75%; 
     width: 200px; 
     height: 40px; 
@@ -78,4 +78,39 @@
 .transaction-process-btn:hover {
     background-color: #475C6F;
     color: white;
+}
+
+/* Truncate long text */
+.truncate {
+  display: inline-block;
+  max-width: 150px;  /* adjust width */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+/* Floating tooltip panel */
+.tooltip-panel {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s;
+  position: absolute;
+  left: 20px;
+  top: 100%;
+  z-index: 999;
+  background-color: #475C6F;
+  color: white;
+  padding: 8px;
+  border-radius: 8px;
+  white-space: normal;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+/* Show tooltip on hover */
+.hover-text:hover .tooltip-panel {
+  visibility: visible;
+  opacity: 1;
 }

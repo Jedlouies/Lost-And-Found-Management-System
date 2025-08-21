@@ -31,7 +31,7 @@ export default function FoundMatchResults() {
         Match More
         </button>
     <div className="p-6">
-      {matches.length === 0 && <p>No matches found.</p>}
+      {matches.length === 0 && <p style={{color: 'black', marginTop: '20px'}}>No matches found.</p>}
       <h1 style={{position: 'absolute', top: '-8%', fontWeight: 'bold', fontSize: '20px'}}>Matching Result</h1>
 
 

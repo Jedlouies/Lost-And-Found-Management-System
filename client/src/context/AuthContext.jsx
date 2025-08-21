@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { auth } from '../firebase.jsx';
+import { auth, secondaryAuth } from '../firebase.jsx';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -8,6 +8,8 @@ import {
 } from 'firebase/auth';
 import { db } from '../firebase.jsx';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence } from "firebase/auth";
+
 
 const AuthContext = React.createContext();
 
@@ -17,6 +19,7 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
+  const [secondaryUser, setSecondaryUser] = useState(null);
 
 function signup(email, password, firstName, lastName, contactNumber, studentId, profileURL, coverURL, designation, address, gender, yearsOfService, middleName, educationalAttainment, bio) {
   console.log("SIGNUP INPUT:", { email, password, firstName, lastName, contactNumber, studentId });
@@ -65,32 +68,35 @@ function signup(email, password, firstName, lastName, contactNumber, studentId, 
 }
 
   async function login(studentId, password) {
-    try {
-      const indexDoc = await getDoc(doc(db, "studentIndex", String(studentId)));
-      if (!indexDoc.exists()) {
-        throw new Error("Student ID not found");
-      }
+    const indexDoc = await getDoc(doc(db, "studentIndex", String(studentId)));
+    if (!indexDoc.exists()) throw new Error("Student ID not found");
+    const { email } = indexDoc.data();
+    return await signInWithEmailAndPassword(auth, email, password);
+  }
 
-      const { email } = indexDoc.data();
-      return await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      console.error("🔥 Login error:", error.code || error.message);
-      throw error;
-    }
+  // --- Login (secondary user)
+  async function loginSecondary(studentId, password) {
+    const indexDoc = await getDoc(doc(db, "studentIndex", String(studentId)));
+    if (!indexDoc.exists()) throw new Error("Student ID not found");
+    const { email } = indexDoc.data();
+    return await signInWithEmailAndPassword(secondaryAuth, email, password);
   }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, user => {
-      setCurrentUser(user);
-    });
-
-    return unsubscribe;
+    const unsub1 = onAuthStateChanged(auth, (user) => setCurrentUser(user));
+    const unsub2 = onAuthStateChanged(secondaryAuth, (user) => setSecondaryUser(user));
+    return () => {
+      unsub1();
+      unsub2();
+    };
   }, []);
 
   const value = {
-    currentUser,
+    currentUser,     
+    secondaryUser,   
     signup,
-    login
+    login,
+    loginSecondary
   };
 
   return (

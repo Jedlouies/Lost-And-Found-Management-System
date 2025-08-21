@@ -82,10 +82,10 @@ function UserSettingsPage() {
           setEmail(userData.email || '');
           setContactNumber(userData.contactNumber || '');
           setBio(userData.bio || '');
-          setDesignation(userData.designation || '');
+          setDesignation(userData.designation || 'N/A');
           setGender(userData.gender || '');
-          setYearsOfService(userData.yearsOfService || '');
-          setEducationalAttainment(userData.educationalAttainment || '');
+          setYearsOfService(userData.yearsOfService || 'N/A');
+          setEducationalAttainment(userData.educationalAttainment || 'N/A');
           setAddress(userData.address);
           setCourse(userData.course || '');
           setSection(userData.section || '');

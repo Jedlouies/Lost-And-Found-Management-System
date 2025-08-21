@@ -139,8 +139,7 @@
                     <span style={{fontSize: '15px', fontWeight: 'bold'}}>{selectedMatch.lostItem.personalInfo?.firstName} {selectedMatch.lostItem.personalInfo?.lastName}</span>
                     <span style={{fontSize: '15px'}}>{selectedMatch.lostItem.personalInfo.course}</span>
                     
-                  </div>
-                  
+                  </div> 
                 </div>
                 <div className='item-transaction-details'>
                   <div>
@@ -151,8 +150,23 @@
 
                   </div>
                   <div>
-                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>Description:</strong> {selectedMatch.lostItem.itemDescription}</p>
-                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>How item lost:</strong> {selectedMatch.lostItem.howItemLost}</p>
+                    <p 
+                      style={{fontSize: '12px', marginLeft: '10px', position: 'relative'}}
+                      className="hover-text"
+                    >
+                      <strong>Description:</strong> 
+                      <span className="truncate">{selectedMatch.lostItem.itemDescription}</span>
+                      <span className="tooltip-panel">{selectedMatch.lostItem.itemDescription}</span>
+                    </p>
+
+                    <p 
+                      style={{fontSize: '12px', marginLeft: '10px', position: 'relative'}}
+                      className="hover-text"
+                    >
+                      <strong>How item lost:</strong> 
+                      <span className="truncate">{selectedMatch.lostItem.howItemLost}</span>
+                      <span className="tooltip-panel">{selectedMatch.lostItem.howItemLost}</span>
+                    </p>
                   </div>
                 </div>         
               </div>
@@ -295,9 +309,23 @@
 
                   </div>
                   <div>
-                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>Description:</strong> {selectedMatch.foundItem.itemDescription}</p>
-                    <p style={{fontSize: '12px', marginLeft: '10px'}}> <strong>How item found:</strong> {selectedMatch.foundItem.howItemFound}</p>
-                  </div>
+                    <p 
+                      style={{fontSize: '12px', marginLeft: '10px', position: 'relative'}}
+                      className="hover-text"
+                    >
+                      <strong>Description:</strong> 
+                      <span className="truncate">{selectedMatch.foundItem.itemDescription}</span>
+                      <span className="tooltip-panel">{selectedMatch.foundItem.itemDescription}</span>
+                    </p>
+
+                    <p 
+                      style={{fontSize: '12px', marginLeft: '10px', position: 'relative'}}
+                      className="hover-text"
+                    >
+                      <strong>How item found:</strong> 
+                      <span className="truncate">{selectedMatch.foundItem.howItemFound}</span>
+                      <span className="tooltip-panel">{selectedMatch.foundItem.howItemFound}</span>
+                    </p>                  </div>
                 </div>         
               </div>
             ) : (
@@ -308,7 +336,7 @@
           className={`transaction-process-btn ${location.pathname === `/admin/process-claim/${selectedMatch?.id}` ? "active" : ""}`}
           onClick={() =>
             navigate(`/admin/process-claim/${selectedMatch?.id}`, {
-              state: { match: selectedMatch }, // 🔹 Pass lost & found items here
+              state: { match: selectedMatch }, 
             })
           }
         >

@@ -5,7 +5,7 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot } from 'firebase/firestore';
 import UserNavigationBar from '../user_components/UserNavigationBar';
 import UserBlankHeader from '../user_components/UserBlankHeader';
 
@@ -14,39 +14,38 @@ function ItemManagementPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
 
-
   const itemsPerPage = 6;
 
+  useEffect(() => {
+    
+    const unsubscribe = onSnapshot(
+      collection(db, 'itemManagement'),
+      (snapshot) => {
+        const managementItems = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: data.itemId,
+            itemName: data.itemName || 'Unnamed',
+            images: data.images || [],
+            date: data.dateSubmitted || 'N/A',
+            type: data.type || 'Unknown',
+            location: data.location || 'N/A',
+            category: data.category || 'N/A',
+            claimStatus: data.claimStatus || 'unclaimed',
+            status: data.status || 'N/A',   
+            highestMatchingRate: data.highestMatchingRate || 'N/A',
+            ...data
+          };
+        });
+        setItems(managementItems);
+      },
+      (error) => {
+        console.error("Error fetching item management data:", error);
+      }
+    );
 
-useEffect(() => {
-  const fetchItems = async () => {
-    try {
-      const managementSnap = await getDocs(collection(db, 'itemManagement'));
-      const managementItems = managementSnap.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: data.itemId,
-          itemName: data.itemName || 'Unnamed',
-          images: data.images || [],
-          date: data.dateSubmitted || 'N/A',
-          type: data.type || 'Unknown',
-          location: data.location || 'N/A',
-          category: data.category || 'N/A',
-          claimStatus: data.status || 'unclaimed',
-          highestMatchingRate: data.highestMatchingRate || 'N/A',
-          ...data
-        };
-      });
-
-      setItems(managementItems);
-    } catch (error) {
-      console.error("Error fetching item management data:", error);
-    }
-  };
-
-  fetchItems();
-}, []);
-
+    return () => unsubscribe(); 
+  }, []);
 
   const filteredItems = items.filter(item =>
     item.itemName?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -71,8 +70,8 @@ useEffect(() => {
         <UserBlankHeader />
         <div className='manage-item-container'>
           <h1 style={{ fontSize: '30px', alignItems: 'center', top: '1%', fontWeight: '500' , marginLeft: '20px', color: '#475C6F'}}>
-          Item Manage
-        </h1>
+            Item Manage
+          </h1>
           <div className='searchBar'>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#475C6F" className="bi bi-search" viewBox="0 0 16 16">
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
@@ -85,33 +84,32 @@ useEffect(() => {
             />
           </div>
           <div className='actions-row' style={{width: '500px'}}>
-                <button>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-archive" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
-                  <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
-                </svg>
-                  Achieved
-                  </button>
-                <button>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-ui-checks-grid" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
-                    <path d="M2 10h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1m9-9h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1m0 9a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1zm0-10a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM2 9a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2zm7 2a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-3a2 2 0 0 1-2-2zM0 2a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm5.354.854a.5.5 0 1 0-.708-.708L3 3.793l-.646-.647a.5.5 0 1 0-.708.708l1 1a.5.5 0 0 0 .708 0z"/>
-                  </svg>
-                  Bulk Select</button>
-                Academic Year:
-                <DropdownButton
-                  id="dropdown-academic-year"
-                  title="Select Year"
-                  variant="secondary"
-                  size="sm"
-                  style={{ marginLeft: '10px' }}
-                >
-                  <Dropdown.Item onClick={() => console.log("2022–2023")}>2022–2023</Dropdown.Item>
-                  <Dropdown.Item onClick={() => console.log("2023–2024")}>2023–2024</Dropdown.Item>
-                  <Dropdown.Item onClick={() => console.log("2024–2025")}>2024–2025</Dropdown.Item>
-                  <Dropdown.Item onClick={() => console.log("2025–2026")}>2025–2026</Dropdown.Item>
-                </DropdownButton>
-
-            </div>
-
+            <button>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-archive" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
+                <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
+              </svg>
+              Achieved
+            </button>
+            <button>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-ui-checks-grid" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
+                <path d="M2 10h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1m9-9h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1m0 9a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1zm0-10a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM2 9a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2zm7 2a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-3a2 2 0 0 1-2-2zM0 2a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm5.354.854a.5.5 0 1 0-.708-.708L3 3.793l-.646-.647a.5.5 0 1 0-.708.708l1 1a.5.5 0 0 0 .708 0z"/>
+              </svg>
+              Bulk Select
+            </button>
+            Academic Year:
+            <DropdownButton
+              id="dropdown-academic-year"
+              title="Select Year"
+              variant="secondary"
+              size="sm"
+              style={{ marginLeft: '10px' }}
+            >
+              <Dropdown.Item onClick={() => console.log("2022–2023")}>2022–2023</Dropdown.Item>
+              <Dropdown.Item onClick={() => console.log("2023–2024")}>2023–2024</Dropdown.Item>
+              <Dropdown.Item onClick={() => console.log("2024–2025")}>2024–2025</Dropdown.Item>
+              <Dropdown.Item onClick={() => console.log("2025–2026")}>2025–2026</Dropdown.Item>
+            </DropdownButton>
+          </div>
 
           <div>
             <table className='manage-item-table'>
@@ -126,7 +124,7 @@ useEffect(() => {
                   <th>Category</th>
                   <th>Status</th>
                   <th>Highest Matching Rate</th>
-                  </tr>
+                </tr>
               </thead>
               <tbody>
                 {displayedItems.length > 0 ? (
@@ -166,6 +164,8 @@ useEffect(() => {
                                 ? 'status-cancelled'
                                 : normalizedStatus === 'posted'
                                 ? 'status-posted'
+                                : normalizedStatus === 'claimed'
+                                ? 'status-claimed'
                                 : ''
                             }`}
                           >

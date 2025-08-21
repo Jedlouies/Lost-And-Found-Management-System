@@ -31,7 +31,7 @@ export default function LostMatchResults() {
         </button>
       <div className="p-7">
         
-        {matches.length === 0 && <p>No found items matched your lost report.</p>}
+        {matches.length === 0 && <p style={{color: 'black', marginTop: '20px'}}>No found items matched your lost report.</p>}
 
         <h1 style={{ position: 'absolute', top: '-8%', fontWeight: 'bold', fontSize: '20px' }}>
           Matching Found Items

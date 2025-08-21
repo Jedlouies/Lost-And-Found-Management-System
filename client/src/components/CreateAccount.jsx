@@ -78,7 +78,36 @@ function CreateAccount() {
               <input className='create-input' type='password' placeholder='Confirm Password' ref={passwordConfirmRef} required />
             </Form.Group>
             <p>Already have an account?<strong onClick={handleLogin}> Login </strong></p>
-            <button disabled={loading} type='submit'>{loading ? 'Creating...' : 'Create'}</button>
+            <button
+              disabled={loading}
+              type="submit"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "10px",
+                backgroundColor: "#BDDDFC",
+                color: "black",
+                padding: "10px 20px",
+                border: "none",
+                borderRadius: "8px",
+                cursor: loading ? "not-allowed" : "pointer",
+              }}
+            >
+              {loading ? (
+                <>
+                  <img
+                    src="/Spin.gif"
+                    alt="Loading..."
+                    style={{ width: "20px", height: "20px" }}
+                  />
+                  <span>Creating...</span>
+                </>
+              ) : (
+                "Create"
+              )}
+            </button>
+
           </Form>
         </Card.Body>
       </div>
