@@ -1,25 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import NavigationBar from '../components/NavigationBar';
-import './styles/FoundItemPage.css'; // ✅ reuse the same design
+import './styles/FoundItemPage.css';
 import BlankHeader from '../components/BlankHeader';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
+import { db } from '../firebase';
+import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+
 function ItemClaimedListPage() {
   const [currentPage, setCurrentPage] = useState(1);
+  const [items, setItems] = useState([]);
+  const [previewImage, setPreviewImage] = useState(null);
+
   const itemsPerPage = 6;
 
-  const items = [
-    {
-      id: 'ITM203402',
-      name: 'Iphone 15 Pro Max',
-      dateClaimed: 'July 15, 2025',
-      founder: { name: 'Chembee Regaton', course: 'BSIT', profileURL: '' },
-      owner: { name: 'Jeany Enterina', course: 'BSCE', profileURL: '' },
-      status: 'claimed'
-    }
-  ];
+  // ✅ Fetch claimedItems from Firestore
+  useEffect(() => {
+    const fetchClaimedItems = async () => {
+      try {
+        const q = query(collection(db, "claimedItems"), orderBy("dateClaimed", "desc"));
+        const querySnapshot = await getDocs(q);
+
+        const claimed = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+
+        setItems(claimed);
+      } catch (error) {
+        console.error("Error fetching claimed items:", error);
+      }
+    };
+
+    fetchClaimedItems();
+  }, []);
 
   const totalPages = Math.ceil(items.length / itemsPerPage);
   const handlePageChange = (page) => {
@@ -39,7 +55,9 @@ function ItemClaimedListPage() {
       <div className='found-item-body'>
         <BlankHeader />
         <div className='found-item-container' style={{ position: 'absolute', top: '80px' }}>
-          <h1>Item Claimed List</h1>
+          <h1>Claimed List</h1>
+
+          
           <div className='searchBar'>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#475C6F" className="bi bi-search" viewBox="0 0 16 16">
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
@@ -47,7 +65,7 @@ function ItemClaimedListPage() {
             <input type="text" placeholder='Search' />
           </div>
 
-          {/* Actions */}
+          
           <div className='actions-row' style={{ width: '500px', marginTop: '10px' }}>
             <button>Archive</button>
             <button>Bulk Select</button>
@@ -66,69 +84,99 @@ function ItemClaimedListPage() {
             </DropdownButton>
           </div>
 
-          {/* Table */}
+          
           <div>
             <table className='found-item-table' style={{ marginTop: '30px' }}>
               <thead>
                 <tr>
                   <th>Item ID No.</th>
                   <th>Image</th>
+                  <th>Owner Actual Face</th>
                   <th>Name</th>
                   <th>Date Claimed</th>
                   <th>Founder</th>
                   <th>Owner</th>
-                  <th>Status</th>
+                 
                 </tr>
               </thead>
               <tbody>
                 {displayedItems.length > 0 ? (
                   displayedItems.map((item, index) => (
                     <tr className='body-row' key={index}>
-                      <td>{item.id}</td>
-                      <td><div className='item-image' /></td>
-                      <td>{item.name}</td>
-                      <td>{item.dateClaimed}</td>
+                      <td>{item.itemId}</td>
+
+                      {/* Item Image */}
+                      <td>
+                        <div className='item-image'>
+                          {item.images && item.images.length > 0 ? (
+                            <img 
+                            src={item.images[0]} 
+                            alt={item.itemName} 
+                            style={{ width: "50px", height: "50px", borderRadius: "100%", objectFit: "cover", cursor: "pointer" }} 
+                            onMouseEnter={() => setPreviewImage(item.images[0])}
+                            onMouseLeave={() => setPreviewImage(null)}
+                          />
+
+                          ) : (
+                            <div className="no-image">No Item</div>
+                          )}
+                        </div>
+                      </td>
+
+                     
+                      <td>
+                        <div className='item-image'>
+                          {item.ownerActualFace ? (
+                            <img 
+                            src={item.ownerActualFace} 
+                            alt="Owner Face" 
+                            style={{ width: "50px", height: "50px", borderRadius: "50%", objectFit: "cover", border: "2px solid #475C6F", cursor: "pointer" }} 
+                            onMouseEnter={() => setPreviewImage(item.ownerActualFace)}
+                            onMouseLeave={() => setPreviewImage(null)}
+                          />
+
+                          ) : (
+                            <div className="no-image">No Face</div>
+                          )}
+                        </div>
+                      </td>
+
+                      <td>{item.itemName}</td>
+                      <td>{new Date(item.dateClaimed).toLocaleDateString()}</td>
+                      
+                      {/* Founder Info */}
                       <td>
                         <div className='founder-details'>
-                          <div className='profile' />
+                          <img src={item.founder?.profileURL || ""} alt="" style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} />
                           <div className='personal-info'>
-                            <p style={{ fontWeight: 'bold' }}>{item.founder.name}</p>
-                            <p style={{ fontStyle: 'italic' }}>{item.founder.course}</p>
+                            <p style={{ fontWeight: 'bold' , color: 'black'}}>{item.founder?.firstName} {item.founder?.lastName}</p>
+                            <p style={{ fontStyle: 'italic' , color: 'black' }}>{item.founder?.course}</p>
                           </div>
                         </div>
                       </td>
+
+                      {/* Owner Info */}
                       <td>
                         <div className='owner-details'>
-                          <div className='profile' />
+                          <img src={item.owner?.profileURL || ""} alt="" style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} />
                           <div className='personal-info'>
-                            <p style={{ fontWeight: 'bold' }}>{item.owner.name}</p>
-                            <p style={{ fontStyle: 'italic' }}>{item.owner.course}</p>
+                            <p style={{ fontWeight: 'bold', color: 'black' }}>{item.owner?.firstName} {item.owner?.lastName}</p>
+                            <p style={{ fontStyle: 'italic', color: 'black' }}>{item.owner?.course}</p>
                           </div>
                         </div>
                       </td>
-                      <td>
-                        {item.status === 'claimed' ? (
-                          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="green" className="bi bi-check-circle" viewBox="0 0 16 16">
-                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
-                            <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05" />
-                          </svg>
-                        ) : (
-                          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="red" className="bi bi-x-circle" viewBox="0 0 16 16">
-                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
-                            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708" />
-                          </svg>
-                        )}
-                      </td>
+
+                     
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" style={{ textAlign: 'center' }}>No claimed items found.</td>
+                    <td colSpan="8" style={{ textAlign: 'center' }}>No claimed items found.</td>
                   </tr>
                 )}
               </tbody>
 
-              {/* Pagination */}
+              
               <tfoot>
                 <tr className='footer'>
                   <td colSpan="7" style={{ textAlign: 'center', padding: '10px 0' }}>
@@ -154,6 +202,28 @@ function ItemClaimedListPage() {
             </table>
           </div>
         </div>
+                {previewImage && (
+          <div 
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              background: "white",
+              padding: "10px",
+              borderRadius: "10px",
+              boxShadow: "0px 4px 20px rgba(0,0,0,0.3)",
+              zIndex: 9999
+            }}
+          >
+            <img 
+              src={previewImage} 
+              alt="Preview" 
+              style={{ maxWidth: "400px", maxHeight: "400px", borderRadius: "8px" }} 
+            />
+          </div>
+        )}
+
       </div>
     </>
   );

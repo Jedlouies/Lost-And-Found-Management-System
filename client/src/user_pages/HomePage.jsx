@@ -6,10 +6,12 @@ import UserAddInfoPanel from '../user_components/UserAddInfoPanel'
 import { collection, doc, getDocs, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom'
 
 function HomePage() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [isPanelVisible, setIsPanelVisible] = useState(false);
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [userData, setUserData] = useState(null);
   const [lostItems, setLostItems] = useState([]);
@@ -17,11 +19,11 @@ function HomePage() {
   const lostContainerRef = useRef(null);
   const foundContainerRef = useRef(null);
 
-  // Fetch Lost and Found Items
+ 
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        // Fetch Lost Items
+
         const lostSnapshot = await getDocs(collection(db, 'lostItems'));
         const lostData = lostSnapshot.docs.map(doc => ({
           id: doc.id,
@@ -29,7 +31,7 @@ function HomePage() {
         }));
         setLostItems(lostData);
 
-        // Fetch Found Items
+    
         const foundSnapshot = await getDocs(collection(db, 'foundItems'));
         const foundData = foundSnapshot.docs.map(doc => ({
           id: doc.id,
@@ -45,7 +47,7 @@ function HomePage() {
     fetchItems();
   }, []);
 
-  // Live Date & Time
+ 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentDateTime(new Date());
@@ -53,7 +55,7 @@ function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Add horizontal scroll on wheel
+  
   useEffect(() => {
     const addHorizontalScroll = (container) => {
       if (!container) return;
@@ -74,7 +76,7 @@ function HomePage() {
     };
   }, []);
 
-  // Fetch current user data
+
   useEffect(() => {
     const fetchData = async () => {
       if (!currentUser) return;
@@ -86,7 +88,7 @@ function HomePage() {
     fetchData();
   }, [currentUser]);
 
-  // Date & Time Formatting
+
   const formattedDate = currentDateTime.toLocaleDateString('en-PH', {
     weekday: 'long',
     year: 'numeric',
@@ -101,7 +103,7 @@ function HomePage() {
     hour12: true
   });
 
-  // Check if user data has empty fields
+
   const hasEmptyFields = userData
     ? Object.values(userData).some((value) => value === "")
     : false;
@@ -117,7 +119,7 @@ function HomePage() {
     }
   }, [hasEmptyFields]);
 
-  // Sort Lost and Found Items
+
   const recentLostItems = [...lostItems]
     .sort((a, b) => new Date(b.dateLost) - new Date(a.dateLost))
     .slice(0, 20);
@@ -134,7 +136,7 @@ function HomePage() {
           <HomeHeader />
         </div>
 
-        {/* Add Info Panel */}
+
         <div className='add-info'>
           {hasEmptyFields && (
             <div className={`add-info-panel ${isPanelVisible ? 'show' : ''}`}>
@@ -147,7 +149,7 @@ function HomePage() {
           <h1>Home</h1>
         </div>
 
-        {/* Banner */}
+  
         <div className='banner2'>
           <img src="/landing-page-img.png" alt="img" />
           <h1>Welcome to SpotSync!</h1>
@@ -196,13 +198,18 @@ function HomePage() {
                           ? item.howItemLost.slice(0, 120) + "..."
                           : item.howItemLost}
                       </p>
-                      <p className='more-details-button' style={{ fontStyle: 'normal', fontWeight: 'bold', position: 'absolute', top: '200%', marginLeft: '150px', fontSize: '12px', cursor: 'pointer', width: '200px' }}>
+                      <p
+                        className="more-details-button"
+                        onClick={() =>
+                          navigate(`/users/lost-items/more-details/${item.id}`, {
+                            state: { type: "lost", item }
+                          })
+                        }
+                      >
                         More Details
-                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16" style={{ marginLeft: '10px' }}>
-                          <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
-                        </svg>
-
                       </p>
+
+
                     </div>
                   </div>
                 </div>
@@ -253,12 +260,17 @@ function HomePage() {
                           ? item.howItemFound.slice(0, 120) + "..."
                           : item.howItemFound || "No description provided"}
                       </p>
-                      <p className='more-details-button' style={{ fontStyle: 'normal', fontWeight: 'bold', position: 'absolute', top: '200%', marginLeft: '170px', fontSize: '12px', cursor: 'pointer', width: '200px', justifyContent: 'center' }}>
+                      <p
+                        className="more-details-button"
+                        onClick={() =>
+                          navigate(`/users/lost-items/more-details/${item.id}`, {
+                            state: { type: "found", item }
+                          })
+                        }
+                      >
                         More Details
-                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16" style={{ marginLeft: '10px' }}>
-                          <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
-                        </svg>
                       </p>
+
                     </div>
                   </div>
                 </div>

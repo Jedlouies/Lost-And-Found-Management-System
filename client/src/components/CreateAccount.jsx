@@ -97,9 +97,9 @@ function CreateAccount() {
               {loading ? (
                 <>
                   <img
-                    src="/Spin.gif"
+                    src="/Spin_black.gif"
                     alt="Loading..."
-                    style={{ width: "20px", height: "20px" }}
+                    style={{ width: "100px", height: "100px" }}
                   />
                   <span>Creating...</span>
                 </>

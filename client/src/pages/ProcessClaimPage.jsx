@@ -5,7 +5,8 @@ import NavigationBar from "../components/NavigationBar";
 import BlankHeader from "../components/BlankHeader";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { db } from "../firebase";  
-import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore"
+import { collection, query, where, getDocs, doc, updateDoc, addDoc } from "firebase/firestore";
+
 
 function ProcessClaimPage() {
   const [capturedImage, setCapturedImage] = useState(null);
@@ -163,10 +164,15 @@ const finalizeClaim = async () => {
     return;
   }
 
-  setLoading(true); 
+  setLoading(true);
 
   try {
-    
+    let itemId = null;
+    let itemName = "";
+    let founder = null;
+    let owner = null;
+
+    // Update lost item
     if (matchData.lostItem?.itemId) {
       const lostQuery = query(
         collection(db, "lostItems"),
@@ -182,10 +188,15 @@ const finalizeClaim = async () => {
           foundBy: matchData.foundItem?.personalInfo || null,
           claimantPhoto: capturedImage,
         });
+
+        itemId = matchData.lostItem.itemId;
+        itemName = matchData.lostItem.itemName || "";
+        owner = matchData.lostItem.personalInfo || null;
+        founder = matchData.foundItem?.personalInfo || null;
       }
     }
 
-   
+    // Update found item
     if (matchData.foundItem?.itemId) {
       const foundQuery = query(
         collection(db, "foundItems"),
@@ -201,16 +212,44 @@ const finalizeClaim = async () => {
           claimedBy: matchData.lostItem?.personalInfo || null,
           claimantPhoto: capturedImage,
         });
+
+        itemId = matchData.foundItem.itemId;
+        itemName = matchData.foundItem.itemName || "";
+        founder = matchData.foundItem.personalInfo || null;
+        owner = matchData.lostItem?.personalInfo || null;
       }
     }
 
+    // ✅ Save to claimedItems
+    await addDoc(collection(db, "claimedItems"), {
+      itemId: matchData.foundItem.itemId,
+      images: matchData.foundItem.images,
+      itemName: matchData.foundItem.itemName || "",
+      dateClaimed: new Date().toISOString(),
+      founder: matchData.foundItem.personalInfo || null,
+      owner: matchData.lostItem?.personalInfo || null,
+      ownerActualFace: capturedImage,
+    });
+
     
+    await addDoc(collection(db, "claimHistory"), {
+      itemId: matchData.foundItem.itemId,
+      itemName: matchData.foundItem.itemName || "",
+      dateClaimed: new Date().toISOString(),
+      founder: matchData.foundItem.personalInfo || null,
+      owner: matchData.lostItem?.personalInfo || null,
+      claimantPhoto: capturedImage,
+      userAccount: userData || null,
+      status: "completed"
+    });
+
+    stopCamera();
     navigate(`/admin/found-items/${userData.id}`);
   } catch (err) {
     console.error("Error finalizing claim:", err);
     alert("❌ Error finalizing claim.");
   } finally {
-    setLoading(false); 
+    setLoading(false);
   }
 };
 

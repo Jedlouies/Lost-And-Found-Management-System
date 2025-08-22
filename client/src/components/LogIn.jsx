@@ -71,7 +71,7 @@ function LogIn() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "10px", // space between spinner and text
+                gap: "10px", 
                 backgroundColor: "#BDDDFC",
                 color: "black",
                 padding: "10px 20px",
@@ -83,7 +83,7 @@ function LogIn() {
               {loading ? (
                 <>
                   <img
-                    src="/Spin.gif"
+                    src="/Spin_black.gif"
                     alt="Loading..."
                     style={{ width: "20px", height: "20px" }}
                   />

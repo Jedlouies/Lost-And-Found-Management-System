@@ -29,6 +29,7 @@ import UserMessagesPage from "./user_pages/UserMessagesPage";
 import UserNotificationPage from "./user_pages/UserNotificationPage";
 import TransactionPage from "./pages/TransactionPage";
 import ProcessClaimPage from "./pages/ProcessClaimPage";
+import ItemMoreDetailsPage from "./user_pages/ItemMoreDetailsPage";
 
 
 function App() {
@@ -168,6 +169,16 @@ function App() {
                 <UserLostItemsPage />
               ) : (
                <></>
+              )
+            }
+          />
+          <Route
+            path="/users/lost-items/more-details/:uid"
+            element={
+              currentUser ? (
+                <ItemMoreDetailsPage />
+              ) : (
+                <></>
               )
             }
           />
