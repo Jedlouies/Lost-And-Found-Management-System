@@ -101,6 +101,7 @@
     z-index: 20;
 }
 
+
 .graph {
     width: 1420px;
     position: absolute;
@@ -206,6 +207,22 @@
 .lost-item-card:hover {
     scale: 1.05;
     transition: all ease-in-out 0.5s;
+}
+
+.more-details-button {
+    position: relative;
+    top: 210%;
+    left: 160%;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.more-details-button p{
+   color: #475C6F;
+}
+
+.more-details-button svg {
+    color: #212121;
 }
 
 .more-details-button:hover {

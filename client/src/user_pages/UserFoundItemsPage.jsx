@@ -5,6 +5,7 @@ import UserFoundHeader from '../user_components/UserFoundHeader';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { collection, doc, getDocs, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function UserFoundItemsPage() {
@@ -14,6 +15,7 @@ function UserFoundItemsPage() {
   const [foundItems, setFoundItems] = useState([]);
   const foundContainerRef = useRef(null);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const navigate = useNavigate();
   
 
   // Fetch Found Items
@@ -51,6 +53,7 @@ function UserFoundItemsPage() {
     .slice(0, 20);
 
   const filteredFoundItems = [...foundItems]
+          .filter(item => item.claimStatus !== "claimed") 
           .filter(item => {
             const matchesSearch = item.itemName?.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesCategory = selectedCategory === '' || item.category === selectedCategory;
@@ -141,7 +144,14 @@ function UserFoundItemsPage() {
                           ? item.howItemFound.slice(0, 120) + "..."
                           : item.howItemFound || "No description provided"}
                       </p>
-                      <p className='more-details-button' style={{ fontStyle: 'normal', fontWeight: 'bold', position: 'absolute', top: '200%', marginLeft: '170px', fontSize: '12px', cursor: 'pointer', width: '200px' }}>
+                      <p
+                        className="more-details-button" style={{color: '#475C6F', fontWeight: 'bold'}}
+                        onClick={() =>
+                          navigate(`/users/found-items/more-details/${item.id}`, {
+                            state: { type: "found", item }
+                          })
+                        }
+                      >
                         More Details
                         <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16" style={{ marginLeft: '10px' }}>
                           <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>

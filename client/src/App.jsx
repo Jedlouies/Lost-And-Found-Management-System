@@ -182,6 +182,16 @@ function App() {
               )
             }
           />
+          <Route
+            path="/users/found-items/more-details/:uid"
+            element={
+              currentUser ? (
+                <ItemMoreDetailsPage />
+              ) : (
+                <></>
+              )
+            }
+          />
            <Route
             path="/users/found-items/:uid"
             element={

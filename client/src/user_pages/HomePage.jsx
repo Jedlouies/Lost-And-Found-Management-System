@@ -121,10 +121,12 @@ function HomePage() {
 
 
   const recentLostItems = [...lostItems]
+    .filter(item => item.claimStatus !== "claimed") 
     .sort((a, b) => new Date(b.dateLost) - new Date(a.dateLost))
     .slice(0, 20);
 
   const recentFoundItems = [...foundItems]
+    .filter(item => item.claimStatus !== "claimed") 
     .sort((a, b) => new Date(b.dateFound) - new Date(a.dateFound))
     .slice(0, 20);
 
@@ -199,7 +201,7 @@ function HomePage() {
                           : item.howItemLost}
                       </p>
                       <p
-                        className="more-details-button"
+                        className="more-details-button" style={{color: '#475C6F', fontWeight: 'bold'}}
                         onClick={() =>
                           navigate(`/users/lost-items/more-details/${item.id}`, {
                             state: { type: "lost", item }
@@ -207,6 +209,9 @@ function HomePage() {
                         }
                       >
                         More Details
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16" style={{ marginLeft: '10px' }}>
+                          <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
+                        </svg>
                       </p>
 
 
@@ -261,7 +266,7 @@ function HomePage() {
                           : item.howItemFound || "No description provided"}
                       </p>
                       <p
-                        className="more-details-button"
+                        className="more-details-button" style={{color: '#475C6F', fontWeight: 'bold'}}
                         onClick={() =>
                           navigate(`/users/lost-items/more-details/${item.id}`, {
                             state: { type: "found", item }
@@ -269,6 +274,9 @@ function HomePage() {
                         }
                       >
                         More Details
+                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16" style={{ marginLeft: '10px' }}>
+                          <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
+                        </svg>
                       </p>
 
                     </div>
