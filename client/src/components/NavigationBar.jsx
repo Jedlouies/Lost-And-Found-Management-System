@@ -1,28 +1,56 @@
-import React, {useState} from 'react'
-import './styles/NavigationBar.css'
-import 'bootstrap-icons/font/bootstrap-icons.css';
+import React, { useState, useEffect } from "react";
+import "./styles/NavigationBar.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
-import CenterMessagePanel from './CenterMessagePanel';
+import CenterMessagePanel from "./CenterMessagePanel";
+import { getDatabase, ref, onValue } from "firebase/database";
+import { useNotification } from "../context/NotificationContext";
 
 function NavigationBar() {
-
   const [expanded, setExpanded] = useState(false);
   const [message, setMessage] = useState(false);
+  const { unreadCount, clearNotifications } = useNotification();
+
   const navigate = useNavigate();
   const auth = getAuth();
-  const user = auth.currentUser;  
+  const user = auth.currentUser;
 
-  const toggleMessage = () => setMessage(prev => !prev);
-  const toggleSidebar = () => setExpanded(prev => !prev);
+  const toggleMessage = () => setMessage((prev) => !prev);
+  const toggleSidebar = () => setExpanded((prev) => !prev);
 
   const handleNavigate = (path) => {
-  navigate(path);
-  setExpanded(prev => !prev);
+    navigate(path);
+    setExpanded((prev) => !prev);
+  };
 
-};
+  // 🔹 Listen to unread notifications
+  useEffect(() => {
+    if (!user) return;
+
+    const db = getDatabase();
+    const notificationsRef = ref(db, `notifications/${user.uid}`);
+
+    const unsubscribe = onValue(notificationsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        let count = 0;
+        snapshot.forEach((child) => {
+          if (!child.val().read) count++;
+        });
+        setUnreadCount(count);
+      } else {
+        setUnreadCount(0);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   return (
+    <>
+       {unreadCount > 0 && (
+          <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
+        )}
     <div className={`nav-body ${expanded ? 'expanded' : ''}`}>
       <img src="/spotsync-logo-navy.png" alt="img" />
       {expanded && <img className='slogan' src='/spotsync-slogan-navy.png' alt='img'/>}
@@ -66,11 +94,30 @@ function NavigationBar() {
           </svg>
           {expanded && <span>Messages</span>}
       </div>
-      <div className={`nav-buttons  ${location.pathname === `/admin/notifications/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/admin/notifications/${user?.uid}`)}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bell" viewBox="0 0 16 16">
-              <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6"/>
-            </svg>
-            {expanded && <span>Notification</span>}
+      <div
+        className={`nav-buttons  ${
+          location.pathname === `/admin/notifications/${user?.uid}`
+            ? "active"
+            : ""
+        }`}
+        onClick={() => handleNavigate(`/admin/notifications/${user?.uid}`)}
+        style={{ position: "relative" }}
+      >
+        {unreadCount > 0 && (
+          <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
+        )}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          fill="currentColor"
+          className="bi bi-bell"
+          viewBox="0 0 16 16"
+        >
+          <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6" />
+        </svg>
+        
+        {expanded && <span>Notification</span>}
       </div>
       <div className={`nav-buttons ${location.pathname === `/admin/settings/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/admin/settings/${user?.uid}`)}>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear" viewBox="0 0 16 16">
@@ -97,6 +144,8 @@ function NavigationBar() {
           <CenterMessagePanel />
       </div>
     </div>
+
+    </>
   )
 }
 

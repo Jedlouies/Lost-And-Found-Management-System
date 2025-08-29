@@ -5,21 +5,30 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { db } from '../firebase';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import UserNavigationBar from '../user_components/UserNavigationBar';
 import UserBlankHeader from '../user_components/UserBlankHeader';
+import { useAuth } from '../context/AuthContext';
 
 function ItemManagementPage() {
   const [items, setItems] = useState([]); 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const { currentUser } = useAuth();
 
   const itemsPerPage = 6;
 
-  useEffect(() => {
+useEffect(() => {
+    if (!currentUser) return; 
+
     
-    const unsubscribe = onSnapshot(
+    const q = query(
       collection(db, 'itemManagement'),
+      where("uid", "==", currentUser.uid)
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
       (snapshot) => {
         const managementItems = snapshot.docs.map(doc => {
           const data = doc.data();
@@ -45,7 +54,7 @@ function ItemManagementPage() {
     );
 
     return () => unsubscribe(); 
-  }, []);
+  }, [currentUser]); 
 
   const filteredItems = items.filter(item =>
     item.itemName?.toLowerCase().includes(searchQuery.toLowerCase())

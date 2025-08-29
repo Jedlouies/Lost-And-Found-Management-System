@@ -17,6 +17,7 @@ import {
 } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from "firebase/auth";
+import FloatingAlert from '../components/FloatingAlert';
 
 function FoundItemsPage() {
   const [items, setItems] = useState([]); 
@@ -25,6 +26,7 @@ function FoundItemsPage() {
   const itemsPerPage = 6;
   const auth = getAuth();
   const user = auth.currentUser;
+  const [alert, setAlert] = useState(null);
 
   const navigate = useNavigate();
   const handleNavigate = (path) => {
@@ -52,7 +54,6 @@ function FoundItemsPage() {
 
 const handleVerifyItem = async (foundDocId) => {
   try {
-    // 1. Get the foundItems document first by its Firestore ID
     const foundDocRef = doc(db, "foundItems", foundDocId);
     const foundDocSnap = await getDoc(foundDocRef);
 
@@ -60,17 +61,22 @@ const handleVerifyItem = async (foundDocId) => {
       throw new Error(`No foundItems document with ID: ${foundDocId}`);
     }
 
-    // Extract the itemId field
-    const { itemId } = foundDocSnap.data();
+    const { itemId, status } = foundDocSnap.data();
 
     if (!itemId) {
       throw new Error(`foundItems doc ${foundDocId} has no itemId field`);
     }
 
-    // 2. Update the foundItems document
+    // 🔹 Check if already posted
+    if (status === "posted") {
+      setAlert({ message: "Item is already posted.", type: "warning" });
+      return; // stop here, no need to update again
+    }
+
+    // ✅ Update foundItems status
     await updateDoc(foundDocRef, { status: "posted" });
 
-    // 3. Find the corresponding item in itemManagement by itemId
+    // ✅ Update itemManagement status
     const manageQuery = query(
       collection(db, "itemManagement"),
       where("itemId", "==", itemId)
@@ -85,16 +91,18 @@ const handleVerifyItem = async (foundDocId) => {
       await updateDoc(docSnap.ref, { status: "posted" });
     }
 
-    // 4. Update local state so UI reflects the change
+
     setItems((prevItems) =>
       prevItems.map((item) =>
         item.id === foundDocId ? { ...item, status: "posted" } : item
       )
     );
 
-    console.log(`✅ Item ${itemId} verified successfully!`);
+    setAlert({ message: "Item Verified Successfully!", type: "success" });
+
   } catch (error) {
     console.error("❌ Error verifying item:", error);
+    setAlert({ message: "Error verifying item. Try again.", type: "error" });
   }
 };
 
@@ -116,6 +124,14 @@ const handleVerifyItem = async (foundDocId) => {
 
   return (
     <>
+            {alert && (
+          <FloatingAlert
+            message={alert.message}
+            type={alert.type}
+            onClose={() => setAlert(null)}
+          />
+        )}
+
       <NavigationBar />
       <div className='found-item-body'>
         <TablesHeader />
@@ -274,7 +290,16 @@ const handleVerifyItem = async (foundDocId) => {
                             }}
                           />
                           <Dropdown.Menu>
-                            <Dropdown.Item onClick={() => console.log(`View Details of ${item.id}`)}>View Details</Dropdown.Item>
+                            <Dropdown.Item
+                              onClick={() =>
+                                navigate(`/admin/found-items/view-items/${item.id}`, {
+                                  state: { type: "found", item }
+                                })
+                              }
+                            >
+                              View Details
+                            </Dropdown.Item>
+
                             <Dropdown.Item onClick={() => console.log(`Archive ${item.id}`)}>Archive</Dropdown.Item>
                             <Dropdown.Item onClick={() => handleVerifyItem(item.id)}>Verify Item</Dropdown.Item>
                           </Dropdown.Menu>

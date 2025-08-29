@@ -8,11 +8,15 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
+import { useNavigate, useLocation } from 'react-router-dom';
+
 function LostItemsPage() {
+  const location = useLocation();
   const [items, setItems] = useState([]); 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const itemsPerPage = 6;
+  const navigate = useNavigate();
 
 
   useEffect(() => {
@@ -29,7 +33,7 @@ function LostItemsPage() {
       }
     };
     fetchLostItems();
-  }, []);
+  }, [location]);
 
 
   const filteredItems = items.filter(item =>
@@ -206,7 +210,15 @@ function LostItemsPage() {
                             }}
                           />
                           <Dropdown.Menu>
-                            <Dropdown.Item onClick={() => console.log(`View Details of ${item.id}`)}>View Details</Dropdown.Item>
+                            <Dropdown.Item
+                              onClick={() =>
+                                navigate(`/admin/lost-items/view-items/${item.id}`, {
+                                  state: { type: "lost", item }
+                                })
+                              }
+                            >
+                              View Details
+                            </Dropdown.Item>
                             <Dropdown.Item onClick={() => console.log(`Archive ${item.id}`)}>Archive</Dropdown.Item>
                           </Dropdown.Menu>
                         </Dropdown>

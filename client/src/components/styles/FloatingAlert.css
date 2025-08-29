@@ -1,0 +1,34 @@
+.floating-alert {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #475c6f;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 2000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.floating-alert button {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.floating-success {
+  background: #28a745;
+}
+.floating-error {
+  background: #dc3545;
+}
+.floating-warning {
+  background: #ffc107;
+  color: black;
+}

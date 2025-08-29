@@ -97,4 +97,32 @@
     opacity: 1;
 }
 
+.notif-badge {
+  position: fixed;
+  top: 65%;
+  right: 97%;
+  background: red;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 0px 4px;
+  border-radius: 50%;
+    z-index: 1001;
+}
+
+.notif-badge2 {
+  position: absolute;
+  top: 60%;
+  right: 80%;
+  background: red;
+  color: white;
+  font-size: 6px;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 100%;
+  z-index: 1001;
+}
+
+
+
 

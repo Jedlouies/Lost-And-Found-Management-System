@@ -7,6 +7,7 @@ import HeaderAccountDropdown from './HeaderAccountDropdown.jsx';
 import HeaderNotifyDropdown from './HeaderNotifyDropdown.jsx';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
+import { useNotification } from "../context/NotificationContext";
 
 
 function BlankHeader() {
@@ -23,7 +24,8 @@ function BlankHeader() {
   const bellRef = useRef(null);
   const navigate = useNavigate();
   const auth = getAuth();
-  const user = auth.currentUser;  
+  const user = auth.currentUser;
+  const { unreadCount, clearNotifications } = useNotification();  
 
   const toggleDropDown = () => setDropDown(prev => !prev);
   const toggleNotifyPanel = () => setNotifyPanel(prev => !prev);
@@ -99,6 +101,9 @@ useEffect(() => {
 
   return (
     <>
+    {unreadCount > 0 && (
+        <span className="notif-badge2">{unreadCount}</span>
+      )}
     <div className='header-body'>
 
 

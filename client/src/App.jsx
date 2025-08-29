@@ -30,6 +30,9 @@ import UserNotificationPage from "./user_pages/UserNotificationPage";
 import TransactionPage from "./pages/TransactionPage";
 import ProcessClaimPage from "./pages/ProcessClaimPage";
 import ItemMoreDetailsPage from "./user_pages/ItemMoreDetailsPage";
+import ItemViewDetailsPage from "./pages/ItemViewDetailsPage";
+import ViewProfilePage from "./pages/ViewProfilePage";
+import { NotificationProvider } from "./context/NotificationContext";
 
 
 function App() {
@@ -37,6 +40,7 @@ function App() {
 
   return (
     <div>
+      <NotificationProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -87,6 +91,36 @@ function App() {
             element={
               currentUser ? (
                 <ItemClaimedListPage />
+              ) : (
+                <></>
+              )
+            }
+          />
+          <Route
+            path="/admin/lost-items/view-items/:uid"
+            element={
+              currentUser ? (
+                <ItemViewDetailsPage />
+              ) : (
+                <></>
+              )
+            }
+          />
+          <Route
+            path="/admin/found-items/view-items/:uid"
+            element={
+              currentUser ? (
+                <ItemViewDetailsPage />
+              ) : (
+                <></>
+              )
+            }
+          />
+          <Route
+            path="/admin/view-profile/:uid"
+            element={
+              currentUser ? (
+                <ViewProfilePage />
               ) : (
                 <></>
               )
@@ -327,6 +361,7 @@ function App() {
           
         </Routes>        
       </BrowserRouter>
+      </NotificationProvider>
     </div>
   );
 }

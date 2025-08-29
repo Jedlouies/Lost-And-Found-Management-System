@@ -7,6 +7,7 @@ import HeaderAccountDropdown from './HeaderAccountDropdown.jsx';
 import HeaderNotifyDropdown from './HeaderNotifyDropdown.jsx';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from 'firebase/auth';
+import { useNotification } from "../context/NotificationContext";
 
 
 function DashboardHeader() {
@@ -23,7 +24,8 @@ function DashboardHeader() {
   const bellRef = useRef(null);
   const navigate = useNavigate();
   const auth = getAuth();
-  const user = auth.currentUser;  
+  const user = auth.currentUser;
+  const { unreadCount, clearNotifications } = useNotification();  
 
   const toggleDropDown = () => setDropDown(prev => !prev);
   const toggleNotifyPanel = () => setNotifyPanel(prev => !prev);
@@ -99,6 +101,9 @@ useEffect(() => {
 
   return (
     <>
+    {unreadCount > 0 && (
+        <span className="notif-badge2">{unreadCount}</span>
+      )}
     <div className='header-body'>
         <button onClick={() => navigate(`/admin/lost-items/${user?.uid}`)}>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bag-x" viewBox="0 0 16 16">

@@ -4,19 +4,24 @@
   import NavigationBar from '../components/NavigationBar';
   import './styles/TransactionPage.css';
   import { useNavigate } from 'react-router-dom';
-  import { getAuth } from "firebase/auth";
+  import { getAuth} from "firebase/auth";
   import BlankHeader from '../components/BlankHeader';
+  import FloatingAlert from '../components/FloatingAlert';
+  import { useAuth } from "../context/AuthContext"; 
 
   function TransactionPage() {
     const navigate = useNavigate();
     const auth = getAuth();
     const user = auth.currentUser;
+    const { currentUser } = useAuth();
     
 
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedMatch, setSelectedMatch] = useState(null);
+    const [alert, setAlert] = useState(null);
+
 
      const handleNavigate = (path) => {
   navigate(path);
@@ -49,24 +54,41 @@
       fetchMatches();
     }, [searchQuery]);
 
-    const handleSelectMatch = async (matchId) => {
-      try {
-        const matchRef = doc(db, 'matches', matchId);
-        const matchSnap = await getDoc(matchRef);
-        if (matchSnap.exists()) {
-          setSelectedMatch({ id: matchSnap.id, ...matchSnap.data() });
-        }
-        setShowDropdown(false);
-      } catch (error) {
-        console.error("Error fetching selected match:", error);
+const handleSelectMatch = async (matchId) => {
+  try {
+    const matchRef = doc(db, 'matches', matchId);
+    const matchSnap = await getDoc(matchRef);
+
+    if (matchSnap.exists()) {
+      const matchData = { id: matchSnap.id, ...matchSnap.data() };
+
+      
+      if (matchData.claimStatus === "claimed") {
+        setAlert({ message: "Item already claimed!", type: "warning" });
+        return; 
       }
-    };
+
+      setSelectedMatch(matchData);
+    }
+    setShowDropdown(false);
+  } catch (error) {
+    console.error("Error fetching selected match:", error);
+  }
+};
 
     return (
       <>
         <NavigationBar />
         <div className='transaction-body'>
           <BlankHeader />
+          {alert && (
+          <FloatingAlert
+            message={alert.message}
+            type={alert.type}
+            onClose={() => setAlert(null)}
+          />
+        )}
+
           <div style={{ position: 'absolute', width: '1400px', top: '10%', left: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-search" viewBox="0 0 16 16">
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
@@ -335,8 +357,8 @@
          <button
           className={`transaction-process-btn ${location.pathname === `/admin/process-claim/${selectedMatch?.id}` ? "active" : ""}`}
           onClick={() =>
-            navigate(`/admin/process-claim/${selectedMatch?.id}`, {
-              state: { match: selectedMatch }, 
+            navigate(`/admin/process-claim/${currentUser.uid}`, {
+              state: { match: selectedMatch, userId: currentUser.uid }, 
             })
           }
         >
