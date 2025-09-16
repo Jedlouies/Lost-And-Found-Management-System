@@ -16,7 +16,7 @@ function ItemClaimedListPage() {
 
   const itemsPerPage = 6;
 
-  // ✅ Fetch claimedItems from Firestore
+  
   useEffect(() => {
     const fetchClaimedItems = async () => {
       try {
@@ -66,9 +66,8 @@ function ItemClaimedListPage() {
           </div>
 
           
-          <div className='actions-row' style={{ width: '500px', marginTop: '10px' }}>
-            <button>Archive</button>
-            <button>Bulk Select</button>
+          <div className='actions-row' style={{ width: '500px', marginTop: '10px', marginLeft: '40px' }}>
+            
             Academic Year:
             <DropdownButton
               id="dropdown-academic-year"
@@ -105,7 +104,6 @@ function ItemClaimedListPage() {
                     <tr className='body-row' key={index}>
                       <td>{item.itemId}</td>
 
-                      {/* Item Image */}
                       <td>
                         <div className='item-image'>
                           {item.images && item.images.length > 0 ? (
@@ -144,24 +142,22 @@ function ItemClaimedListPage() {
                       <td>{item.itemName}</td>
                       <td>{new Date(item.dateClaimed).toLocaleDateString()}</td>
                       
-                      {/* Founder Info */}
                       <td>
                         <div className='founder-details'>
                           <img src={item.founder?.profileURL || ""} alt="" style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} />
                           <div className='personal-info'>
                             <p style={{ fontWeight: 'bold' , color: 'black'}}>{item.founder?.firstName} {item.founder?.lastName}</p>
-                            <p style={{ fontStyle: 'italic' , color: 'black' }}>{item.founder?.course}</p>
+                            <p style={{ fontStyle: 'italic' , color: 'black' }}>{item.founder?.course.abbr}</p>
                           </div>
                         </div>
                       </td>
 
-                      {/* Owner Info */}
                       <td>
                         <div className='owner-details'>
                           <img src={item.owner?.profileURL || ""} alt="" style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} />
                           <div className='personal-info'>
                             <p style={{ fontWeight: 'bold', color: 'black' }}>{item.owner?.firstName} {item.owner?.lastName}</p>
-                            <p style={{ fontStyle: 'italic', color: 'black' }}>{item.owner?.course}</p>
+                            <p style={{ fontStyle: 'italic', color: 'black' }}>{item.owner?.course.abbr}</p>
                           </div>
                         </div>
                       </td>

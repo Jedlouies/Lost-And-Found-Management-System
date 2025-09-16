@@ -3,13 +3,36 @@ import NavigationBar from "../components/NavigationBar";
 import BlankHeader from "../components/BlankHeader";
 import "./styles/NotificationPage.css";
 
-import { getDatabase, ref, onValue, remove, update } from "firebase/database";
+import { getDatabase, ref, onValue, remove } from "firebase/database";
 import { getAuth } from "firebase/auth";
 import FloatingAlert from "../components/FloatingAlert";
 
 function NotificationPage() {
   const [groupedNotifications, setGroupedNotifications] = useState({});
   const [alert, setAlert] = useState(null);
+
+  const typeConfig = {
+    "user-message": {
+      title: "User Ticket",
+      icon: "bi-person-circle",
+      color: "#475C6F",
+    },
+    "transaction": {
+      title: "Transaction Processed",
+      icon: "bi-cash-stack",
+      color: "green",
+    },
+    "system": {
+      title: "System Update",
+      icon: "bi-gear-fill",
+      color: "#007bff",
+    },
+    "reminder": {
+      title: "Reminder",
+      icon: "bi-bell-fill",
+      color: "orange",
+    },
+  };
 
   useEffect(() => {
     const auth = getAuth();
@@ -20,6 +43,8 @@ function NotificationPage() {
     const db = getDatabase();
     const notificationsRef = ref(db, `notifications/${user.uid}`);
 
+    
+
     const unsubscribe = onValue(notificationsRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
@@ -28,26 +53,14 @@ function NotificationPage() {
           ...data[key],
         }));
 
-        // Sort newest first
+        
         parsed.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-        // Limit to 20
+       
         const limited = parsed.slice(0, 20);
 
-        // Group notifications
         const grouped = groupByDate(limited);
         setGroupedNotifications(grouped);
-
-        // 🔹 Mark all as read once user opens NotificationPage
-        const updates = {};
-        Object.keys(data).forEach((key) => {
-          if (!data[key].read) {
-            updates[`${key}/read`] = true;
-          }
-        });
-        if (Object.keys(updates).length > 0) {
-          update(notificationsRef, updates);
-        }
       } else {
         setGroupedNotifications({});
       }
@@ -56,7 +69,6 @@ function NotificationPage() {
     return () => unsubscribe();
   }, []);
 
-  // Group notifications by Today, Yesterday, Last Week, Last Month
   const groupByDate = (notifications) => {
     const groups = {
       Today: [],
@@ -105,7 +117,7 @@ function NotificationPage() {
         setAlert({ message: "Notification Deleted", type: "success" });
       })
       .catch((err) => console.error("Error deleting notification:", err));
-  };
+      };
 
   return (
     <>
@@ -142,33 +154,47 @@ function NotificationPage() {
                     >
                       {section}
                     </h3>
-                    {items.map((n) => (
-                      <div className="notification-card" key={n.id}>
-                        <p dangerouslySetInnerHTML={{ __html: n.message }} />
-                        <small>
-                          {n.timestamp
-                            ? new Date(n.timestamp).toLocaleString()
-                            : "Just now"}
-                        </small>
+                      {items.map((n) => {
+                        const config = typeConfig[n.type] || { title: "Notification", icon: "bi-info-circle", color: "#6c757d" };
 
-                        <button
-                          onClick={() => handleDelete(n.id)}
-                          className="delete-btn"
-                          title="Delete notification"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
-                            fill="currentColor"
-                            className="bi bi-trash3"
-                            viewBox="0 0 16 16"
-                          >
-                            <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
+                        return (
+                          <div className="notification-card" key={n.id}>
+                            <p style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <i className={`bi ${config.icon}`} style={{ color: config.color, fontSize: "20px" }}></i>
+                              
+                              <span style={{ display: "flex", flexDirection: "column" }}>
+                                <strong style={{ color: config.color }}>{config.title}</strong>
+                                <span
+                                  dangerouslySetInnerHTML={{ __html: n.message }}
+                                  style={{ marginLeft: "4px" }}
+                                />
+                              </span>
+                            </p>
+
+                            <small>
+                              {n.timestamp ? new Date(n.timestamp).toLocaleString() : "Just now"}
+                            </small>
+
+                            <button
+                              onClick={() => handleDelete(n.id)}
+                              className="delete-btn"
+                              title="Delete notification"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                fill="currentColor"
+                                className="bi bi-trash3"
+                                viewBox="0 0 16 16"
+                              >
+                                <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
+                              </svg>
+                            </button>
+                          </div>
+                        );
+                      })}
+
                   </div>
                 )
             )

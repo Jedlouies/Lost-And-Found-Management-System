@@ -144,7 +144,7 @@ function UserProfilePage() {
           <div className='container-details'>
             
             <h1>{firstName} {lastName}</h1>
-            <h4 style={{fontStyle: 'italic', fontWeight: '100'}}>{role.charAt(0).toUpperCase() + role.slice(1)}</h4>
+            <h4>{designation}</h4>
             
           </div>
           <div className={`profile-quick-action ${location.pathname === `/users/settings/${user?.uid}` ? 'active' : ''}`} onClick={() => handleEdit(`/users/settings/${user?.uid}`)}>
@@ -163,7 +163,12 @@ function UserProfilePage() {
               
                 </div>
               <div className='profile-other-details2'>
-                <p><strong>Course:</strong> {course}</p>
+                <p>
+                  <strong>Course:</strong>{" "}
+                  {course?.abbr && course?.name
+                    ? `${course.abbr} – ${course.name}`
+                    : course || "N/A"}
+                </p>
                 <p><strong>Section:</strong> {section}</p>
                 <p><strong>Bio: </strong> {bio}</p>
 

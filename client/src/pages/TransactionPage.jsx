@@ -22,6 +22,9 @@
     const [selectedMatch, setSelectedMatch] = useState(null);
     const [alert, setAlert] = useState(null);
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
+
 
      const handleNavigate = (path) => {
   navigate(path);
@@ -76,8 +79,42 @@ const handleSelectMatch = async (matchId) => {
   }
 };
 
+const handleSearch = async () => {
+  if (!searchQuery.trim()) {
+    setAlert({ message: "Please enter a transaction ID.", type: "warning" });
+    return;
+  }
+
+  try {
+    const matchesRef = collection(db, 'matches');
+    const snapShot = await getDocs(matchesRef);
+
+    const foundMatch = snapShot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .find(match => match.transactionId?.toLowerCase() === searchQuery.toLowerCase());
+
+    if (foundMatch) {
+      if (foundMatch.claimStatus === "claimed") {
+        setAlert({ message: "Item already claimed!", type: "warning" });
+        return;
+      }
+      setSelectedMatch(foundMatch);
+      setIsModalOpen(true);
+      setAlert(null);
+    } else {
+      setSelectedMatch(null);
+      setAlert({ message: "No transaction found with that ID.", type: "error" });
+    }
+  } catch (error) {
+    console.error("Error fetching match:", error);
+    setAlert({ message: "Error searching for transaction.", type: "error" });
+  }
+};
+
+
     return (
       <>
+      
         <NavigationBar />
         <div className='transaction-body'>
           <BlankHeader />
@@ -89,63 +126,22 @@ const handleSelectMatch = async (matchId) => {
           />
         )}
 
-          <div style={{ position: 'absolute', width: '1400px', top: '10%', left: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-search" viewBox="0 0 16 16">
-              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-            </svg>
-            <input
-              type="text"
-              placeholder="Search by Transaction ID"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setShowDropdown(true)}
-              onBlur={() => setTimeout(() => setShowDropdown(false), 150)}
-              style={{ width: '100%', padding: '8px', borderRadius: '10px', border: '2px solid #475C6F', backgroundColor: 'transparent', color: '#475C6F', fontSize: '16px' }}
-            />
-            {showDropdown && searchResults.length > 0 && (
-              <ul
-                style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  width: '100%',
-                  backgroundColor: '#fff',
-                  border: '1px solid #ccc',
-                  maxHeight: '200px',
-                  overflowY: 'auto',
-                  zIndex: 10,
-                  listStyle: 'none',
-                  padding: 0,
-                  margin: 0
-                }}
-              >
-                {searchResults.map(result => (
-                  <li
-                    key={result.id}
-                    style={{
-                      padding: '8px',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                    onClick={() => {
-                      setSearchQuery(result.transactionId || '');
-                      handleSelectMatch(result.id);
-                    }}
-                  >
-                    <span style={{ fontSize: '12px', color: '#888' }}>
-                      {result.transactionId}
-                    </span>
-                    <span>{result.createAt}</span>
-                    <span style={{ fontSize: '12px', color: '#888' }}>
-                      Score: {result.scores?.overallScore ?? 'N/A'}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+        <div style={{ position: 'absolute', width: '1400px', top: '10%', left: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-search" viewBox="0 0 16 16">
+            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+          </svg>
+          <input
+            type="text"
+            placeholder="Enter Transaction ID"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()} 
+            style={{ width: '100%', padding: '8px', borderRadius: '10px', border: '2px solid #475C6F', backgroundColor: 'transparent', color: '#475C6F', fontSize: '16px' }}
+          />
+          <button onClick={handleSearch} style={{ padding: '8px 16px', borderRadius: '8px', backgroundColor: '#475C6F', color: 'white', border: 'none' }}>
+            Search
+          </button>
+        </div>
 
           <div className='transaction-content'>
            
@@ -159,7 +155,7 @@ const handleSelectMatch = async (matchId) => {
                   <img src={selectedMatch.lostItem.personalInfo?.profileURL} alt=""  style={{width: '50px', height: '50px', borderRadius: '30px', objectFit: 'cover'}}/>
                   <div style={{display: 'flex', flexDirection: 'column', height: '90%'}}>
                     <span style={{fontSize: '15px', fontWeight: 'bold'}}>{selectedMatch.lostItem.personalInfo?.firstName} {selectedMatch.lostItem.personalInfo?.lastName}</span>
-                    <span style={{fontSize: '15px'}}>{selectedMatch.lostItem.personalInfo.course}</span>
+                    <span style={{fontSize: '15px'}}>{selectedMatch.lostItem.personalInfo.course?.abbr}</span>
                     
                   </div> 
                 </div>
@@ -317,7 +313,7 @@ const handleSelectMatch = async (matchId) => {
                   <img src={selectedMatch.foundItem.personalInfo?.profileURL} alt=""  style={{width: '50px', height: '50px', borderRadius: '30px', objectFit: 'cover'}}/>
                   <div style={{display: 'flex', flexDirection: 'column', height: '90%'}}>
                     <span style={{fontSize: '15px', fontWeight: 'bold'}}>{selectedMatch.foundItem.personalInfo?.firstName} {selectedMatch.foundItem.personalInfo?.lastName}</span>
-                    <span style={{fontSize: '15px'}}>{selectedMatch.foundItem.personalInfo.course}</span>
+                    <span style={{fontSize: '15px'}}>{selectedMatch.foundItem.personalInfo.course.abbr}</span>
                     
                   </div>
                   

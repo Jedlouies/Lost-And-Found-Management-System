@@ -15,6 +15,9 @@ export default function FoundMatchResults() {
 
   const auth = getAuth();
   const user = auth.currentUser; 
+
+  const [selectedItem, setSelectedItem] = React.useState(null);
+  
   
   const handleNavigate = (path) => {
     navigate(path)
@@ -22,6 +25,33 @@ export default function FoundMatchResults() {
 
   return (
     <>
+        {selectedItem && (
+        <div className="floating-panel">
+          <div className="floating-panel-content">
+            <button className="close-btn" onClick={() => setSelectedItem(null)}>X</button>
+            
+            <h2>{selectedItem.itemName}</h2>
+            
+            {selectedItem.images?.[0] && (
+              <img 
+                src={selectedItem.images[0]} 
+                alt="Item" 
+                style={{ width: "300px", height: "300px", objectFit: "cover", borderRadius: "10px" }} 
+              />
+            )}
+            <div style={{position: 'absolute', textAlign: 'left', marginTop: '20px', top: '50px', left: '350px', fontSize: '12px', color: 'black'}}>
+            <p><b>Item ID:</b> {selectedItem.itemId}</p>
+            <p><b>Category:</b> {selectedItem.category}</p>
+            <p><b>Location Lost:</b> {selectedItem.locationLost}</p>
+            <p><b>Date Lost:</b> {selectedItem.dateLost 
+              ? new Date(selectedItem.dateFound).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) 
+              : "N/A"}</p>
+            <p><b>Description:</b> {selectedItem.howItemLost || "No description provided"}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
     <UserFoundItemsPage />
     <div className='background'/>
           <button className='more-match'>
@@ -32,7 +62,7 @@ export default function FoundMatchResults() {
         </button>
     <div className="p-6">
       {matches.length === 0 && <p style={{color: 'black', marginTop: '20px'}}>No matches found.</p>}
-      <h1 style={{position: 'absolute', top: '-8%', fontWeight: 'bold', fontSize: '20px'}}>Matching Result</h1>
+      <h1 style={{position: 'absolute', top: '-8%', fontWeight: 'bold', fontSize: '20px'}}>Matching Found Items</h1>
 
 
       {matches.map((match, index) => {
@@ -130,8 +160,14 @@ export default function FoundMatchResults() {
                       {posterInfo.firstName} {posterInfo.lastName}
                     </p>
                     <p style={{ color: 'black', fontStyle: 'italic' }}>
-                      {posterInfo.course}
-                    </p>
+                  {posterInfo.course
+                    ? typeof posterInfo.course === "object"
+                      ? `${posterInfo.course.abbr || ""}`
+                      : "N/A"
+                    : "N/A"}
+                </p>
+
+
 
                   </div>
               </div>
@@ -142,8 +178,10 @@ export default function FoundMatchResults() {
                     <p style={{color: 'black', fontSize: '12px', position: 'absolute',  width: '300px', height: '100px'}}>{lostItem.howItemLost}</p>
                   </div>
               </div>
-              <div className='matching-card-actions'>
-                <button>Details</button>
+              <div className="matching-card-actions">
+                <button onClick={() => setSelectedItem(lostItem)}>
+                  Details
+                </button>
               </div>
               
           </div>

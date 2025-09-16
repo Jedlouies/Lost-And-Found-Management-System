@@ -209,7 +209,7 @@
     transition: all ease-in-out 0.5s;
 }
 
-.more-details-button {
+.more-details-buttons {  
     position: relative;
     top: 210%;
     left: 160%;
@@ -217,19 +217,19 @@
     cursor: pointer;
 }
 
-.more-details-button p{
+.more-details-buttons p{
    color: #475C6F;
 }
 
-.more-details-button svg {
+.more-details-buttons svg {
     color: #212121;
 }
 
-.more-details-button:hover {
+.more-details-buttons:hover {
     color: #859db5;
 }
 
-.more-details-button svg:hover {
+.more-details-buttons svg:hover {
     color: #859db5;
 }
 
@@ -238,4 +238,13 @@
     position: relative;
     left: -60%;
     top: 80%;
+}
+
+.lost-item-card:hover {
+    background-color: white;
+}
+
+.found-item-card:hover {
+    background-color: white;
+    scale: 1.05;
 }

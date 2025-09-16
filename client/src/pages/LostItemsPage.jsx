@@ -6,8 +6,17 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
-
+import { 
+  collection, 
+  getDocs, 
+  getDoc, 
+  doc, 
+  updateDoc, 
+  query, 
+  where 
+} from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { Modal } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function LostItemsPage() {
@@ -17,23 +26,35 @@ function LostItemsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const itemsPerPage = 6;
   const navigate = useNavigate();
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState(null);
 
 
   useEffect(() => {
     const fetchLostItems = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, 'lostItems'));
-        const lostItems = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setItems(lostItems);
-      } catch (error) {
-        console.error("Error fetching lost items:", error);
-      }
-    };
-    fetchLostItems();
-  }, [location]);
+        try {
+          const q = query(
+            collection(db, "lostItems"),
+            where("archivedStatus", "==", false)
+          );
+    
+          const querySnapshot = await getDocs(q);
+          const lostItems = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+    
+          setItems(lostItems);
+        } catch (error) {
+          console.error("Error fetching lost items:", error);
+        }
+      };
+    
+      fetchLostItems();
+    }, []);
 
 
   const filteredItems = items.filter(item =>
@@ -52,8 +73,61 @@ function LostItemsPage() {
     }
   };
 
+  const handleNavigate = (path) => {
+    navigate(path);
+  }
+
+  const archiveItem = async (itemId) => {
+      try {
+        const q = query(collection(db, "lostItems"), where("itemId", "==", itemId));
+        const querySnapshot = await getDocs(q);
+    
+        if (!querySnapshot.empty) {
+          const docRef = querySnapshot.docs[0].ref; 
+          await updateDoc(docRef, { archivedStatus: true });
+          console.log(`Item ${itemId} archived successfully`);
+          setAlert({ type: "success", message: `Item ${itemId} archived successfully` });
+        } else {
+          console.error("No document found with itemId:", itemId);
+        }
+      } catch (error) {
+        console.error("Error archiving item:", error);
+      }
+    }
+
   return (
     <>
+          <Modal
+            show={showConfirm}
+            onHide={() => setShowConfirm(false)}
+            centered
+          >
+            <Modal.Header >
+              <Modal.Title>Confirm Archive</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              Are you sure you want to archive this item?
+            </Modal.Body>
+            <Modal.Footer>
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setShowConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn btn-danger" 
+                onClick={async () => {
+                  if (selectedItemId) {
+                    await archiveItem(selectedItemId); 
+                  }
+                  setShowConfirm(false); 
+                }}
+              >
+                Archive
+              </button>
+            </Modal.Footer>
+          </Modal>
       <NavigationBar />
       <div className='lost-item-body'>
         <TablesHeader />
@@ -71,17 +145,12 @@ function LostItemsPage() {
             />
           </div>
           <div className='actions-row' style={{width: '500px', marginTop: '20px'}}>
-                <button>
+                <button onClick={() => handleNavigate(`/admin/lost-items/archive/${user?.uid}`)}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-archive" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
                   <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
                 </svg>
                   Achieved
                   </button>
-                <button>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-ui-checks-grid" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
-                    <path d="M2 10h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1m9-9h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1m0 9a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1zm0-10a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM2 9a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2zm7 2a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-3a2 2 0 0 1-2-2zM0 2a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm5.354.854a.5.5 0 1 0-.708-.708L3 3.793l-.646-.647a.5.5 0 1 0-.708.708l1 1a.5.5 0 0 0 .708 0z"/>
-                  </svg>
-                  Bulk Select</button>
                 Academic Year:
                 <DropdownButton
                   id="dropdown-academic-year"
@@ -151,7 +220,7 @@ function LostItemsPage() {
                                   {item.foundBy.firstName} {item.foundBy.lastName}
                                 </p>
                                 <p style={{ fontStyle: 'italic', color: 'black' }}>
-                                  {item.foundBy.course || 'Unknown'}
+                                  {item.foundBy.course?.abbr || 'Unknown'}
                                 </p>
                               </div>
                             </>
@@ -175,7 +244,7 @@ function LostItemsPage() {
                           <img src={item.personalInfo?.profileURL} alt="" style={{width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover'}}/>
                         <div className='personal-info'>
                           <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>{item.personalInfo?.firstName} {item.personalInfo?.lastName}</p>
-                          <p style={{ fontStyle: 'italic', color: 'black' }}>{item.personalInfo?.course || 'Unknown'} </p>
+                          <p style={{ fontStyle: 'italic', color: 'black' }}>{item.personalInfo?.course?.abbr || 'Unknown'} </p>
                         </div>
                       </div>
                     </td>                      
@@ -219,7 +288,14 @@ function LostItemsPage() {
                             >
                               View Details
                             </Dropdown.Item>
-                            <Dropdown.Item onClick={() => console.log(`Archive ${item.id}`)}>Archive</Dropdown.Item>
+                            <Dropdown.Item 
+                              onClick={() => {
+                                setSelectedItemId(item.itemId); 
+                                setShowConfirm(true);
+                              }}
+                            >
+                              Archive
+                            </Dropdown.Item>
                           </Dropdown.Menu>
                         </Dropdown>
                         <svg

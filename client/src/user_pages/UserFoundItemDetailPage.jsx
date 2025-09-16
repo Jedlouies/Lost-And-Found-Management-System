@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import { addDoc, collection, doc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom'; 
+import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
 
 function UserFoundItemDetailPage() {
   const { currentUser } = useAuth();
@@ -41,6 +42,22 @@ function UserFoundItemDetailPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMatching, setIsMatching] = useState(false);
 
+  const dbRealtime = getDatabase();
+
+  const WORD_LIMIT = 150;
+
+  const limitWords = (text, setFn) => {
+    const words = text.trim().split(/\s+/);
+    if (words.length <= WORD_LIMIT) {
+      setFn(text);
+    } else {
+      setFn(words.slice(0, WORD_LIMIT).join(" "));
+    }
+  };
+
+  const countWords = (text) => {
+    return text.trim().split(/\s+/).filter(Boolean).length;
+  };
 
 
 useEffect(() => {
@@ -92,6 +109,18 @@ useEffect(() => {
     return data.secure_url;
   };
 
+  const notifyUser = async (uid, message, type = "match") => {
+  if (!uid) return;
+  const notifRef = ref(dbRealtime, `notifications/${uid}`);
+  const newNotifRef = push(notifRef);
+  await set(newNotifRef, {
+    message,
+    timestamp: rtdbServerTimestamp(),
+    type: "item",
+    read: false,
+  });
+};
+
 
 const handleSubmit = async (e) => {
   e.preventDefault();
@@ -107,7 +136,6 @@ const handleSubmit = async (e) => {
       }
     }
 
-    // ✅ Generate custom itemId
     const customItemId = `ITM-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(100 + Math.random() * 900)}`;
 
     const docRef = await addDoc(collection(db, 'foundItems'), {
@@ -117,6 +145,7 @@ const handleSubmit = async (e) => {
       itemName,
       dateFound,
       locationFound,
+      archivedStatus: 'false',
       founder,
       owner,
       claimStatus,
@@ -154,12 +183,33 @@ const handleSubmit = async (e) => {
 
     const top4Matches = matches.slice(0, 4);
 
+    for (let i = 0; i < top4Matches.length; i++) {
+    const match = top4Matches[i];
+
+    
+
+        
+        
+          await notifyUser(
+            currentUser.uid,
+            `Your found item <b>${itemName}</b> has been submitted. 
+            Please surrender it to the OSA for verification. The item is currently on a pending status and Once verified, 
+            the system will notify possible owners and post the item.`, 
+            "info"
+          );
+        
+      
+    }
+
+
     await addDoc(collection(db, 'itemManagement'), {
-      itemId: customItemId,  // ✅ use same ID
+      itemId: customItemId, 
       uid: currentUser.uid,
       images: imageURLs,
+      archivedStatus: false,
       itemName,
       dateSubmitted: new Date().toISOString(),
+      itemDescription,
       type: "Found",  
       location: locationFound,
       category,
@@ -192,6 +242,10 @@ const handleSubmit = async (e) => {
   setIsSubmitting(false);
   setIsMatching(false);
 };
+
+
+
+
   
   return (
     <>
@@ -231,17 +285,46 @@ const handleSubmit = async (e) => {
           <label>Category:</label>
           <select value={category} onChange={(e) => setCategory(e.target.value)} style={{width: '140px', borderRadius: '10px', backgroundColor: 'transparent', border: '2px solid #475C6F', color: '#475C6F'}} required>
             <option value="">Select Category</option>
-            <option value="Electronics">Electronics</option>
-            <option value="Documents">Documents</option>
-            <option value="Accessories">Accessories</option>
-            <option value="Others">Others</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Clothing & Apparel">Clothing & Apparel</option>
+              <option value="Bags & Luggage">Bags & Luggage</option>
+              <option value="Documents & IDs">Documents & IDs</option>
+              <option value="Books & Stationery">Books & Stationery</option>
+              <option value="Household Items">Household Items</option>
+              <option value="Sports & Fitness">Sports & Fitness</option>
+              <option value="Health & Personal Care">Health & Personal Care</option>
+              <option value="Toys & Games">Toys & Games</option>
+              <option value="Food & Beverages">Food & Beverages</option>
+              <option value="Automotive Items">Automotive Items</option>
+              <option value="Musical Instruments">Musical Instruments</option>
+              <option value="Pet Items">Pet Items</option>
+              <option value="Others">Others</option>
           </select>
           <br />
-          <label>Item Description:</label>
-          <textarea value={itemDescription} onChange={(e) => setItemDescription(e.target.value)} style={{color: '#475C6F'}} required />
-          <br />
-          <label>How Item Was Found:</label>
-          <textarea value={howItemFound} onChange={(e) => setHowItemFound(e.target.value)} style={{color: '#475C6F'}} required />
+            <label>Item Description:</label>
+            <textarea
+              value={itemDescription}
+              onChange={(e) => limitWords(e.target.value, setItemDescription)}
+              style={{ color: '#475C6F' }}
+              required
+            />
+            <div style={{ position: 'absolute', top: '50%', marginLeft: '75%', fontSize: '12px', color: '#475C6F' }}>
+              {countWords(itemDescription)}/{WORD_LIMIT} words
+            </div>
+
+            <br />
+
+            <label>How Item Was Found:</label>
+            <textarea
+              value={howItemFound}
+              onChange={(e) => limitWords(e.target.value, setHowItemFound)}
+              style={{ color: '#475C6F' }}
+              required
+            />
+            <div style={{ position: 'absolute', top: '78%', marginLeft: '75%', fontSize: '12px', color: '#475C6F' }}>
+              {countWords(howItemFound)}/{WORD_LIMIT} words
+            </div>
 
 
 
@@ -266,12 +349,12 @@ const handleSubmit = async (e) => {
             {isMatching ? (
               <>
                 <img src="/Spin.gif" alt="Loading..." style={{ width: "20px", height: "20px" }} />
-                <span>Matching Items...</span>
+                <span>AI Matching...</span>
               </>
             ) : isSubmitting ? (
               <>
                 <img src="/Spin.gif" alt="Loading..." style={{ width: "20px", height: "20px" }} />
-                <span>Submitting Report...</span>
+                <span>Matching Items...</span>
               </>
             ) : (
               "Submit Report"

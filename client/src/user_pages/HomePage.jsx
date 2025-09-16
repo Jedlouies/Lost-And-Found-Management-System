@@ -7,6 +7,10 @@ import { collection, doc, getDocs, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom'
+import MessageAdminButton from '../user_components/MessageAdminButton'
+import FloatingAlert from '../components/FloatingAlert';
+import { getAuth } from 'firebase/auth';
+
 
 function HomePage() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
@@ -18,6 +22,16 @@ function HomePage() {
   const [foundItems, setFoundItems] = useState([]);
   const lostContainerRef = useRef(null);
   const foundContainerRef = useRef(null);
+  const [alert, setAlert] = useState({ type: "", message: "", visible: false });
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  const handleNavigate = (path) => {
+    
+    navigate(path);
+    
+  };
+
 
  
   useEffect(() => {
@@ -56,25 +70,36 @@ function HomePage() {
   }, []);
 
   
-  useEffect(() => {
-    const addHorizontalScroll = (container) => {
-      if (!container) return;
-      const handleWheel = (e) => {
+useEffect(() => {
+  const addHorizontalScroll = (container) => {
+    if (!container) return;
+
+    const handleWheel = (e) => {
+      const { scrollLeft, scrollWidth, clientWidth } = container;
+      const atStart = scrollLeft === 0;
+      const atEnd = scrollLeft + clientWidth >= scrollWidth;
+
+      if (scrollWidth > clientWidth) {
+        if (e.deltaY < 0 && atStart) return;
+        if (e.deltaY > 0 && atEnd) return;
+
         e.preventDefault();
         container.scrollLeft += e.deltaY;
-      };
-      container.addEventListener("wheel", handleWheel, { passive: false });
-      return () => container.removeEventListener("wheel", handleWheel);
+      }
     };
 
-    const lostCleanup = addHorizontalScroll(lostContainerRef.current);
-    const foundCleanup = addHorizontalScroll(foundContainerRef.current);
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    return () => container.removeEventListener("wheel", handleWheel);
+  };
 
-    return () => {
-      if (lostCleanup) lostCleanup();
-      if (foundCleanup) foundCleanup();
-    };
-  }, []);
+  const lostCleanup = addHorizontalScroll(lostContainerRef.current);
+  const foundCleanup = addHorizontalScroll(foundContainerRef.current);
+
+  return () => {
+    if (lostCleanup) lostCleanup();
+    if (foundCleanup) foundCleanup();
+  };
+}, []);
 
 
   useEffect(() => {
@@ -121,17 +146,33 @@ function HomePage() {
 
 
   const recentLostItems = [...lostItems]
-    .filter(item => item.claimStatus !== "claimed") 
+    .filter(item => item.claimStatus !== "claimed")
+    .filter(item => item.archivedStatus !== true)
+    .filter(item => item.status !== "pending" && "canceled") 
     .sort((a, b) => new Date(b.dateLost) - new Date(a.dateLost))
     .slice(0, 20);
 
   const recentFoundItems = [...foundItems]
-    .filter(item => item.claimStatus !== "claimed") 
+    .filter(item => item.claimStatus !== "claimed")
+    .filter(item => item.status !== "pending" && "canceled")
+    .filter(item => item.archivedStatus !== true) 
     .sort((a, b) => new Date(b.dateFound) - new Date(a.dateFound))
     .slice(0, 20);
 
   return (
     <>
+    
+      <MessageAdminButton setAlert={setAlert} />
+
+      {alert.visible && (
+        <FloatingAlert
+          message={alert.message}
+          type={alert.type}
+          visible={alert.visible}
+          onClose={() => setAlert({ ...alert, visible: false })}
+        />
+      )}
+
       <UserNavigationBar />
       <div className='home-body'>
         <div className='nav'>
@@ -166,58 +207,55 @@ function HomePage() {
           </svg>
         Lost Items
         </h1>
-        <h4 style={{ position: 'absolute', top: '15%', left: '90%', color: '#475C6F', cursor: 'pointer' }}>More</h4>
+        <h4 style={{ position: 'absolute', top: '15%', left: '90%', color: '#475C6F', cursor: 'pointer' }} onClick={() => handleNavigate(`/users/lost-items/${user?.uid}`)}>More</h4>
         <div className="home-lost-container" ref={lostContainerRef}>
           {recentLostItems.length > 0 ? (
             recentLostItems.map((item, index) => (
-              <div className="lost-item-card" key={index}>
+              <div
+                className="lost-item-card"
+                key={index}
+                onClick={() =>
+                  navigate(`/users/lost-items/more-details/${item.id}`, {
+                    state: { type: "lost", item }
+                  })
+                }
+                style={{ cursor: "pointer" }}
+              >
                 <div className="lost-card-image">
                   {item.images && item.images.length > 0 ? (
                     <img
                       src={item.images[0]}
-                      alt='img'
-                      style={{ width: '300px', height: '200px', objectFit: 'cover' }}
+                      alt="img"
+                      style={{ width: "300px", height: "200px", objectFit: "cover" }}
                     />
                   ) : (
                     <div className="placeholder-image">No Image</div>
                   )}
                 </div>
                 <div className="card-details">
-                  <h4>{item.itemName}</h4>
-                  <div className='own'>
+                  <h4 style={{fontSize: '15px'}}>{item.itemName}</h4>
+                  <div className="own">
                     <img
                       src={item.personalInfo?.profileURL}
                       alt=""
-                      style={{ width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover' }}
+                      style={{ width: "50px", height: "50px", borderRadius: "40px", objectFit: "cover" }}
                     />
                     <p>
-                      <strong>{item.personalInfo?.firstName} {item.personalInfo?.lastName}</strong><br />
-                      {item.personalInfo?.course} Student
+                      <strong style={{ fontSize: "14px" }}>
+                        {item.personalInfo?.firstName} {item.personalInfo?.lastName}
+                      </strong>
+                      <br />
+                      {item.personalInfo?.course?.abbr} Student
                     </p>
-                    <div className='card-more-details'>
-                      <p style={{ position: 'absolute', top: '100%', marginLeft: '50px', width: '200px', fontSize: '12px' }}>
-                        {item.howItemLost && item.howItemLost.length > 120
-                          ? item.howItemLost.slice(0, 120) + "..."
-                          : item.howItemLost}
-                      </p>
-                      <p
-                        className="more-details-button" style={{color: '#475C6F', fontWeight: 'bold'}}
-                        onClick={() =>
-                          navigate(`/users/lost-items/more-details/${item.id}`, {
-                            state: { type: "lost", item }
-                          })
-                        }
-                      >
-                        More Details
-                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16" style={{ marginLeft: '10px' }}>
-                          <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
-                        </svg>
-                      </p>
-
-
-                    </div>
+                    
                   </div>
+                  <p style={{ marginTop: "10px", fontSize: "12px", color: 'black', height: '60px', width: '250px', textAlign: 'left', marginLeft: '10px' }}>
+                      {item.howItemLost && item.howItemLost.length > 120
+                        ? item.howItemLost.slice(0, 120) + "..."
+                        : item.howItemLost}
+                    </p> 
                 </div>
+                <p style={{color: 'black', fontSize: '8px', position: 'absolute', top: '93%', marginLeft: '100px', fontStyle: 'italic'}}>(Click the card to view details)</p>
               </div>
             ))
           ) : (
@@ -231,57 +269,56 @@ function HomePage() {
           </svg>
           Found Items
         </h1>
-        <h4 style={{ position: 'absolute', top: '57%', left: '90%', color: '#475C6F', cursor: 'pointer' }}>More</h4>
+        <h4 style={{ position: 'absolute', top: '57%', left: '90%', color: '#475C6F', cursor: 'pointer' }} onClick={() => handleNavigate(`/users/found-items/${user?.uid}`)}>More</h4>
         <div className="home-found-container" ref={foundContainerRef}>
           {recentFoundItems.length > 0 ? (
             recentFoundItems.map((item, index) => (
-              <div className="lost-item-card" key={index}>
+              <div
+                className="lost-item-card"
+                key={index}
+                onClick={() =>
+                  navigate(`/users/found-items/more-details/${item.id}`, {
+                    state: { type: "found", item }
+                  })
+                }
+                style={{ cursor: "pointer" }}
+              >
                 <div className="lost-card-image">
                   {item.images && item.images.length > 0 ? (
                     <img
                       src={item.images[0]}
-                      alt='img'
-                      style={{ width: '300px', height: '200px', objectFit: 'cover' }}
+                      alt="img"
+                      style={{ width: "300px", height: "200px", objectFit: "cover" }}
                     />
                   ) : (
                     <div className="placeholder-image">No Image</div>
                   )}
                 </div>
                 <div className="card-details">
-                  <h4>{item.itemName}</h4>
-                  <div className='own'>
+                  <h4 style={{fontSize: '15px'}}>{item.itemName}</h4>
+                  <div className="own">
                     <img
                       src={item.personalInfo?.profileURL}
                       alt=""
-                      style={{ width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover' }}
+                      style={{ width: "50px", height: "50px", borderRadius: "40px", objectFit: "cover" }}
                     />
                     <p>
-                      <strong>{item.personalInfo?.firstName} {item.personalInfo?.lastName}</strong><br />
-                      {item.personalInfo?.course} Student
+                      <strong style={{ fontSize: "14px" }}>
+                        {item.personalInfo?.firstName} {item.personalInfo?.lastName}
+                      </strong>
+                      <br />
+                      {item.personalInfo?.course?.abbr} Student
                     </p>
-                    <div className='card-more-details'>
-                      <p style={{ position: 'absolute', top: '100%', marginLeft: '50px', width: '200px', fontSize: '12px' }}>
-                        {item.howItemFound && item.howItemFound.length > 120
-                          ? item.howItemFound.slice(0, 120) + "..."
-                          : item.howItemFound || "No description provided"}
-                      </p>
-                      <p
-                        className="more-details-button" style={{color: '#475C6F', fontWeight: 'bold'}}
-                        onClick={() =>
-                          navigate(`/users/lost-items/more-details/${item.id}`, {
-                            state: { type: "found", item }
-                          })
-                        }
-                      >
-                        More Details
-                        <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-three-dots" viewBox="0 0 16 16" style={{ marginLeft: '10px' }}>
-                          <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3"/>
-                        </svg>
-                      </p>
-
-                    </div>
+                    
                   </div>
+                  <p style={{ marginTop: "10px", fontSize: "12px", color: 'black', height: '60px', width: '250px', textAlign: 'left', marginLeft: '10px' }}>
+                      {item.howItemFound && item.howItemFound.length > 120
+                        ? item.howItemFound.slice(0, 120) + "..."
+                        : item.howItemFound}
+                    </p>
                 </div>
+                <p style={{color: 'black', fontSize: '8px', position: 'absolute', top: '93%', marginLeft: '100px', fontStyle: 'italic'}}>(Click the card to view details)</p>
+
               </div>
             ))
           ) : (

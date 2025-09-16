@@ -6,6 +6,30 @@ import FloatingAlert from "../components/FloatingAlert";
 import { getDatabase, ref, onValue, remove } from "firebase/database";
 import { getAuth } from "firebase/auth";
 
+// Define notification type icons
+const typeConfig = {
+  "transaction": {
+      title: "Transaction Processed",
+      icon: "bi-cash-stack",
+      color: "green",
+    },
+    "system": {
+      title: "System Update",
+      icon: "bi-gear-fill",
+      color: "#007bff",
+    },
+    "reminder": {
+      title: "Reminder",
+      icon: "bi-bell-fill",
+      color: "orange",
+    },
+    "item": {
+      title: "Item Update",
+      icon: "bi-info-circle",
+      color: "#062949ff",
+    },
+};
+
 function UserNotificationPage() {
   const [groupedNotifications, setGroupedNotifications] = useState({});
   const [alert, setAlert] = useState(null);
@@ -27,13 +51,10 @@ function UserNotificationPage() {
           ...data[key],
         }));
 
-        // Sort newest first
         parsed.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-        // Limit to 20
         const limited = parsed.slice(0, 20);
 
-        // Group notifications
         const grouped = groupByDate(limited);
         setGroupedNotifications(grouped);
       } else {
@@ -44,7 +65,6 @@ function UserNotificationPage() {
     return () => unsubscribe();
   }, []);
 
-  // Function to group notifications by Today, Yesterday, Last Week, Last Month
   const groupByDate = (notifications) => {
     const groups = {
       Today: [],
@@ -97,13 +117,13 @@ function UserNotificationPage() {
 
   return (
     <>
-        {alert && (
-          <FloatingAlert
-            message={alert.message}
-            type={alert.type}
-            onClose={() => setAlert(null)}
-          />
-        )}
+      {alert && (
+        <FloatingAlert
+          message={alert.message}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
 
       <UserNavigationBar />
       <div className="notification-body">
@@ -131,33 +151,46 @@ function UserNotificationPage() {
                     >
                       {section}
                     </h3>
-                    {items.map((n) => (
-                      <div className="notification-card" key={n.id}>
-                        <p dangerouslySetInnerHTML={{ __html: n.message }}/>
-                        <small>
-                          {n.timestamp
-                            ? new Date(n.timestamp).toLocaleString()
-                            : "Just now"}
-                        </small>
-                        
-                        <button
-                          onClick={() => handleDelete(n.id)}
-                          className="delete-btn"
-                          title="Delete notification"
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width="20"
-                            height="20"
-                            fill="currentColor"
-                            className="bi bi-trash3"
-                            viewBox="0 0 16 16"
-                          >
-                            <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
+                      {items.map((n) => {
+                        const config = typeConfig[n.type] || { title: "Notification", icon: "bi-info-circle", color: "#062949ff" };
+
+                        return (
+                          <div className="notification-card" key={n.id}>
+                            <p style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <i className={`bi ${config.icon}`} style={{ color: config.color, fontSize: "20px" }}></i>
+                              
+                              <span style={{ display: "flex", flexDirection: "column" }}>
+                                <strong style={{ color: config.color }}>{config.title}</strong>
+                                <span
+                                  dangerouslySetInnerHTML={{ __html: n.message }}
+                                  style={{ marginLeft: "4px" }}
+                                />
+                              </span>
+                            </p>
+
+                            <small>
+                              {n.timestamp ? new Date(n.timestamp).toLocaleString() : "Just now"}
+                            </small>
+
+                            <button
+                              onClick={() => handleDelete(n.id)}
+                              className="delete-btn"
+                              title="Delete notification"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                fill="currentColor"
+                                className="bi bi-trash3"
+                                viewBox="0 0 16 16"
+                              >
+                                <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5" />
+                              </svg>
+                            </button>
+                          </div>
+                        );
+                      })}
                   </div>
                 )
             )

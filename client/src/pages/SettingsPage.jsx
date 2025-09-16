@@ -3,8 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import NavigationBar from '../components/NavigationBar';
-import DashboardHeader from '../components/DashboardHeader';
+import BlankHeader from '../components/BlankHeader';
 import './styles/SettingsPage.css';
+import FloatingAlert from '../components/FloatingAlert';
+import { getAuth, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+
 
 function SettingsPage() {
   const { currentUser } = useAuth();
@@ -27,6 +30,103 @@ function SettingsPage() {
   const [educationalAttainment, setEducationalAttainment] = useState('');
   const [address, setAddress] = useState('');
 
+  const [alert, setAlert] = useState(null);
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [password, setPassword] = useState('');
+  const [checkingPassword, setCheckingPassword] = useState(false);
+
+
+   const courseList = [
+  // College of Science and Mathematics - CSM (Undergraduate)
+  { abbr: "BSAM", name: "Bachelor of Science in Applied Mathematics" },
+  { abbr: "BSAP", name: "Bachelor of Science in Applied Physics" },
+  { abbr: "BSChem", name: "Bachelor of Science in Chemistry" },
+  { abbr: "BSES", name: "Bachelor of Science in Environmental Science " },
+  { abbr: "BSFT", name: "Bachelor of Science in Food Technology" },
+
+  // College of Technology - COT (Undergraduate)
+  { abbr: "BSAuT", name: "Bachelor of Science in Autotronics" },
+  { abbr: "BSAT", name: "Bachelor of Science in Automotive Technology" },
+  { abbr: "BSEMT", name: "Bachelor of Science in Electro-Mechanical Technology" },
+  { abbr: "BSET", name: "Bachelor of Science in Electronics Technology" },
+  { abbr: "BSESM", name: "Bachelor of Science in Energy Systems and Management" },
+  { abbr: "BSMET", name: "Bachelor of Science in Manufacturing Engineering Technology" },
+  { abbr: "BTOM", name: "Bachelor of Technology, Operation, and Management" },
+
+  // College of Science and Technology Education - CSTE (Undergraduate)
+  { abbr: "BS MathEd", name: "Bachelor of Secondary Education Major in Mathematics" },
+  { abbr: "BS SciEd", name: "Bachelor of Secondary Education Major in Science" },
+  { abbr: "BTLED", name: "Bachelor of Technology and Livelihood Education" },
+  { abbr: "BTVTed", name: "Bachelor of Technical-Vocational Teacher Education" },
+  
+  { abbr: "BTTE", name: "Bachelor of Technician Teacher Education" },
+
+  // Senior High School - SHS
+  { abbr: "STEM", name: "Senior High School - Science, Technology, Engineering and Mathematics" },
+  
+
+  // College of Engineering and Architecture - CEA (Undergraduate)
+  { abbr: "BSArch", name: "Bachelor of Science in Architecture" },
+  { abbr: "BSCE", name: "Bachelor of Science in Civil Engineering" },
+  { abbr: "BSCPE", name: "Bachelor of Science in Computer Engineering" },
+  { abbr: "BSEE", name: "Bachelor of Science in Electrical Engineering" },
+  { abbr: "BSECE", name: "Bachelor of Science in Electronic Engineering" },
+  { abbr: "BSGE", name: "Bachelor of Science in Geodetic Engineering" },
+  { abbr: "BSME", name: "Bachelor of Science in Mechanical Engineering" },
+
+  // College of Information Technology and Computing - CITC (Undergraduate)
+  { abbr: "BSDS", name: "Bachelor of Science in Data Science" },
+  { abbr: "BSIT", name: "Bachelor of Science in Information Technology" },
+  { abbr: "BSTCM", name: "Bachelor of Science in Technology Communication Management" },
+  { abbr: "BSCS", name: "Bachelor of Science in Computer Science" },
+
+  // College of Medicine - COM
+  { abbr: "COM", name: "College of Medicine (Night Class)" },
+
+  // -------- GRADUATE PROGRAMS --------
+
+  // CSM Graduate
+  { abbr: "MSAMS", name: "Master of Science in Applied Mathematics Sciences" },
+  { abbr: "MSETS", name: "Master of Science in Environmental Science and Technology" },
+
+  // COT Graduate
+  { abbr: "MITO", name: "Master in Industrial Technology and Operations" },
+
+  // CSTE Graduate
+  { abbr: "DTE", name: "Doctor in Technology Education" },
+  { abbr: "PhD MathEdSci", name: "Doctor of Philosophy in Mathematics Sciences" },
+  { abbr: "PhD MathEd", name: "Doctor of Philosophy in Mathematics Education" },
+  { abbr: "PhD SciEd Chem", name: "Doctor of Philosophy in Science Education Major in Chemistry" },
+  { abbr: "PhD EPM", name: "Doctor of Philosophy in Educational Planning and Management" },
+  { abbr: "MEPM", name: "Master in Education Planning and Management" },
+  { abbr: "MATESL", name: "Master of Arts in Teaching English as Second Language" },
+  { abbr: "MATSpEd", name: "Master of Arts in Teaching Special Education" },
+  { abbr: "MSMathEd", name: "Master of Science in Mathematics Education" },
+  { abbr: "MSEd Physics", name: "Master of Science Education Major in Physics" },
+  { abbr: "MSTMath", name: "Master of Science in Teaching Mathematics" },
+  { abbr: "MPA", name: "Master in Public Administration" },
+  { abbr: "MTTE", name: "Master in Technician Teacher Education" },
+  { abbr: "MTTEd", name: "Master of Technical and Technology Education" },
+
+  // CEA Graduate
+  { abbr: "MEng", name: "Master of Engineering Program" },
+  { abbr: "MSEE", name: "Master of Science in Electrical Engineering" },
+  { abbr: "MSSDPS", name: "Master of Science in Sustainable Development Professional Science" },
+  { abbr: "MPSEM", name: "Master in Power System Engineering and Management" },
+
+  // CITC Graduate
+  { abbr: "MSTCM", name: "Master of Science in Technology Communication Management" },
+  { abbr: "MIT", name: "Master in Information Technology" },
+
+  // Institute of Governance, Innovation and Sustainability
+  { abbr: "MPS-DSPE", name: "Master in Public Sector Major in Digital Service Platforms and E-Governance" },
+  { abbr: "MPS-SD", name: "Master in Public Sector Innovation Major in Sustainable Development" },
+  { abbr: "MPS-PPS", name: "Master in Public Sector Innovation Major in Public Policy Studies" },
+];
+
+
+
   const updateUserInfo = async (uid, updatedData) => {
     try {
       const userRef = doc(db, 'users', uid);
@@ -36,7 +136,55 @@ function SettingsPage() {
     }
   };
 
-  const handleUpdate = () => {
+  const reauthenticateUser = async (password) => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (!user || !user.email) throw new Error("No user logged in.");
+
+  const credential = EmailAuthProvider.credential(user.email, password);
+  await reauthenticateWithCredential(user, credential);
+};
+
+const handleSaveClick = () => {
+  setShowPasswordModal(true);
+};
+
+
+const handleConfirmPassword = async () => {
+  setCheckingPassword(true);
+  try {
+    await reauthenticateUser(password);
+    setShowPasswordModal(false);
+    setPassword('');
+    await handleUpdate(); // run your existing update
+  } catch (err) {
+    console.error("Password incorrect:", err);
+    setAlert({ message: "Incorrect Password", type: "error" });
+  }
+  setCheckingPassword(false);
+};
+
+
+const handleUpdate = async () => {
+  if (!currentUser) return;
+
+  try {
+    // Upload profile image if a new one is selected
+    let updatedProfileURL = profileURL;
+    if (profileImage) {
+      updatedProfileURL = await uploadImage(profileImage, `users/${currentUser.uid}`, "profileURL");
+      setProfileURL(updatedProfileURL);
+    }
+
+    // Upload cover image if a new one is selected
+    let updatedCoverURL = coverURL;
+    if (coverImage) {
+      updatedCoverURL = await uploadImage(coverImage, `users/${currentUser.uid}`, "coverURL");
+      setCoverURL(updatedCoverURL);
+    }
+
+    // Update user details
     const updatedData = {
       firstName,
       lastName,
@@ -44,16 +192,26 @@ function SettingsPage() {
       middleName,
       email,
       contactNumber,
-      coverURL,
-      profileURL,
+      coverURL: updatedCoverURL,
+      profileURL: updatedProfileURL,
       designation,
       educationalAttainment,
       gender,
       yearsOfService,
       address,
+      section: '1',
+      course: {abbr: '1', name: '1'},
+      
     };
-    updateUserInfo(currentUser.uid, updatedData);
-  };
+
+    await updateUserInfo(currentUser.uid, updatedData);
+    setAlert({ message: "Profile Information Updated!", type: "success" });
+
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    setAlert({ message: "Failed", type: "error" });
+  }
+};
 
   useEffect(() => {
     const fetchUserImages = async () => {
@@ -146,10 +304,10 @@ function SettingsPage() {
     try {
       const url = await uploadImage(profileImage, `users/${currentUser.uid}`, 'profileURL');
       setProfileURL(url);
-      alert('Profile image uploaded!');
+      setAlert({ message: "Profile Picture Uploaded!", type: "success" });
     } catch (err) {
       console.error(err);
-      alert('Profile upload failed.');
+      setAlert({ message: "Upload Failed!", type: "error" });
     }
     setUploadingProfile(false);
   };
@@ -160,65 +318,163 @@ function SettingsPage() {
     try {
       const url = await uploadImage(coverImage, `users/${currentUser.uid}`, 'coverURL');
       setCoverURL(url);
-      alert('Cover image uploaded!');
+      setAlert({ message: "Cover Picture Uploaded!", type: "success" });
     } catch (err) {
       console.error(err);
-      alert('Cover upload failed.');
+      setAlert({ message: "Upload Failed!", type: "error" });
     }
     setUploadingCover(false);
   };
 
   return (
     <>
-      <NavigationBar />
-      <div className='settings-body'>
-        <DashboardHeader />
 
-        <div className='upload-section1'>
-          <h3>Upload Profile Image</h3>
-          <input type="file" accept="image/*" onChange={handleProfileChange} />
-          <button onClick={handleProfileUpload} disabled={uploadingProfile}>
-            {uploadingProfile ? 'Uploading...' : 'Upload Profile Image'}
-          </button>
-          {profileURL && (
-            <div>
-              <p>Current Profile Image:</p>
-              <img src={profileURL} alt="Profile" style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover' }} />
+      {showPasswordModal && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.5)",
+          display: "flex", justifyContent: "center", alignItems: "center",
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: "white",
+            padding: "20px",
+            borderRadius: "10px",
+            width: "300px",
+            textAlign: "center"
+          }}>
+            <h4>Confirm Your Password</h4>
+            <input 
+              type="password" 
+              placeholder="Enter Password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{width: "100%", marginBottom: "10px", padding: "5px", backgroundColor: 'transparent', border: '3px solid #475C6F', borderRadius: '5px', color: 'black'}}
+            />
+            <div className='password-modal-buttons' style={{display: "flex", justifyContent: "space-between"}}>
+              <button onClick={() => setShowPasswordModal(false)}>Cancel</button>
+              <button onClick={handleConfirmPassword} disabled={checkingPassword}>
+                {checkingPassword ? "Checking..." : "Confirm"}
+              </button>
             </div>
-          )}
+          </div>
         </div>
+      )}
 
-        <div className='upload-section2'>
-          <h3>Upload Cover Image</h3>
-          <input type="file" accept="image/*" onChange={handleCoverChange} />
-          <button onClick={handleCoverUpload} disabled={uploadingCover}>
-            {uploadingCover ? 'Uploading...' : 'Upload Cover Image'}
-          </button>
+        {alert && (
+          <FloatingAlert
+            message={alert.message}
+            type={alert.type}
+            onClose={() => setAlert(null)}
+          />
+        )}
+      <NavigationBar />
+      <div className='found-item-body'>
+        <BlankHeader />
+
+        <div className='upload-section1' style={{display: 'flex', flexDirection: 'column'}}>
           {coverURL && (
             <div>
-              <p>Current Cover Image:</p>
-              <img src={coverURL} alt="Cover" style={{ width: '100%', maxWidth: '500px', height: 'auto', borderRadius: '10px', objectFit: 'cover' }} />
+              
+              <img src={coverURL} alt="Cover" style={{ height: '100px',width: '550px',borderRadius: '10px', objectFit: 'cover' }} />
             </div>
           )}
+          {profileURL && (
+            <div>
+              <img src={profileURL} alt="Profile" style={{ width: '70px', height: '70px', borderRadius: '50%', objectFit: 'cover', marginTop: '-20px'}} />
+            </div>
+          )}
+          <div >
+          <h4>Profile Picture</h4>
+          <input type="file" accept="image/*" style={{border: 'solid #475C6F 2px ', borderRadius: '5px', width: '500px'}} onChange={handleProfileChange} />
+          <button onClick={handleProfileUpload} disabled={uploadingProfile}>
+            {uploadingProfile ? 'Uploading...' : 'Upload'}
+          </button> 
+          </div>     
         </div>
+        
 
-        <div className='user-info-form'>
-          <h3>Edit Profile Information</h3>
-          <input placeholder='First Name' value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-          <input placeholder='Middle Name' value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
-          <input placeholder='Last Name' value={lastName} onChange={(e) => setLastName(e.target.value)} />
-          <input placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input placeholder='Contact Number' value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} />
-          <input placeholder='Gender' value={gender} onChange={(e) => setGender(e.target.value)} />
-          <input placeholder='Years of Service' value={yearsOfService} onChange={(e) => setYearsOfService(e.target.value)} />
-          <input placeholder='Educational Attainment' value={educationalAttainment} onChange={(e) => setEducationalAttainment(e.target.value)} />
-          <textarea placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} />
-          <input placeholder='Designation' value={designation} onChange={(e) => setDesignation(e.target.value)} />
-          <input placeholder='Address' value={address} onChange={(e) => setAddress(e.target.value)} />
+        <div className='upload-section2'>
 
-          <button onClick={handleUpdate}>Save Changes</button>
+        <div style={{marginTop: '10px'}}>
+          <h4>Cover Photo</h4>
+          <input type="file" accept="image/*" style={{border: 'solid #475C6F 2px ', borderRadius: '5px', width: '500px'}} onChange={handleCoverChange} />
+          <button onClick={handleCoverUpload} disabled={uploadingCover}>
+            {uploadingCover ? 'Uploading...' : 'Upload'}
+          </button>
+
+        </div>
         </div>
       </div>
+        <div className='user-info-form' style={{display: 'flex', flexDirection: 'column', gap: '10px', position: 'absolute', top: '55%', left: '7%'}}>
+          <h4>Profile Information</h4>
+          <div style={{display: 'flex', gap: '10px'}}>
+            <input placeholder='First Name' value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            <input placeholder='Middle Name' value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
+            <input placeholder='Last Name' value={lastName} onChange={(e) => setLastName(e.target.value)} />
+
+          </div>
+          <div style={{display: 'flex', gap: '10px', }}>
+            <input placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input placeholder='Contact Number' value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} />
+            <select 
+                value={gender} 
+                onChange={(e) => setGender(e.target.value)} 
+    
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+
+          </div>
+          <select placeholder='Educational Attainment' value={educationalAttainment} style={{width: '100%'}} onChange={(e) => setEducationalAttainment(e.target.value)} >
+              <option value="">Select Educational Attainment</option>
+              {courseList.map((c, index) => (
+                <option key={index} value={c.name}>
+                  {c.name} 
+                </option>
+              ))}
+            </select>
+          <textarea placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} />
+          <div style={{display: 'flex', gap: '10px', }}>
+            <select placeholder='Designation' style={{width: '400px'}} value={designation} onChange={(e) => setDesignation(e.target.value)}>
+              <option value="">Select Designation</option>
+              <option value="Director">Director</option>
+              <option value="Secretary">Secretary</option>
+              <option value="Treasurer">Treasurer</option>
+              <option value="Auditor">Auditor</option>
+              <option value="Staff">Staff</option>
+              <option value="Admin Staff">Admin Staff</option>
+              <option value="Clerk">Clerk</option>
+              
+            </select>
+            <select value={yearsOfService} onChange={(e) => setYearsOfService(e.target.value)}>
+              <option value="">Select Years</option>
+              {[...Array(41).keys()].map(num => (
+                <option key={num} value={num}>{num}</option>
+              ))}
+            </select>          
+          </div> 
+          <input placeholder='Address' value={address} onChange={(e) => setAddress(e.target.value)} />
+
+          <button onClick={handleSaveClick}>Save Changes</button>
+
+          <div className='other-settings' style={{position: 'absolute', marginTop: '20px', top: '-80%', left: '120%'}}>
+              <h4>Privacy</h4>
+                <p>Change Password</p>
+                <p>Two-Factor Authentication</p>
+              <h4>Database Management</h4>
+                <p>Back up and Restore</p>
+                <p>Data Export</p>
+              <h4>Notification</h4>
+                <p>Allow User Messages</p>
+          </div>
+
+        </div>
+
     </>
   );
 }

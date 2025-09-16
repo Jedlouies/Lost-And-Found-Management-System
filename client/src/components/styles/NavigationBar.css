@@ -10,6 +10,7 @@
 }
 
 .nav-buttons span {
+ 
   white-space: nowrap;
   font-size: 1rem;
   cursor: pointer;
@@ -56,6 +57,7 @@
   transition: all 0.3s ease;
   justify-content: center;
   cursor: pointer;
+  position: relative;
 }
 
 .nav-body.expanded .nav-buttons {
@@ -98,17 +100,29 @@
 }
 
 .notif-badge {
-  position: fixed;
-  top: 65%;
-  right: 97%;
+  position: absolute;
   background: red;
   color: white;
   font-size: 10px;
   font-weight: bold;
-  padding: 0px 4px;
+  padding: 0px 7px;
   border-radius: 50%;
-    z-index: 1001;
+  z-index: 1001;
 }
+
+
+.notif-badge.expanded {
+  top: 66%;   /* adjust as needed */
+  left: 15%; /* positions near the bell when text is visible */
+}
+
+/* 🔹 When sidebar collapsed */
+.notif-badge.collapsed {
+  opacity: 1;
+  top: 66%;     /* adjust as needed */
+  right: 15%;   /* sticks to bell icon */
+}
+
 
 .notif-badge2 {
   position: absolute;
@@ -122,6 +136,59 @@
   border-radius: 100%;
   z-index: 1001;
 }
+
+.notif-badge3 {
+  position: absolute;
+  top: 65%;
+  right: 1%;
+  background: red;
+  color: white;
+  font-size: 6px;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 100%;
+  z-index: 1001;
+}
+
+.notif-badge4 {
+  position: absolute;
+  top: 70%;
+  right: 1%;
+  background: red;
+  color: white;
+  font-size: 6px;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 100%;
+  z-index: 1001;
+}
+
+.notifs-badge1 {
+  position: absolute;
+  top: 70%;
+  right: -10%;
+  background: red;
+  color: white;
+  font-size: 6px;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 100%;
+  z-index: 1001;
+}
+
+.notifs-badge2 {
+  position: absolute;
+  top: 70%;
+  right: -10%;
+  background: red;
+  color: white;
+  font-size: 6px;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 100%;
+  z-index: 1001;
+}
+
 
 
 

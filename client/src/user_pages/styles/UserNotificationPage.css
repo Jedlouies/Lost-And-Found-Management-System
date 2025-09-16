@@ -25,6 +25,10 @@
 
 }
 
+.notification-card:hover {
+    background-color: #ebebeb;
+}
+
 .delete-btn {
  position: absolute;
   background: transparent;

@@ -5,16 +5,36 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { db } from '../firebase';
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, doc, updateDoc } from 'firebase/firestore';
+import { getDocs } from "firebase/firestore";
 import UserNavigationBar from '../user_components/UserNavigationBar';
 import UserBlankHeader from '../user_components/UserBlankHeader';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { getAuth } from "firebase/auth";
+import FloatingAlert from '../components/FloatingAlert';
+import { set } from 'firebase/database';
+
+
 
 function ItemManagementPage() {
   const [items, setItems] = useState([]); 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const auth = getAuth();
+  const user = auth.currentUser; 
+  const { match, item } = location.state || {};
+
+  const [selectedYear, setSelectedYear] = useState("");
+  const [bulkMode, setBulkMode] = useState(false);
+const [selectedItems, setSelectedItems] = useState([]);
+const [alert, setAlert] = useState(null);
+
+
+
+
 
   const itemsPerPage = 6;
 
@@ -24,7 +44,7 @@ useEffect(() => {
     
     const q = query(
       collection(db, 'itemManagement'),
-      where("uid", "==", currentUser.uid)
+      where("uid", "==", currentUser.uid),
     );
 
     const unsubscribe = onSnapshot(
@@ -56,15 +76,28 @@ useEffect(() => {
     return () => unsubscribe(); 
   }, [currentUser]); 
 
-  const filteredItems = items.filter(item =>
-    item.itemName?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+const filteredItems = items.filter(item => {
+  const matchesSearch = item.itemName?.toLowerCase().includes(searchQuery.toLowerCase());
+
+  const itemDate = item.dateSubmitted
+    ? new Date(item.dateSubmitted)
+    : item.createdAt?.toDate
+    ? item.createdAt.toDate()
+    : null;
+
+  const matchesYear =
+    selectedYear === "" ||
+    (itemDate && itemDate.getFullYear().toString() === selectedYear);
+
+  return matchesSearch && matchesYear;
+});
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const displayedItems = filteredItems.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
+  
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -72,8 +105,38 @@ useEffect(() => {
     }
   };
 
+  const handleNavigate = (path) => {
+  navigate(path);
+  };
+
+  const archiveItem = async (itemId) => {
+  try {
+    const q = query(collection(db, "itemManagement"), where("itemId", "==", itemId));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      const docRef = querySnapshot.docs[0].ref; 
+      await updateDoc(docRef, { archivedStatus: true });
+      console.log(`Item ${itemId} archived successfully`);
+      setAlert({ type: "success", message: `Item ${itemId} archived successfully` });
+    } else {
+      console.error("No document found with itemId:", itemId);
+    }
+  } catch (error) {
+    console.error("Error archiving item:", error);
+  }
+}
+
   return (
     <>
+        {alert && (
+          <FloatingAlert
+            message={alert.message}
+            type={alert.type}
+            onClose={() => setAlert(null)}
+          />
+        )}
+
       <UserNavigationBar />
       <div className='manage-item-body'>
         <UserBlankHeader />
@@ -92,37 +155,35 @@ useEffect(() => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <div className='actions-row' style={{width: '500px'}}>
-            <button>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-archive" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
-                <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
-              </svg>
-              Achieved
-            </button>
-            <button>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-ui-checks-grid" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
-                <path d="M2 10h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1m9-9h3a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1m0 9a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1zm0-10a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM2 9a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2zm7 2a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-3a2 2 0 0 1-2-2zM0 2a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm5.354.854a.5.5 0 1 0-.708-.708L3 3.793l-.646-.647a.5.5 0 1 0-.708.708l1 1a.5.5 0 0 0 .708 0z"/>
-              </svg>
-              Bulk Select
-            </button>
+          <div className='actions-row' style={{width: '500px', marginLeft: '30px'}}>
             Academic Year:
-            <DropdownButton
-              id="dropdown-academic-year"
-              title="Select Year"
-              variant="secondary"
-              size="sm"
-              style={{ marginLeft: '10px' }}
+            <select
+              name="year"
+              id="year"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              style={{
+                marginLeft: "10px",
+                width: "120px",
+                borderRadius: "5px",
+                backgroundColor: "transparent",
+                border: "1px solid #475C6F",
+                color: "#475C6F",
+                cursor: "pointer",
+                height: "27px",
+              }}
             >
-              <Dropdown.Item onClick={() => console.log("2022–2023")}>2022–2023</Dropdown.Item>
-              <Dropdown.Item onClick={() => console.log("2023–2024")}>2023–2024</Dropdown.Item>
-              <Dropdown.Item onClick={() => console.log("2024–2025")}>2024–2025</Dropdown.Item>
-              <Dropdown.Item onClick={() => console.log("2025–2026")}>2025–2026</Dropdown.Item>
-            </DropdownButton>
+              <option value="">Select Year</option>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+              <option value="2022">2022</option>
+            </select>
           </div>
 
           <div>
             <table className='manage-item-table'>
-              <thead>
+              <thead style={{borderRadius: '10px'}}>
                 <tr>
                   <th style={{minWidth: '180px'}}>Item ID No.</th>
                   <th style={{minWidth: '110px'}}>Image</th>
@@ -141,7 +202,21 @@ useEffect(() => {
                     const normalizedStatus = item.status?.toLowerCase() || '';
 
                     return (
-                      <tr className="body-row" key={index}>
+                      <tr className="body-row" key={index}
+                      onClick={() => {
+                          if (bulkMode) {
+                            if (selectedItems.includes(item.id)) {
+                              setSelectedItems((prev) => prev.filter((id) => id !== item.id));
+                            } else {
+                              setSelectedItems((prev) => [...prev, item.id]);
+                            }
+                          }
+                        }}
+                        style={{
+                          cursor: bulkMode ? "pointer" : "default",
+                          backgroundColor: selectedItems.includes(item.id) ? "#d6eaf8" : "transparent",
+                          transition: "background-color 0.2s ease",
+                        }}>
                         <td style={{ minWidth: '180px' }}>{item.id}</td>
                         <td style={{ minWidth: '110px' }}>
                           {item.images && item.images.length > 0 ? (
@@ -218,14 +293,14 @@ useEffect(() => {
                               }}
                             />
                             <Dropdown.Menu>
-                              <Dropdown.Item onClick={() => console.log(`View Details of ${item.id}`)}>
-                                View Details
-                              </Dropdown.Item>
-                              <Dropdown.Item onClick={() => console.log(`Archive ${item.id}`)}>
-                                Archive
-                              </Dropdown.Item>
-                              <Dropdown.Item onClick={() => console.log(`Process Claim for ${item.id}`)}>
-                                Process Claim
+                               <Dropdown.Item
+                                onClick={() =>
+                                  navigate(`/users/item-management/more-details/${user.uid}`, {
+                                    state: { item }
+                                  })
+                                }
+                              >
+                                View Item Details
                               </Dropdown.Item>
                             </Dropdown.Menu>
                           </Dropdown>

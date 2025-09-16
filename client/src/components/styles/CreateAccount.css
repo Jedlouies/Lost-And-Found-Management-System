@@ -44,15 +44,17 @@ strong:hover{
 
 .create-container {
     display: flex;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
 .create-account-card {
     height: 600px;
     padding: 10px;
     background-color: #384959;
-    border: 0px solid white;
+    
     border-bottom-right-radius: 10px;
     border-top-right-radius: 10px;
+    
 }
 
 .create-body h2, p{
@@ -70,6 +72,10 @@ strong:hover{
 
 .create-body button:hover {
     background-color: #dbe9f6;
+}
+
+.guest:hover {
+    color: #BDDDFC;
 }
 
 @media (max-width: 728px) {

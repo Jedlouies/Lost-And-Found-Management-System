@@ -33,6 +33,16 @@ import ItemMoreDetailsPage from "./user_pages/ItemMoreDetailsPage";
 import ItemViewDetailsPage from "./pages/ItemViewDetailsPage";
 import ViewProfilePage from "./pages/ViewProfilePage";
 import { NotificationProvider } from "./context/NotificationContext";
+import MatchMoreDetailsPage from "./user_pages/MatchMoreDetailsPage";
+import ArchivedItemManagementPage from "./user_pages/ArchivedItemManagement";
+import ArchivedFoundItemsPage from "./pages/ArchivedFoundItemPage";
+import ArchivedLostItemsPage from "./pages/ArchivedLostItemPage";
+import GuestReportPage from "./pages/GuestReportPage"
+import GuestReportLostPage from "./pages/GuestReportLostPage";
+import GuestLostMatchResults from "./pages/GuestLostMatchResults";
+import GuestFoundMatchResults from "./pages/GuestFoundMatchResults";
+import GuestReportFoundPage from "./pages/GuestReportFoundPage";
+import GuestEmailRequestPage from "./pages/GuestEmailRequestPage";
 
 
 function App() {
@@ -187,6 +197,32 @@ function App() {
             }
           />
           <Route
+            path="/admin/found-items/archive/:uid"
+            element={
+              currentUser ? (
+                <ArchivedFoundItemsPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/admin/lost-items/archive/:uid"
+            element={
+              currentUser ? (
+                <ArchivedLostItemsPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+
+
+
+
+
+
+          <Route
             path="/home/:uid"
             element={
               currentUser ? (
@@ -336,6 +372,27 @@ function App() {
               )
             }
           />
+          <Route
+            path="/users/item-management/archived/:uid"
+            element={
+              currentUser ? (
+                <ArchivedItemManagementPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          
+          <Route
+            path="/users/item-management/more-details/:uid"
+            element={
+              currentUser ? (
+                <MatchMoreDetailsPage />
+              ) : (
+               <></>
+              )
+            }
+          />
            <Route
             path="/users/messages/:uid"
             element={
@@ -356,6 +413,77 @@ function App() {
               )
             }
           />
+
+
+
+
+
+
+
+
+            <Route
+            path="/guest/:uid"
+            element={
+              currentUser ? (
+                <GuestReportPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/guest/email/:uid"
+            element={
+              currentUser ? (
+                <GuestEmailRequestPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+           <Route
+            path="/guest/lost/:uid"
+            element={
+              currentUser ? (
+                <GuestReportLostPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/guest/found/:uid"
+            element={
+              currentUser ? (
+                <GuestReportFoundPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+           <Route
+            path="/guest/lost/matching/:uid"
+            element={
+              currentUser ? (
+                <GuestLostMatchResults />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/guest/found/matching/:uid"
+            element={
+              currentUser ? (
+                <GuestFoundMatchResults />
+              ) : (
+               <></>
+              )
+            }
+          />
+          
+
+           
           
 
           

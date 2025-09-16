@@ -121,11 +121,12 @@ useEffect(() => {
 
         <div className='header-right-table'>
           <div>
-                          {unreadCount > 0 && (
+        {unreadCount > 0 && (
         <span className="notif-badge2">{unreadCount}</span>
       )}
 
-          <svg ref={bellRef} xmlns="http://www.w3.org/2000/svg" width="25" height="20" fill="white" class="bi bi-bell" viewBox="0 0 16 16" onClick={() => {
+          <svg ref={bellRef} xmlns="http://www.w3.org/2000/svg" width="25" height="20" fill="white" class="bi bi-bell" viewBox="0 0 16 16" 
+          onClick={() => {
           clearNotifications();
           toggleNotifyPanel();
         }}>

@@ -87,7 +87,7 @@ function ViewProfilePage() {
         </div>
 
         <div className='profile-other-details2'>
-          <p><strong>Course:</strong> {userData.course}</p>
+          <p><strong>Course:</strong> {userData.course?.abbr} - {userData.course?.name}</p>
           <p><strong>Section:</strong> {userData.section}</p>
           <p><strong>Bio: </strong> {userData.bio}</p>
         </div>

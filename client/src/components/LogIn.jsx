@@ -90,7 +90,7 @@ function LogIn() {
                   <span>Logging in...</span>
                 </>
               ) : (
-                "Submit"
+                "Login"
               )}
             </button>
 

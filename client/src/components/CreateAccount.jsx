@@ -4,12 +4,26 @@ import './styles/CreateAccount.css'
 import { Form, Button, Card, Alert, FormGroup, FormControl } from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useNavigate } from 'react-router-dom'
+import { signInAnonymously } from "firebase/auth";
+import { auth } from "../firebase";
 
 function CreateAccount() {
   const navigate = useNavigate();
+  
 
   const handleLogin = () => {
     navigate('/log-in');
+  };
+
+  const handleGuest = async () => {
+    try {
+      await signInAnonymously(auth);
+      console.log("Guest signed in:", auth.currentUser?.uid);
+
+      navigate(`/guest/email/${auth.currentUser?.uid}`);
+    } catch (error) {
+      console.error("Guest sign-in failed:", error.message);
+    }
   };
 
   const firstNameRef = useRef()
@@ -99,7 +113,7 @@ function CreateAccount() {
                   <img
                     src="/Spin_black.gif"
                     alt="Loading..."
-                    style={{ width: "100px", height: "100px" }}
+                    style={{ width: "20px", height: "20px" }}
                   />
                   <span>Creating...</span>
                 </>
@@ -107,6 +121,9 @@ function CreateAccount() {
                 "Create"
               )}
             </button>
+            <p className='guest' style={{marginTop: '20px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'center'}} onClick={handleGuest}>
+              Continue as Guest
+            </p>
 
           </Form>
         </Card.Body>

@@ -69,7 +69,7 @@ function ItemMoreDetailsPage() {
         <UserBlankHeader/>
         <div className="manage-item-container">
 
-          <h1 style={{left: '50%'}}>{item.itemName}</h1>
+          <h1 style={{left: '45%'}}>{item.itemName}</h1>
 
           {item.images?.length > 0 && (
             <img
@@ -79,7 +79,7 @@ function ItemMoreDetailsPage() {
             />
           )}
 
-          <div className="more-details-information" style={{position: 'absolute',top: '10%', left: '50%' , maxWidth: '600px'}}>
+          <div className="more-details-information" style={{position: 'absolute',top: '10%', left: '45%', width: '700px', maxWidth: '800px', backgroundColor: 'white', padding: '10px', borderRadius: '10px'}}>
             {type === "lost" && (
               <>
                 <p>{item.itemId}</p>
@@ -113,7 +113,7 @@ function ItemMoreDetailsPage() {
               <img src={item.personalInfo?.profileURL} alt="" style={{width: '50px', height: '50px', objectFit: 'cover', borderRadius: '50px'}}/>
               <p>
                 {item.personalInfo?.firstName} {item.personalInfo?.lastName} –{" "}
-                {item.personalInfo?.course}
+                {item.personalInfo?.course.abbr}
               </p>
 
             </div>

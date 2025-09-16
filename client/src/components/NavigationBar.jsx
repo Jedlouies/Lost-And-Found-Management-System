@@ -20,6 +20,7 @@ function NavigationBar() {
   const toggleSidebar = () => setExpanded((prev) => !prev);
 
   const handleNavigate = (path) => {
+    
     navigate(path);
     setExpanded((prev) => !prev);
   };
@@ -48,9 +49,7 @@ function NavigationBar() {
 
   return (
     <>
-       {unreadCount > 0 && (
-          <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
-        )}
+
     <div className={`nav-body ${expanded ? 'expanded' : ''}`}>
       <img src="/spotsync-logo-navy.png" alt="img" />
       {expanded && <img className='slogan' src='/spotsync-slogan-navy.png' alt='img'/>}
@@ -87,25 +86,19 @@ function NavigationBar() {
           </svg>
           {expanded && <span>User Profiles</span>}
       </div>
-      <div className={`nav-buttons  ${location.pathname === `/admin/messages/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/admin/messages/${user?.uid}`)}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-left-dots" viewBox="0 0 16 16">
-            <path d="M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z"/>
-            <path d="M5 6a1 1 0 1 1-2 0 1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m4 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
-          </svg>
-          {expanded && <span>Messages</span>}
-      </div>
       <div
         className={`nav-buttons  ${
           location.pathname === `/admin/notifications/${user?.uid}`
             ? "active"
             : ""
         }`}
-        onClick={() => handleNavigate(`/admin/notifications/${user?.uid}`)}
-        style={{ position: "relative" }}
+        onClick={() => 
+          {
+          handleNavigate(`/admin/notifications/${user?.uid}`);
+         clearNotifications();
+        }}
+        
       >
-        {unreadCount > 0 && (
-          <span className="notif-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
-        )}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -116,7 +109,14 @@ function NavigationBar() {
         >
           <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6" />
         </svg>
+             {unreadCount > 0 && (
+      <span className={`notif-badge ${expanded ? "expanded" : "collapsed"}`}>
+        {unreadCount > 99 ? "99+" : unreadCount}
+      </span>
+    )}
+
         
+
         {expanded && <span>Notification</span>}
       </div>
       <div className={`nav-buttons ${location.pathname === `/admin/settings/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/admin/settings/${user?.uid}`)}>
@@ -125,13 +125,6 @@ function NavigationBar() {
               <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z"/>
             </svg>
             {expanded && <span>Settings</span>}
-      </div>
-      <div className='nav-buttons' onClick={toggleMessage}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-left" viewBox="0 0 16 16">
-              <path fill-rule="evenodd" d="M6 12.5a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v2a.5.5 0 0 1-1 0v-2A1.5 1.5 0 0 1 6.5 2h8A1.5 1.5 0 0 1 16 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 12.5v-2a.5.5 0 0 1 1 0z"/>
-              <path fill-rule="evenodd" d="M.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L1.707 7.5H10.5a.5.5 0 0 1 0 1H1.707l2.147 2.146a.5.5 0 0 1-.708.708z"/>
-            </svg>
-            {expanded && <span>Log Out</span>}
       </div>
       <div className='nav-buttons' style={{opacity: '60%'}} onClick={toggleSidebar}>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-question-square" viewBox="0 0 16 16">

@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import NavigationBar from '../components/NavigationBar';
+import UserNavigationBar from '../user_components/UserNavigationBar';
 import DashboardHeader from '../components/DashboardHeader';
 import UserBlankHeader from '../user_components/UserBlankHeader';
-import './styles/UserSettingsPage.css';
-import UserNavigationBar from '../user_components/UserNavigationBar';
+import '../pages/styles/SettingsPage.css';
+import FloatingAlert from '../components/FloatingAlert';
+import { getAuth, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { set } from 'firebase/database';
+
 
 function UserSettingsPage() {
   const { currentUser } = useAuth();
@@ -22,27 +25,176 @@ function UserSettingsPage() {
   const [middleName, setMiddleName] = useState('');
   const [email, setEmail] = useState(localStorage.getItem('email') || '');
   const [contactNumber, setContactNumber] = useState(localStorage.getItem('contactNumber') || '');
+  const [bio, setBio] = useState('');
+  const [designation, setDesignation] = useState('');
+  const [gender, setGender] = useState('');
+  const [yearsOfService, setYearsOfService] = useState('');
+  const [educationalAttainment, setEducationalAttainment] = useState('');
+  const [address, setAddress] = useState('');
+
+  const [alert, setAlert] = useState(null);
+
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [password, setPassword] = useState('');
+  const [checkingPassword, setCheckingPassword] = useState(false);
   const [course, setCourse] = useState('');
   const [section, setSection] = useState('');
-  const [yearLevel, setYearLevel] = useState('');
-  const [birthdate, setBirthdate] = useState('');
-  const [bio, setBio] = useState('');
-  const [designation, setDesignation] = useState('1');
-  const [gender, setGender] = useState('');
-  const [yearsOfService, setYearsOfService] = useState('1');
-  const [educationalAttainment, setEducationalAttainment] = useState('1');
-  const [address, setAddress] = useState('');
+
+
+
+
+
+   const courseList = [
+  // College of Science and Mathematics - CSM (Undergraduate)
+  { abbr: "BSAM", name: "Bachelor of Science in Applied Mathematics" },
+  { abbr: "BSAP", name: "Bachelor of Science in Applied Physics" },
+  { abbr: "BSChem", name: "Bachelor of Science in Chemistry" },
+  { abbr: "BSES", name: "Bachelor of Science in Environmental Science " },
+  { abbr: "BSFT", name: "Bachelor of Science in Food Technology" },
+
+  // College of Technology - COT (Undergraduate)
+  { abbr: "BSAuT", name: "Bachelor of Science in Autotronics" },
+  { abbr: "BSAT", name: "Bachelor of Science in Automotive Technology" },
+  { abbr: "BSEMT", name: "Bachelor of Science in Electro-Mechanical Technology" },
+  { abbr: "BSET", name: "Bachelor of Science in Electronics Technology" },
+  { abbr: "BSESM", name: "Bachelor of Science in Energy Systems and Management" },
+  { abbr: "BSMET", name: "Bachelor of Science in Manufacturing Engineering Technology" },
+  { abbr: "BTOM", name: "Bachelor of Technology, Operation, and Management" },
+
+  // College of Science and Technology Education - CSTE (Undergraduate)
+  { abbr: "BS MathEd", name: "Bachelor of Secondary Education Major in Mathematics" },
+  { abbr: "BS SciEd", name: "Bachelor of Secondary Education Major in Science" },
+  { abbr: "BTLED", name: "Bachelor of Technology and Livelihood Education" },
+  { abbr: "BTVTed", name: "Bachelor of Technical-Vocational Teacher Education" },
+  
+  { abbr: "BTTE", name: "Bachelor of Technician Teacher Education" },
+
+  // Senior High School - SHS
+  { abbr: "STEM", name: "Senior High School - Science, Technology, Engineering and Mathematics" },
+  
+
+  // College of Engineering and Architecture - CEA (Undergraduate)
+  { abbr: "BSArch", name: "Bachelor of Science in Architecture" },
+  { abbr: "BSCE", name: "Bachelor of Science in Civil Engineering" },
+  { abbr: "BSCPE", name: "Bachelor of Science in Computer Engineering" },
+  { abbr: "BSEE", name: "Bachelor of Science in Electrical Engineering" },
+  { abbr: "BSECE", name: "Bachelor of Science in Electronic Engineering" },
+  { abbr: "BSGE", name: "Bachelor of Science in Geodetic Engineering" },
+  { abbr: "BSME", name: "Bachelor of Science in Mechanical Engineering" },
+
+  // College of Information Technology and Computing - CITC (Undergraduate)
+  { abbr: "BSDS", name: "Bachelor of Science in Data Science" },
+  { abbr: "BSIT", name: "Bachelor of Science in Information Technology" },
+  { abbr: "BSTCM", name: "Bachelor of Science in Technology Communication Management" },
+  { abbr: "BSCS", name: "Bachelor of Science in Computer Science" },
+
+  // College of Medicine - COM
+  { abbr: "COM", name: "College of Medicine (Night Class)" },
+
+  // -------- GRADUATE PROGRAMS --------
+
+  // CSM Graduate
+  { abbr: "MSAMS", name: "Master of Science in Applied Mathematics Sciences" },
+  { abbr: "MSETS", name: "Master of Science in Environmental Science and Technology" },
+
+  // COT Graduate
+  { abbr: "MITO", name: "Master in Industrial Technology and Operations" },
+
+  // CSTE Graduate
+  { abbr: "DTE", name: "Doctor in Technology Education" },
+  { abbr: "PhD MathEdSci", name: "Doctor of Philosophy in Mathematics Sciences " },
+  { abbr: "PhD MathEd", name: "Doctor of Philosophy in Mathematics Education" },
+  { abbr: "PhD SciEd Chem", name: "Doctor of Philosophy in Science Education Major in Chemistry" },
+  { abbr: "PhD EPM", name: "Doctor of Philosophy in Educational Planning and Management" },
+  { abbr: "MEPM", name: "Master in Education Planning and Management" },
+  { abbr: "MATESL", name: "Master of Arts in Teaching English as Second Language" },
+  { abbr: "MATSpEd", name: "Master of Arts in Teaching Special Education" },
+  { abbr: "MSMathEd", name: "Master of Science in Mathematics Education" },
+  { abbr: "MSEd Physics", name: "Master of Science Education Major in Physics" },
+  { abbr: "MSTMath", name: "Master of Science in Teaching Mathematics" },
+  { abbr: "MPA", name: "Master in Public Administration" },
+  { abbr: "MTTE", name: "Master in Technician Teacher Education" },
+  { abbr: "MTTEd", name: "Master of Technical and Technology Education" },
+
+  // CEA Graduate
+  { abbr: "MEng", name: "Master of Engineering Program" },
+  { abbr: "MSEE", name: "Master of Science in Electrical Engineering" },
+  { abbr: "MSSDPS", name: "Master of Science in Sustainable Development Professional Science" },
+  { abbr: "MPSEM", name: "Master in Power System Engineering and Management" },
+
+  // CITC Graduate
+  { abbr: "MSTCM", name: "Master of Science in Technology Communication Management" },
+  { abbr: "MIT", name: "Master in Information Technology" },
+
+  // Institute of Governance, Innovation and Sustainability
+  { abbr: "MPS-DSPE", name: "Master in Public Sector Major in Digital Service Platforms and E-Governance" },
+  { abbr: "MPS-SD", name: "Master in Public Sector Innovation Major in Sustainable Development" },
+  { abbr: "MPS-PPS", name: "Master in Public Sector Innovation Major in Public Policy Studies" },
+];
+
+
 
   const updateUserInfo = async (uid, updatedData) => {
     try {
       const userRef = doc(db, 'users', uid);
-      await updateDoc(userRef, updatedData);
+      await updateDoc(userRef, updatedData);s
     } catch (error) {
       console.error("Error updating user info:", error);
     }
   };
 
-  const handleUpdate = () => {
+  const reauthenticateUser = async (password) => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (!user || !user.email) throw new Error("No user logged in.");
+
+  const credential = EmailAuthProvider.credential(user.email, password);
+  await reauthenticateWithCredential(user, credential);
+};
+
+const handleSaveClick = () => {
+  setShowPasswordModal(true);
+};
+
+
+const handleConfirmPassword = async () => {
+  setCheckingPassword(true);
+  try {
+    await reauthenticateUser(password);
+    setShowPasswordModal(false);
+    setPassword('');
+    await handleUpdate(); 
+  } catch (err) {
+    console.error("Password incorrect:", err);
+    setAlert({ message: "Incorrect Password", type: "error" });
+  }
+  setCheckingPassword(false);
+};
+
+  const selectedCourse = courseList.find(
+  (c) => c.abbr === course || c.name === course
+);
+
+const handleUpdate = async () => {
+  if (!currentUser) return;
+
+  try {
+    
+    let updatedProfileURL = profileURL;
+    if (profileImage) {
+      updatedProfileURL = await uploadImage(profileImage, `users/${currentUser.uid}`, "profileURL");
+      setProfileURL(updatedProfileURL);
+    }
+
+    // Upload cover image if a new one is selected
+    let updatedCoverURL = coverURL;
+    if (coverImage) {
+      updatedCoverURL = await uploadImage(coverImage, `users/${currentUser.uid}`, "coverURL");
+      setCoverURL(updatedCoverURL);
+    }
+
+    // Update user details
     const updatedData = {
       firstName,
       lastName,
@@ -50,21 +202,25 @@ function UserSettingsPage() {
       middleName,
       email,
       contactNumber,
-      coverURL,
-      profileURL,
-      designation,
-      educationalAttainment,
+      coverURL: updatedCoverURL,
+      profileURL: updatedProfileURL,
+      designation: 'Student',
+      educationalAttainment: '1',
+      course: selectedCourse ? { abbr: selectedCourse.abbr, name: selectedCourse.name } : null,
       gender,
-      yearsOfService,
+      yearsOfService: '1',
       address,
-      course,
       section,
-      yearLevel,
-      birthdate,
     };
 
-    updateUserInfo(currentUser.uid, updatedData);
-  };
+    await updateUserInfo(currentUser.uid, updatedData);
+    setAlert({ message: "Profile Information Updated!", type: "success" });
+
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    setAlert({ message: "Failed", type: "error" });
+  }
+};
 
   useEffect(() => {
     const fetchUserImages = async () => {
@@ -82,20 +238,14 @@ function UserSettingsPage() {
           setEmail(userData.email || '');
           setContactNumber(userData.contactNumber || '');
           setBio(userData.bio || '');
-          setDesignation(userData.designation || 'N/A');
+          setDesignation(userData.designation || '');
           setGender(userData.gender || '');
-          setYearsOfService(userData.yearsOfService || 'N/A');
-          setEducationalAttainment(userData.educationalAttainment || 'N/A');
-          setAddress(userData.address);
+          setYearsOfService(userData.yearsOfService || '');
+          setEducationalAttainment(userData.educationalAttainment || '');
           setCourse(userData.course || '');
           setSection(userData.section || '');
-          setYearLevel(userData.yearLevel || '');
-          setBirthdate(userData.birthdate || '');
+          setAddress(userData.address);
 
-          localStorage.setItem('course', userData.course || '');
-          localStorage.setItem('section', userData.section || '');
-          localStorage.setItem('yearLevel', userData.yearLevel || '');
-          localStorage.setItem('birthdate', userData.birthdate || '');
           localStorage.setItem('role', userData.role || '');
           localStorage.setItem('designation', userData.designation || '');
           localStorage.setItem('firstName', userData.firstName || '');
@@ -108,7 +258,9 @@ function UserSettingsPage() {
           localStorage.setItem('studentId', userData.studentId || '');
           localStorage.setItem('uid', userData.uid || '');
           localStorage.setItem('bio', userData.bio || '');
+          localStorage.setItem('section', userData.section || '');
           localStorage.setItem('educationalAttainment', userData.educationalAttainment || '');
+          localStorage.setItem('course', userData.course || '');
           localStorage.setItem('yearsOfService', userData.yearsOfService || '');
           if (userData.profileURL) {
             setProfileURL(userData.profileURL);
@@ -165,10 +317,10 @@ function UserSettingsPage() {
     try {
       const url = await uploadImage(profileImage, `users/${currentUser.uid}`, 'profileURL');
       setProfileURL(url);
-      alert('Profile image uploaded!');
+      setAlert({ message: "Profile Picture Uploaded!", type: "success" });
     } catch (err) {
       console.error(err);
-      alert('Profile upload failed.');
+      setAlert({ message: "Upload Failed!", type: "error" });
     }
     setUploadingProfile(false);
   };
@@ -179,10 +331,10 @@ function UserSettingsPage() {
     try {
       const url = await uploadImage(coverImage, `users/${currentUser.uid}`, 'coverURL');
       setCoverURL(url);
-      alert('Cover image uploaded!');
+      setAlert({ message: "Cover Picture Uploaded!", type: "success" });
     } catch (err) {
       console.error(err);
-      alert('Cover upload failed.');
+      setAlert({ message: "Upload Failed!", type: "error" });
     }
     setUploadingCover(false);
   };
@@ -190,57 +342,139 @@ function UserSettingsPage() {
   return (
     <>
       <UserNavigationBar />
-      <div className='settings-body'>
+      {showPasswordModal && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.5)",
+          display: "flex", justifyContent: "center", alignItems: "center",
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: "white",
+            padding: "20px",
+            borderRadius: "10px",
+            width: "300px",
+            textAlign: "center"
+          }}>
+            <h4>Password</h4>
+            <input 
+              type="password" 
+              placeholder="Enter Password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{width: "100%", marginBottom: "10px", padding: "5px", backgroundColor: 'transparent', border: '3px solid #475C6F', borderRadius: '5px', color: 'black'}}
+            />
+            <div className='password-modal-buttons' style={{display: "flex", justifyContent: "space-between"}}>
+              <button onClick={() => setShowPasswordModal(false)}>Cancel</button>
+              <button onClick={handleConfirmPassword} disabled={checkingPassword}>
+                {checkingPassword ? "Checking..." : "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+        {alert && (
+          <FloatingAlert
+            message={alert.message}
+            type={alert.type}
+            onClose={() => setAlert(null)}
+          />
+        )}
+      <UserNavigationBar />
+      <div className='found-item-body'>
         <UserBlankHeader />
 
-        <div className='upload-section1'>
-          <h3>Upload Profile Image</h3>
-          <input type="file" accept="image/*" onChange={handleProfileChange} />
-          <button onClick={handleProfileUpload} disabled={uploadingProfile}>
-            {uploadingProfile ? 'Uploading...' : 'Upload Profile Image'}
-          </button>
-          {profileURL && (
-            <div>
-              <p>Current Profile Image:</p>
-              <img src={profileURL} alt="Profile" style={{ width: '150px', height: '150px', borderRadius: '50%', objectFit: 'cover' }} />
-            </div>
-          )}
-        </div>
-
-        <div className='upload-section2'>
-          <h3>Upload Cover Image</h3>
-          <input type="file" accept="image/*" onChange={handleCoverChange} />
-          <button onClick={handleCoverUpload} disabled={uploadingCover}>
-            {uploadingCover ? 'Uploading...' : 'Upload Cover Image'}
-          </button>
+        <div className='upload-section1' style={{display: 'flex', flexDirection: 'column'}}>
           {coverURL && (
             <div>
-              <p>Current Cover Image:</p>
-              <img src={coverURL} alt="Cover" style={{ width: '100%', maxWidth: '500px', height: 'auto', borderRadius: '10px', objectFit: 'cover' }} />
+              
+              <img src={coverURL} alt="Cover" style={{ height: '100px',width: '550px',borderRadius: '10px', objectFit: 'cover' }} />
             </div>
           )}
+          {profileURL && (
+            <div>
+              <img src={profileURL} alt="Profile" style={{ width: '70px', height: '70px', borderRadius: '50%', objectFit: 'cover', marginTop: '-20px'}} />
+            </div>
+          )}
+          <div >
+          <h4>Profile Picture</h4>
+          <input type="file" accept="image/*" style={{border: 'solid #475C6F 2px ', borderRadius: '5px', width: '500px'}} onChange={handleProfileChange} />
+          <button onClick={handleProfileUpload} disabled={uploadingProfile}>
+            {uploadingProfile ? 'Uploading...' : 'Upload'}
+          </button> 
+          </div>     
         </div>
+        
 
-        <div className='user-info-form'>
-          <h3>Edit Profile Information</h3>
-          <input placeholder='First Name' value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-          <input placeholder='Middle Name' value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
-          <input placeholder='Last Name' value={lastName} onChange={(e) => setLastName(e.target.value)} />
-          <input placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input placeholder='Contact Number' value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} />
-          <input placeholder='Gender' value={gender} onChange={(e) => setGender(e.target.value)} />
-          <textarea placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} />
-          <input placeholder='Address' value={address} onChange={(e) => setAddress(e.target.value)} />
-          <input placeholder='Course' value={course} onChange={(e) => setCourse(e.target.value)} />
-          <input placeholder='Section' value={section} onChange={(e) => setSection(e.target.value)} />
-          <input placeholder='Year Level' value={yearLevel} onChange={(e) => setYearLevel(e.target.value)} />
-          <label>Birthdate:</label>
-          <input type='date' value={birthdate} onChange={(e) => setBirthdate(e.target.value)} />
+        <div className='upload-section2'>
 
+        <div style={{marginTop: '10px'}}>
+          <h4>Cover Photo</h4>
+          <input type="file" accept="image/*" style={{border: 'solid #475C6F 2px ', borderRadius: '5px', width: '500px'}} onChange={handleCoverChange} />
+          <button onClick={handleCoverUpload} disabled={uploadingCover}>
+            {uploadingCover ? 'Uploading...' : 'Upload'}
+          </button>
 
-          <button onClick={handleUpdate}>Save Changes</button>
+        </div>
         </div>
       </div>
+        <div className='user-info-form' style={{display: 'flex', flexDirection: 'column', gap: '10px', position: 'absolute', top: '55%', left: '7%'}}>
+          <h4>Profile Information</h4>
+          <div style={{display: 'flex', gap: '10px'}}>
+            <input placeholder='First Name' value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            <input placeholder='Middle Name' value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
+            <input placeholder='Last Name' value={lastName} onChange={(e) => setLastName(e.target.value)} />
+
+          </div>
+          <div style={{display: 'flex', gap: '10px', }}>
+            <input placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input placeholder='Contact Number' value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} />
+            <select 
+                value={gender} 
+                onChange={(e) => setGender(e.target.value)} 
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
+
+          </div>
+          <select 
+            value={course} 
+            style={{ width: '100%' }} 
+            onChange={(e) => setCourse(e.target.value)} 
+          >
+            <option value="">Select Course</option>
+            {courseList.map((c, index) => (
+              <option key={index} value={c.abbr}>
+                {c.name} 
+              </option>
+            ))}
+          </select>
+
+          <textarea placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} />
+          <div style={{display: 'flex', gap: '10px', }}>
+              <input placeholder='Section' style={{width: '100%'}} value={section} onChange={(e) => setSection(e.target.value)} />    
+          </div> 
+          <input placeholder='Address' value={address} onChange={(e) => setAddress(e.target.value)} />
+
+          <button onClick={handleSaveClick}>Save Changes</button>
+
+          <div className='other-settings' style={{position: 'absolute', marginTop: '20px', top: '-80%', left: '120%'}}>
+              <h4>Privacy</h4>
+                <p>Change Password</p>
+                <p>Two-Factor Authentication</p>
+              <h4>Database Management</h4>
+                <p>Back up and Restore</p>
+                <p>Data Export</p>
+              <h4>Notification</h4>
+                <p>Allow User Messages</p>
+          </div>
+
+        </div>
     </>
   );
 }

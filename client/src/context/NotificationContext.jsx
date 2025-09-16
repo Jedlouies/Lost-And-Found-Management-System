@@ -1,6 +1,6 @@
 // context/NotificationContext.jsx
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { getDatabase, ref, onValue, update } from "firebase/database";
+import { getDatabase, ref, onValue, update, get } from "firebase/database";
 import { getAuth } from "firebase/auth";
 
 const NotificationContext = createContext();
@@ -36,19 +36,21 @@ export function NotificationProvider({ children }) {
   }, [user]);
 
   const clearNotifications = async () => {
-    if (!user) return;
-    const db = getDatabase();
-    const notificationsRef = ref(db, `notifications/${user.uid}`);
-    // Mark all as read
-    onValue(notificationsRef, (snapshot) => {
-      snapshot.forEach((child) => {
-        update(ref(db, `notifications/${user.uid}/${child.key}`), {
-          read: true,
-        });
-      });
-    }, { onlyOnce: true });
-    setUnreadCount(0);
-  };
+  if (!user) return;
+  const db = getDatabase();
+  const notificationsRef = ref(db, `notifications/${user.uid}`);
+
+  const snapshot = await get(notificationsRef);
+  if (snapshot.exists()) {
+    const updates = {};
+    snapshot.forEach((child) => {
+      updates[`${child.key}/read`] = true;
+    });
+    await update(notificationsRef, updates);
+  }
+
+  setUnreadCount(0); 
+};
 
   return (
     <NotificationContext.Provider value={{ unreadCount, clearNotifications }}>

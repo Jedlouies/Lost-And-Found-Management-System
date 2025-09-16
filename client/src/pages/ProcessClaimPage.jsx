@@ -7,13 +7,13 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { db } from "../firebase";  
 import { collection, query, where, getDocs, doc, updateDoc, addDoc, setDoc } from "firebase/firestore";
 import FloatingAlert from "../components/FloatingAlert";
-import { getDatabase, ref, push, set, serverTimestamp } from "firebase/database";
+import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp  } from "firebase/database";
 import { useAuth } from "../context/AuthContext"; 
 
 
 function ProcessClaimPage() {
   const [capturedImage, setCapturedImage] = useState(null);
-  const [qrResult, setQrResult] = useState(null);
+  const [qrResult, setQrResult] = useState(null); 
   const [userData, setUserData] = useState(null);
   const {currentUser} = useAuth();
 
@@ -198,90 +198,90 @@ const notifyUser = async (uid, message) => {
   const newNotifRef = push(notifRef);
   await set(newNotifRef, {
     message,
-    timestamp: serverTimestamp(),
+    timestamp: rtdbServerTimestamp(),
     type: "transaction",
     read: false,
   });
 };
 
 const finalizeClaim = async () => {
-  if (!matchData || !userData || !capturedImage) {
-    setAlert({ message: "Please first capture a photo and scan ID first", type: "warning" });
-    
-    return;
-  }
+      if (!matchData || !userData || !capturedImage) {
+        setAlert({ message: "Please first capture a photo and scan ID first", type: "warning" });
+        
+        return;
+      }
 
-  if (userData?.error || !userData?.id) {
-    setAlert({ message: "Cannot complete: No valid user account found for this ID.", type: "warning" });
-    return;
-  }
+      if (userData?.error || !userData?.id) {
+        setAlert({ message: "Cannot complete: No valid user account found for this ID.", type: "warning" });
+        return;
+      }
 
-  setLoading(true);
+      setLoading(true);
 
-  try {
-    let itemId = null;
-    let itemName = "";
-    let founder = null;
-    let owner = null;
+      try {
+        let itemId = null;
+        let itemName = "";
+        let founder = null;
+        let owner = null;
 
 
-    if (matchData.lostItem?.itemId) {
-  const lostQuery = query(
-    collection(db, "lostItems"),
-    where("itemId", "==", matchData.lostItem.itemId)
-  );
-  const lostSnap = await getDocs(lostQuery);
+        if (matchData.lostItem?.itemId) {
+      const lostQuery = query(
+        collection(db, "lostItems"),
+        where("itemId", "==", matchData.lostItem.itemId)
+      );
+      const lostSnap = await getDocs(lostQuery);
 
-  if (!lostSnap.empty) {
-    const lostDocId = lostSnap.docs[0].id;
-    await updateDoc(doc(db, "lostItems", lostDocId), {
-      claimStatus: "claimed",
-      owner: {
-        ...matchData.lostItem.personalInfo,
-        uid: matchData.lostItem?.uid || null,  
-      },
-      foundBy: {
-        ...matchData.foundItem?.personalInfo,
-        uid: matchData.foundItem?.uid || null, 
-      },
-      claimantPhoto: capturedImage,
-    });
+      if (!lostSnap.empty) {
+        const lostDocId = lostSnap.docs[0].id;
+        await updateDoc(doc(db, "lostItems", lostDocId), {
+          claimStatus: "claimed",
+          owner: {
+            ...matchData.lostItem.personalInfo,
+            uid: matchData.lostItem?.uid || null,  
+          },
+          foundBy: {
+            ...matchData.foundItem?.personalInfo,
+            uid: matchData.foundItem?.uid || null, 
+          },
+          claimantPhoto: capturedImage,
+        });
 
-    itemId = matchData.lostItem.itemId;
-    itemName = matchData.lostItem.itemName || "";
-    owner = matchData.lostItem.personalInfo || null;
-    founder = matchData.foundItem?.personalInfo || null;
-  }
-}
+        itemId = matchData.lostItem.itemId;
+        itemName = matchData.lostItem.itemName || "";
+        owner = matchData.lostItem.personalInfo || null;
+        founder = matchData.foundItem?.personalInfo || null;
+      }
+    }
 
-if (matchData.foundItem?.itemId) {
-  const foundQuery = query(
-    collection(db, "foundItems"),
-    where("itemId", "==", matchData.foundItem.itemId)
-  );
-  const foundSnap = await getDocs(foundQuery);
+    if (matchData.foundItem?.itemId) {
+      const foundQuery = query(
+        collection(db, "foundItems"),
+        where("itemId", "==", matchData.foundItem.itemId)
+      );
+      const foundSnap = await getDocs(foundQuery);
 
-  if (!foundSnap.empty) {
-    const foundDocId = foundSnap.docs[0].id;
-    await updateDoc(doc(db, "foundItems", foundDocId), {
-      claimStatus: "claimed",
-      founder: {
-        ...matchData.foundItem.personalInfo,
-        uid: matchData.foundItem.personalInfo?.uid || null,  
-      },
-      claimedBy: {
-        ...matchData.lostItem?.personalInfo,
-        uid: matchData.lostItem?.uid || null, 
-      },
-      claimantPhoto: capturedImage,
-    });
+      if (!foundSnap.empty) {
+        const foundDocId = foundSnap.docs[0].id;
+        await updateDoc(doc(db, "foundItems", foundDocId), {
+          claimStatus: "claimed",
+          founder: {
+            ...matchData.foundItem.personalInfo,
+            uid: matchData.foundItem.personalInfo?.uid || null,  
+          },
+          claimedBy: {
+            ...matchData.lostItem?.personalInfo,
+            uid: matchData.lostItem?.uid || null, 
+          },
+          claimantPhoto: capturedImage,
+        });
 
-    itemId = matchData.foundItem.itemId;
-    itemName = matchData.foundItem.itemName || "";
-    founder = matchData.foundItem.personalInfo || null;
-    owner = matchData.lostItem?.personalInfo || null;
-  }
-}
+        itemId = matchData.foundItem.itemId;
+        itemName = matchData.foundItem.itemName || "";
+        founder = matchData.foundItem.personalInfo || null;
+        owner = matchData.lostItem?.personalInfo || null;
+      }
+    }
 
 
     if (matchDocId) {
@@ -421,93 +421,90 @@ We appreciate your honesty and contribution. Kindly rate your experience with th
           )}
 
           
-          {isScanning && (
-            <>
-              <QrReader
-                onResult={handleScan}
-                constraints={{
-                  deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
-                }}
-                style={{
-                  width: "320px",
-                  margin: "auto",
-                  borderRadius: "8px",
-                }}
-              />
+            {isScanning && (
+              <>
+                <QrReader
+                  key={selectedDeviceId} 
+                  onResult={handleScan}
+                  constraints={{
+                    deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
+                  }}
+                  style={{
+                    width: "320px",
+                    margin: "auto",
+                    borderRadius: "8px",
+                  }}
+                />
 
-              {/* Overlay */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: -150,
-                  left: 300,
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  pointerEvents: "none", // so clicks pass through
-                }}
-              >
+                {/* Overlay */}
                 <div
                   style={{
-                    width: "200px",
-                    height: "200px",
-                    position: "relative",
-                    backgroundColor: "transparent",
+                    position: "absolute",
+                    top: -150,
+                    left: 300,
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    pointerEvents: "none",
                   }}
                 >
-                  {/* 4 corner guides */}
-                  <div style={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "40px",
-                    height: "40px",
-                    borderTop: "4px solid #00FF00",
-                    borderLeft: "4px solid #00FF00",
-                  }}></div>
-
-                  <div style={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    width: "40px",
-                    height: "40px",
-                    borderTop: "4px solid #00FF00",
-                    borderRight: "4px solid #00FF00",
-                  }}></div>
-
-                  <div style={{
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    width: "40px",
-                    height: "40px",
-                    borderBottom: "4px solid #00FF00",
-                    borderLeft: "4px solid #00FF00",
-                  }}></div>
-
-                  <div style={{
-                    position: "absolute",
-                    bottom: 0,
-                    right: 0,
-                    width: "40px",
-                    height: "40px",
-                    borderBottom: "4px solid #00FF00",
-                    borderRight: "4px solid #00FF00",
-                  }}></div>
+                  <div
+                    style={{
+                      width: "200px",
+                      height: "200px",
+                      position: "relative",
+                      backgroundColor: "transparent",
+                    }}
+                  >
+                    <div style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "40px",
+                      height: "40px",
+                      borderTop: "4px solid #00FF00",
+                      borderLeft: "4px solid #00FF00",
+                    }}></div>
+                    <div style={{
+                      position: "absolute",
+                      top: 0,
+                      right: 0,
+                      width: "40px",
+                      height: "40px",
+                      borderTop: "4px solid #00FF00",
+                      borderRight: "4px solid #00FF00",
+                    }}></div>
+                    <div style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      width: "40px",
+                      height: "40px",
+                      borderBottom: "4px solid #00FF00",
+                      borderLeft: "4px solid #00FF00",
+                    }}></div>
+                    <div style={{
+                      position: "absolute",
+                      bottom: 0,
+                      right: 0,
+                      width: "40px",
+                      height: "40px",
+                      borderBottom: "4px solid #00FF00",
+                      borderRight: "4px solid #00FF00",
+                    }}></div>
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
         </div>
 
      
         {qrResult && (
           <div className="qr-result">
             <p>Scanned ID Info:</p>
-            <p style={{ fontWeight: "400" }}>Fullname: {qrResult.fullname}</p>
+            <p style={{ fontWeight: "400"}}>Fullname: {qrResult.fullname}</p>
             <p style={{ fontWeight: "400" }}>ID Number: {qrResult.idNumber}</p>
             <p style={{ fontWeight: "400" }}>Course: {qrResult.course}</p>
           </div>
@@ -526,11 +523,11 @@ We appreciate your honesty and contribution. Kindly rate your experience with th
                   alt="Profile" 
                   style={{ width: "60px", height: "60px", borderRadius: "100%", objectFit: "cover" }}
                 />
-                <p style={{position: "absolute", top: "15%", left: "25%", fontSize: "20px", width: "600px"}}>
+                <p style={{position: "absolute", top: "15%", left: "25%", fontSize: "20px", width: "600px", marginLeft: "20px", fontWeight: "600", color: '#475C6F'}}>
                   {userData.firstName} {userData.middleName} {userData.lastName}
                 </p>
                 <p style={{ fontWeight: "400" }}>Email: {userData.email}</p>
-                <p style={{ fontWeight: "400" }}>Course: {userData.course} | Section: {userData.section}</p>
+                <p style={{ fontWeight: "400" }}>Course: {userData.course?.abbr}  | Section: {userData.section}</p>
                 <p style={{ fontWeight: "400" }}>Year Level: {userData.yearLevel}</p>
                 <p style={{ fontWeight: "400" }}>Contact: {userData.contactNumber}</p>
                 <p style={{ fontWeight: "400" }}>Address: {userData.address}</p>

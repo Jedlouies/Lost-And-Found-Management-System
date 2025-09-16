@@ -1,8 +1,11 @@
-.p-6 {
-    position: absolute;
-    top: 15%;
-    left: 6%;
+.p-8 {
+        position: absolute;
     display: flex;
+    width: 100%;
+     background-image: url("/landing-page-img.png"); 
+    background-size: cover;   
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .matching-results {
@@ -19,8 +22,9 @@
     color: black;
 }
 
-.matching-card{ 
-    margin-right: 30px;
+.matching-card{
+    margin-top: 40px; 
+    margin-left: 40px;
     background-color: white;
     height: 550px;
     width: 330px;

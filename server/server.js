@@ -2,11 +2,13 @@ import express from "express";
 import cors from "cors";
 import fetch from "node-fetch";
 import sharp from "sharp";
-import { db } from "./firebaseAdmin.js";
+import { db, resend  } from "./firebaseAdmin.js";
 import { v4 as uuidv4 } from "uuid";
 import { pipeline } from "@xenova/transformers";
 import pixelmatch from "pixelmatch";
 import { PNG } from "pngjs";
+
+
 
 const app = express();
 app.use(express.json());
@@ -22,6 +24,10 @@ app.use(cors({
 app.get("/", (req, res) => {
   res.send("AI-Powered Matching API is running!");
 });
+
+app.use(cors({
+  origin: 'http://localhost:5173', // or '*' for testing
+}));
 
 // --- Transaction ID Generator ---
 function generateTransactionId() {
@@ -153,6 +159,7 @@ app.post("/api/match/found-to-lost", async (req, res) => {
     if (!foundDoc.exists) return res.status(404).json({ error: "Found item not found." });
 
     const foundItem = foundDoc.data();
+
     const lostSnapshot = await db.collection("lostItems")
       .where("category", "==", foundItem.category)
       .get();
@@ -160,11 +167,22 @@ app.post("/api/match/found-to-lost", async (req, res) => {
     const matches = [];
     for (const lostDoc of lostSnapshot.docs) {
       const lostItem = lostDoc.data();
+
+      // 🔎 Skip excluded items
+      if (
+        lostItem.claimedStatus === "claimed" ||
+        lostItem.archivedStatus === true ||
+        lostItem.status === "pending" ||
+        lostItem.status === "canceled"
+      ) {
+        continue;
+      }
+
       const scores = await calculateMatchScore(lostItem, foundItem);
 
       const matchData = {
         transactionId: generateTransactionId(),
-        itemId: generateItemId(),   
+        itemId: generateItemId(),
         lostItem: { ...lostItem, id: lostDoc.id },
         foundItem: { ...foundItem, id: uidFound },
         scores,
@@ -193,6 +211,7 @@ app.post("/api/match/lost-to-found", async (req, res) => {
     if (!lostDoc.exists) return res.status(404).json({ error: "Lost item not found." });
 
     const lostItem = lostDoc.data();
+
     const foundSnapshot = await db.collection("foundItems")
       .where("category", "==", lostItem.category)
       .get();
@@ -200,11 +219,22 @@ app.post("/api/match/lost-to-found", async (req, res) => {
     const matches = [];
     for (const foundDoc of foundSnapshot.docs) {
       const foundItem = foundDoc.data();
+
+      // 🔎 Skip excluded items
+      if (
+        foundItem.claimedStatus === "claimed" ||
+        foundItem.archivedStatus === true ||
+        foundItem.status === "pending" ||
+        foundItem.status === "canceled"
+      ) {
+        continue;
+      }
+
       const scores = await calculateMatchScore(lostItem, foundItem);
 
       const matchData = {
         transactionId: generateTransactionId(),
-        itemId: generateItemId(),   
+        itemId: generateItemId(),
         lostItem: { ...lostItem, id: uidLost },
         foundItem: { ...foundItem, id: foundDoc.id },
         scores,
@@ -223,7 +253,34 @@ app.post("/api/match/lost-to-found", async (req, res) => {
   }
 });
 
+
+/* --------------------------------------------------
+   API: Email
+--------------------------------------------------- */
+
+app.post("/api/send-email", async (req, res) => {
+  try {
+    const { to, subject, html } = req.body;
+
+    const { data, error } = await resend.emails.send({
+      from: "Spotsync <onboarding@resend.dev>",
+      to,
+      subject,
+      html,
+    });
+
+    if (error) {
+      console.error("Resend API error:", error);
+      return res.status(500).json({ error });
+    }
+
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error("Server error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
 /* --------------------------------------------------
    START SERVER
 --------------------------------------------------- */
-app.listen(4000, () => console.log("AI Server running on http://localhost:4000"));
+app.listen(4000, () => console.log(" Server running on http://localhost:4000"));

@@ -1,61 +1,53 @@
-import React, { useState } from 'react'
-import './styles/CenterMessagePanel.css'
+import React from 'react'
 import { getAuth, signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import './styles/CenterMessagePanel.css';
 
-function CenterMessagePanel() {
-
+function CenterMessagePanel({ visible, onCancel }) {
   const navigate = useNavigate();
-  const [visible, setVisible] = useState(true);
   const auth = getAuth();
   const user = auth.currentUser;
 
+  if (!visible) return null; 
+
   const handleLogout = async () => {
-      try {
-  
-        await signOut(auth);
-        
-      localStorage.removeItem('address');
-      localStorage.removeItem('bio');
-      localStorage.removeItem('contactNumber');
-      localStorage.removeItem('coverURL');
-      localStorage.removeItem('designation');
-      localStorage.removeItem('educationalAttainment');
-      localStorage.removeItem('email');
-      localStorage.removeItem('firstName');
-      localStorage.removeItem('gender');
-      localStorage.removeItem('lastName');
-      localStorage.removeItem('middleName');
-      localStorage.removeItem('profileURL');
-      localStorage.removeItem('role');
-      localStorage.removeItem('studentId');
-      localStorage.removeItem('uid');
-      localStorage.removeItem('yearsOfService');
-      localStorage.removeItem('hideAddInfoPanel');
+    try {
+      await signOut(auth);
 
+     
+      [
+        'address','bio','contactNumber','coverURL','designation',
+        'educationalAttainment','email','firstName','gender','lastName',
+        'middleName','profileURL','role','studentId','uid','yearsOfService',
+        'hideAddInfoPanel'
+      ].forEach(key => localStorage.removeItem(key));
 
-  
-        navigate('/log-in');
-      } catch (error) {
-        console.error('Logout failed:', error);
-      }
-    };
+      navigate('/log-in');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   const handleCancel = () => {
-   setVisible(false);
-   navigate(`/dashboard/${user.uid}`)
+    onCancel();
+    navigate(`/dashboard/${user.uid}`);
   };
 
   return (
-    <div className={`center-message-body ${!visible ? 'hidden' : ''}`}>
+    <div className="overlay">
+      <div className="center-message-body">
         <p>Are you sure you want to log out?</p>
         <div className='action-buttons'>
-            <button onClick={handleLogout}  style={{backgroundColor: '#475C6F', color: 'white'}}>Confirm</button>
-            <button onClick={handleCancel}  style={{backgroundColor: 'transparent'}}>Cancel</button>
+          <button onClick={handleLogout} style={{ backgroundColor: '#475C6F', color: 'white' }}>
+            Confirm
+          </button>
+          <button onClick={handleCancel} style={{ backgroundColor: 'transparent' }}>
+            Cancel
+          </button>
         </div>
-
+      </div>
     </div>
   )
 }
 
-export default CenterMessagePanel
+export default CenterMessagePanel;
