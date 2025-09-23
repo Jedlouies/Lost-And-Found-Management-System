@@ -344,11 +344,15 @@
 
 @media (max-width: 1920px) {
     .user-lost-searchBar {
-        width: 58%;
+        width: 70%;
+        top: 9%;
+        left: 1%;
     }
     .user-lost-searchBar input {
-        width: 60%;
-    }  
+        width: 85%;
+    }
+    
+
 
     .user-lost-searchBar2 {
         width: 50%;
@@ -364,13 +368,15 @@
 
     .category {
         width: 40%;
-        margin-right: 460px;
+        left: 80%;
+        margin-right: 40%;
     }
 
     
 
     .right-upper-panel {
        left: 85%;
+       top: 9%;
     }
      .page-lost-container {
         grid-template-columns: repeat(5, 1fr);
@@ -381,10 +387,12 @@
 
 @media (max-width: 1200px) {
     .user-lost-searchBar {
-        width: 58%;
+        width: 70%;
+        top: 9%;
+        left: 7%;
     }
     .user-lost-searchBar input {
-        width: 60%;
+        width:70%;
     }  
 
     .user-lost-searchBar2 {
@@ -402,12 +410,14 @@
     .category {
         width: 40%;
         margin-right: 460px;
+        left: 80%;
     }
 
     
 
-    .right-upper-panel {
-       left: 85%;
+       .right-upper-panel {
+       left: 87%;
+       top: 9%;
     }
      .page-lost-container {
         grid-template-columns: repeat(3, 1fr);
@@ -418,7 +428,8 @@
 
 @media (max-width: 992px) {
     .user-lost-searchBar {
-        width: 50%;
+        width: 70%;
+        left: 1%;
     }
     .user-lost-searchBar input {
         width: 60%;
@@ -443,6 +454,7 @@
     .category {
         width: 40%;
         margin-right: 120px;
+        left: 60%;
     }
     .right-upper-panel {
        left: 85%;
@@ -459,7 +471,8 @@
 
 @media (max-width: 768px) {
     .user-lost-searchBar {
-        width: 40%;
+        width: 70%;
+        left: -9%;
     }
     .user-lost-searchBar input {
         width: 80%;
@@ -488,6 +501,7 @@
     .category {
         width: 40%;
         margin-right: 0px;
+        left: 60%;
     }
     .right-upper-panel {
        left: 80%;
@@ -509,7 +523,8 @@
 
 @media (max-width: 576px) {
     .user-lost-searchBar {
-        width: 40%;
+        width: 50%;
+        left: 2%;
     }
     .user-lost-searchBar input {
         width: 80%;

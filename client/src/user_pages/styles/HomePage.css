@@ -253,8 +253,8 @@
 
 @media (max-width: 1200px) {
     .banner2 {
-        width: 63%;
-        left: 12%;
+        width: 90%;
+        left: 1%;
     }
     .lost-item-card, .found-item-card {
         z-index: 100;
@@ -274,8 +274,8 @@
 
 @media (max-width: 992px) {
     .banner2 {
-        width: 48%;
-        left: 12%;
+        width: 85%;
+        left: 1%;
     }
     .lost-item-card, .found-item-card {
         z-index: 100;
@@ -293,8 +293,8 @@
 
 @media (max-width: 768px) {
     .banner2 {
-        width: 33%;
-        left: 12%;
+        width: 85%;
+        left: 1%;
     }
     .lost-item-card, .found-item-card {
         z-index: 100;
@@ -321,8 +321,8 @@
 
 @media (max-width: 576px) {
     .banner2 {
-        width: 20%;
-        left: 12%;
+        width: 75%;
+        left: 5%;
     }
     .lost-item-card, .found-item-card {
         z-index: 100;

@@ -56,7 +56,6 @@ export default function GuestLostMatchResults() {
           </div>
         </div>
       )}
-      <UserLostItemsPage/>
       <div className="p-6" style={{position: 'absolute', top: '7%', left: '5%', padding: '20px', backgroundColor: 'white', width: '100%', height: '130vh'}}>
         {matches.length === 0 && (
           <p style={{ color: "white", marginTop: "20%", marginLeft: '40%' }}>

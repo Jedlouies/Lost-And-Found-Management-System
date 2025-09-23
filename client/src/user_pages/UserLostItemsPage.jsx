@@ -255,7 +255,6 @@ function UserLostItemsPage() {
             onChange={(e) => setSelectedCategory(e.target.value)}
             style={{
               position: 'relative',
-              left: '80%',
               width: '150px',
               borderRadius: '5px',
               backgroundColor: 'transparent',

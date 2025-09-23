@@ -280,7 +280,6 @@ const handleSubmit = async (e) => {
   
   return (
     <>
-      <UserFoundItemsPage />
       <div className='background'/>
       <div className="user-found-procedure-body">
         <p style={{position: 'absolute', fontSize: '15px', left: '82%', top: '5%', width: '200px'}}>

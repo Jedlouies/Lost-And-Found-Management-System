@@ -52,7 +52,6 @@ export default function FoundMatchResults() {
         </div>
       )}
 
-    <UserFoundItemsPage />
       <div className='background1'>
                   <button className='more-match'>
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-cpu" viewBox="0 0 16 16" style={{marginRight: '10px'}}>
