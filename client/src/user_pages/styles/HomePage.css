@@ -249,19 +249,7 @@
     scale: 1.05;
 }
 
-@media (max-width: 1450px) {
-  .home-body {
-    width: 1450px;
-    
-  }
-  .home-container {
-    max-width: 1380px;
-  }
-  
-  .banner2 {
-    width: 80%;
-  }
-}
+
 
 @media (max-width: 1200px) {
     .banner2 {

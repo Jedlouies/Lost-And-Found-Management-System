@@ -342,9 +342,43 @@
     scale: 1.05;
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 1920px) {
+    .user-lost-searchBar {
+        width: 58%;
+    }
+    .user-lost-searchBar input {
+        width: 60%;
+    }  
+
+    .user-lost-searchBar2 {
+        width: 50%;
+    }
+    .user-lost-searchBar2 input {
+        width: 90%;
+        margin-left: 40px;
+    }  
+
+    .user-lost-searchBar2 svg {
+        margin-left: 40px;
+    }
+
+    .category {
+        width: 40%;
+        margin-right: 460px;
+    }
+
     
+
+    .right-upper-panel {
+       left: 85%;
+    }
+     .page-lost-container {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 5px;
+
+    }
 }
+
 @media (max-width: 1200px) {
     .user-lost-searchBar {
         width: 58%;

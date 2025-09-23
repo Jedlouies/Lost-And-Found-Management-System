@@ -95,6 +95,27 @@
     padding: 10px;
 }
 
+@media (max-width: 1920px) {
+    .home-header-body {
+        min-width: 100%;
+    }
+    .home-header-right {
+        margin-left: auto;
+        margin-right: 90px;
+    }
+
+    .dropdown-containers {
+        position: absolute;
+        top: 50px;
+        left: 78%;
+    }
+    .account-dropdown.dropDown
+    {
+        margin-top: -50px;
+        margin-left: -90px;
+    }    
+}
+
 @media (max-width: 1540px) {
     .home-header-body {
         min-width: 100%;
@@ -107,20 +128,18 @@
     .dropdown-containers {
         position: absolute;
         top: 50px;
-        left: 1110px;
+        left: 72%;
     }
     .account-dropdown.dropDown
     {
         margin-top: -50px;
         margin-left: -90px;
-    }
-
-    
-    
+    }    
 }
+
 @media (max-width: 1200px) {
     .home-header-body {
-        min-width: 80%;
+        min-width: 100%;
     }
     .home-header-right {
         margin-left: auto;
@@ -129,7 +148,7 @@
     .dropdown-containers {
         position: absolute;
         top: 50px;
-        left: 750px;
+        left: 65%;
     }
 
     .account-dropdown.dropDown
@@ -141,7 +160,7 @@
 
 @media (max-width: 992px) {
     .home-header-body {
-        min-width: 65%;
+        min-width: 100%;
     }
     .home-header-right {
         margin-left: auto;
@@ -150,14 +169,14 @@
      .dropdown-containers {
         position: absolute;
         top: 50px;
-        left: 550px;
+        left: 60%;
     }
     
 }
 
 @media (max-width: 768px) {
     .home-header-body {
-        min-width: 52%;
+        min-width: 100%;
     }
     .home-header-right {
         margin-left: auto;
@@ -166,7 +185,7 @@
      .dropdown-containers {
         position: absolute;
         top: 50px;
-        left:350px;
+        left:45%;
     }
     
 }

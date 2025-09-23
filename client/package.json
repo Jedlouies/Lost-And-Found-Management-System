@@ -19,6 +19,7 @@
     "firebase-admin": "^13.4.0",
     "flowbite-react": "^0.11.8",
     "openai": "^5.10.1",
+    "qr-scanner": "^1.4.2",
     "react": "^19.1.0",
     "react-apexcharts": "^1.7.0",
     "react-bootstrap": "^2.10.10",

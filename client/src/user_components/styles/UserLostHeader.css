@@ -107,6 +107,26 @@
 }
 
 
+@media (max-width: 1920px) {
+
+    .dropdown-containers2 {
+        position: absolute;
+        top: 50px;
+        left: 75%;
+    }
+    .account-dropdown2.dropDown
+    {
+        margin-top: -50px;
+        margin-left: 5px;
+    }
+    .notify-panels2.notifyPanel
+    {
+        margin-left: 50px;
+    }
+
+}
+
+
 @media (max-width: 1540px) {
 
     .dropdown-containers2 {
@@ -124,8 +144,6 @@
         margin-left: 50px;
     }
 
-    
-    
 }
 @media (max-width: 1200px) {
     .dropdown-containers2 {
