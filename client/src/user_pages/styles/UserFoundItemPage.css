@@ -6,12 +6,15 @@
     min-height: 120vh;
     margin-left: 80px;
 }
-
 .found-item-body h1 {
     color: #475C6F;
     position: absolute;
-    top: 1%;
+    top: 3%;
     font-weight: bolder;
+    font-size: 30px;
+    margin-left: 20px;
+    font-weight: 500;
+    margin-top: 50px;
 }
 
 .lost-item-container {
@@ -212,3 +215,6 @@
 .lost-item-table td:nth-child(8) {
     width: 14%;
 }
+
+
+

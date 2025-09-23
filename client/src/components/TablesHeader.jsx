@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
 import './styles/TablesHeader.css'
 import { useAuth } from '../context/AuthContext.jsx';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase.jsx';
+import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
+  import { db } from '../firebase.jsx';
 import HeaderAccountDropdown from './HeaderAccountDropdown.jsx';
 import HeaderNotifyDropdown from './HeaderNotifyDropdown.jsx';
 import { useNavigate } from 'react-router-dom';
@@ -19,6 +19,8 @@ function TablesHeader() {
   const [profileURL, setProfileURL] = useState(localStorage.getItem('profileURL') || '')
   const initials = `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
   const dropdownRef = useRef(null);
+  const [claimedCount, setClaimedCount] = useState(0);      
+  const [unclaimedCount, setUnclaimedCount] = useState(0);  
   const notifyRef = useRef(null);
   const profileRef = useRef(null);
   const bellRef = useRef(null);
@@ -60,6 +62,32 @@ useEffect(() => {
 
   fetchUserDetails();
 }, [currentUser]);
+
+useEffect(() => {
+    const fetchLostItemsCount = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "lostItems"));
+        let claimed = 0;
+        let unclaimed = 0;
+
+        querySnapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.claimStatus === "claimed") {
+            claimed++;
+          } else {
+            unclaimed++;
+          }
+        });
+
+        setClaimedCount(claimed);
+        setUnclaimedCount(unclaimed);
+      } catch (error) {
+        console.error("Error fetching lost items count:", error);
+      }
+    };
+
+    fetchLostItemsCount();
+  }, []);
 
 useEffect(() => {
     const handleImageUpdate = () => {
@@ -105,20 +133,19 @@ useEffect(() => {
     <div className='header-body'>
 
         <div className='count-row'>
-           <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="white" class="bi bi-check-circle" viewBox="0 0 16 16">
-              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
-              <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/>
-            </svg>
-            <p>Total Claimed Items: <strong> 103</strong></p>
+          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="white" className="bi bi-check-circle" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+            <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/>
+          </svg>
+          <p>Total Claimed Items: <strong>{claimedCount}</strong></p>
         </div>
         <div className='count-row'>
-            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="white" class="bi bi-x-circle" viewBox="0 0 16 16">
-              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
-              <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
-            </svg>
-            <p>Total Unclaimed Items: <strong> 203</strong></p>
+          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="white" className="bi bi-x-circle" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+          </svg>
+          <p>Total Unclaimed Items: <strong>{unclaimedCount}</strong></p>
         </div>
-
         <div className='header-right-table'>
           <div>
         {unreadCount > 0 && (

@@ -43,6 +43,8 @@ import GuestLostMatchResults from "./pages/GuestLostMatchResults";
 import GuestFoundMatchResults from "./pages/GuestFoundMatchResults";
 import GuestReportFoundPage from "./pages/GuestReportFoundPage";
 import GuestEmailRequestPage from "./pages/GuestEmailRequestPage";
+import ErrorBoundary from "./components/ErrorBoundary";
+import GuestProcessClaimPage from "./pages/GuestProcessClaimPage";
 
 
 function App() {
@@ -80,7 +82,9 @@ function App() {
             path="/admin/lost-items/:uid"
             element={
               currentUser ? (
-                <LostItemsPage />
+                <ErrorBoundary>
+                  <LostItemsPage />
+                </ErrorBoundary>
               ) : (
                 <></>
               )
@@ -191,6 +195,16 @@ function App() {
             element={
               currentUser ? (
                 <ProcessClaimPage />
+              ) : (
+               <></>
+              )
+            }
+          />
+          <Route
+            path="/admin/guest/process-claim/:uid"
+            element={
+              currentUser ? (
+                <GuestProcessClaimPage />
               ) : (
                <></>
               )

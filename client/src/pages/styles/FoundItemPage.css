@@ -48,12 +48,12 @@
     padding: 2px;
 }
 
-.found-item-table {
+.found-item-table1 {
     font-size: 12px;
     display: flex;
     flex-direction: column;
     position: absolute;
-    top: 15%;
+    top: 8%;
     background-color: white;
     min-width: 93%;
     height: 570px;
@@ -61,7 +61,7 @@
     
 }
 
-.found-item-table th {
+.found-item-table1 th {
   color: black;             
   padding: 17px 30px;       
   text-align: center;         
@@ -70,7 +70,7 @@
   text-align: center;
 }
 
-.found-item-table thead {
+.found-item-table1 thead {
   background-color: #9EBAD6;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
@@ -78,13 +78,13 @@
   width: 100%;
 }
 
-.found-item-table tbody {
+.found-item-table1 tbody {
   background-color: transparent;
   height: 50px;
   width: 100%;
 }
 
-.found-item-table td {
+.found-item-table1 td {
   color: black;             
   padding: 16px 20px;       
   text-align: left;            
@@ -148,14 +148,15 @@
 
 .processClaimBtn {
     position: absolute;
-    top: 12%;
-    left: 1%;
+    top: 2%;
+    left: 83%;
     width: 150px;
     height: 30px;
     border-radius: 5px;
     background-color: #475C6F;
     color: white;
     border: none;
+    z-index: 3000;
 }
 
 .processClaimBtn:hover {
@@ -177,12 +178,12 @@
     border: none;
 }
 
-.actions-row {
+.actions-row2 {
     display: flex;
     flex-direction: row;
     position: absolute;
-    top: 10%;
-    left: 62%;
+    top: 1%;
+    left: 73%;
     width: 500px;
     height: 40px;
     padding: 5px;
@@ -193,62 +194,62 @@
     color: #475C6F;
 }
 
-.actions-row button {
+.actions-row2 button {
     color: #475C6F;
     border-radius: 5px;
     background-color: transparent;
     border: 1px solid #475C6F;
 }
 
-.actions-row button:hover {
+.actions-row2 button:hover {
     background-color: #c9d4e0;
 }
 
-.found-item-table th:nth-child(1),
-.found-item-table td:nth-child(1) {
+.found-item-table1 th:nth-child(1),
+.found-item-table1 td:nth-child(1) {
     width: 9%;
     white-space: nowrap;
 }
 
-.found-item-table th:nth-child(2),
-.found-item-table td:nth-child(2) {
+.found-item-table1 th:nth-child(2),
+.found-item-table1 td:nth-child(2) {
     width: 8%;
     white-space: nowrap;
 }
 
-.found-item-table th:nth-child(3),
-.found-item-table td:nth-child(3) {
+.found-item-table1 th:nth-child(3),
+.found-item-table1 td:nth-child(3) {
     width: 10%;
     white-space: nowrap;
 }
 
 /* Continue for the rest of the columns */
-.found-item-table th:nth-child(4),
-.found-item-table td:nth-child(4) {
+.found-item-table1 th:nth-child(4),
+.found-item-table1 td:nth-child(4) {
     width: 12%;
     white-space: nowrap;
 }
 
-.found-item-table th:nth-child(5),
-.found-item-table td:nth-child(5) {
+.found-item-table1 th:nth-child(5),
+.found-item-table1 td:nth-child(5) {
     width: 12%;
     white-space: nowrap;
 }
 
-.found-item-table th:nth-child(6),
-.found-item-table td:nth-child(6) {
+.found-item-table1 th:nth-child(6),
+.found-item-table1 td:nth-child(6) {
     width: 15%;
     white-space: nowrap;
 }
 
-.found-item-table th:nth-child(7),
-.found-item-table td:nth-child(7) {
+.found-item-table1 th:nth-child(7),
+.found-item-table1 td:nth-child(7) {
     width: 15%;
     white-space: nowrap;
 }
 
-.found-item-table th:nth-child(8),
-.found-item-table td:nth-child(8) {
+.found-item-table1 th:nth-child(8),
+.found-item-table1 td:nth-child(8) {
     width: 14%;
     white-space: nowrap;
 }

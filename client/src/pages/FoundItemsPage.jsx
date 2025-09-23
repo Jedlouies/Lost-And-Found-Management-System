@@ -31,6 +31,9 @@ function FoundItemsPage() {
   const auth = getAuth();
   const user = auth.currentUser;
   const [alert, setAlert] = useState(null);
+  const [selectedYear, setSelectedYear] = useState("All");
+     const [loading, setLoading] = useState(true);
+  
 
   const dbRealtime = getDatabase();
 
@@ -61,6 +64,8 @@ useEffect(() => {
       setItems(foundItems);
     } catch (error) {
       console.error("Error fetching lost items:", error);
+    } finally {
+      setLoading(false); // stop loading
     }
   };
 
@@ -119,6 +124,7 @@ const handleVerifyItem = async (foundDocId) => {
 
     for (const docSnap of manageSnap.docs) {
       const manageData = docSnap.data();
+      console.log(manageData);
 
       
       await updateDoc(docSnap.ref, { status: "posted" });
@@ -135,6 +141,33 @@ const handleVerifyItem = async (foundDocId) => {
               may possibly match with a verified found item: <b>${itemName}</b>.
               Matching rate: <b>${match.scores.overallScore}%</b> Please bring your ID and QR Code for Verification.`
             );
+            try {
+              const emailRes = await fetch("http://localhost:4000/api/send-email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  to: match.lostItem?.personalInfo?.email,   
+                  subject: "Possible Lost Match ",
+                  html: `<p>Your lost item <b>${match.lostItem.itemId}</b> - ${match.lostItem.itemName} </p>
+                  <p> may possibly match with a verified found item: <b>${itemName}</b>.</p>
+                   <p>Matching rate: <b>${match.scores.overallScore}%</b> Please bring your ID and QR Code for Verification.</p>
+                  `,
+                }),
+              });
+
+              const emailData = await emailRes.json();
+              console.log("📧 Email API response:", emailData);
+
+              if (!emailRes.ok) {
+                console.error(`❌ Failed to send email to ${match.lostItem?.personalInfo?.email}:`, emailData);
+              } else {
+                console.log(`✅ Email successfully sent to ${match.lostItem?.personalInfo?.email}`);
+              }
+            } catch (err) {
+              console.error(`⚠️ Error sending email to ${match.lostItem?.personalInfo?.email}:`, err);
+            }
+
+
           }
         }
 
@@ -147,6 +180,32 @@ const handleVerifyItem = async (foundDocId) => {
             Please wait for further instructions from the OSA.`, 
             "info"
           );
+
+          try {
+            const emailRes = await fetch("http://localhost:4000/api/send-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                to: manageData.personalInfo?.email,  
+                subject: "Item Verified",
+                html:  `<p>Your found item <b>${itemName}</b> has been <b>verified and posted</b></p>. 
+            <p>All possible owners with an 75%+ match score have been notified.</p> 
+            <p>Please wait for further instructions from the OSA.</p>`,
+              }),
+            });
+
+            const emailData = await emailRes.json();
+            console.log("📧 Email API response:", emailData);
+
+            if (!emailRes.ok) {
+              console.error(`❌ Failed to send email to ${manageData.personalInfo?.email}:`, emailData);
+            } else {
+              console.log(`✅ Email successfully sent to ${manageData.personalInfo?.email}`);
+            }
+          } catch (err) {
+            console.error(`⚠️ Error sending email to ${manageData.personalInfo?.email}:`, err);
+          }
+
         }
     }
 
@@ -164,9 +223,24 @@ const handleVerifyItem = async (foundDocId) => {
   }
 };
 
-  const filteredItems = items.filter(item =>
-    item.itemName?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+const filteredItems = items.filter(item => {
+  const matchesSearch = item.itemName?.toLowerCase().includes(searchQuery.toLowerCase());
+
+  let itemYear = null;
+  if (item.dateFound) {
+    try {
+      itemYear = new Date(item.dateFound).getFullYear().toString();
+    } catch (err) {
+      console.warn("Invalid date format:", item.dateFound);
+    }
+  }
+
+  if (selectedYear === "All") {
+    return matchesSearch;
+  }
+
+  return matchesSearch && itemYear === selectedYear;
+});
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const displayedItems = filteredItems.slice(
@@ -180,23 +254,41 @@ const handleVerifyItem = async (foundDocId) => {
     }
   };
 
-    const archiveItem = async (itemId) => {
-    try {
-      const q = query(collection(db, "foundItems"), where("itemId", "==", itemId));
-      const querySnapshot = await getDocs(q);
-  
-      if (!querySnapshot.empty) {
-        const docRef = querySnapshot.docs[0].ref; 
-        await updateDoc(docRef, { archivedStatus: true });
-        console.log(`Item ${itemId} archived successfully`);
-        setAlert({ type: "success", message: `Item ${itemId} archived successfully` });
-      } else {
-        console.error("No document found with itemId:", itemId);
-      }
-    } catch (error) {
-      console.error("Error archiving item:", error);
+const archiveItem = async (item) => {
+  try {
+    if (!item.claimedBy || !item.claimedBy.uid) {
+      setAlert({ message: "You cannot archive unclaimed items.", type: "warning" });
+      return; 
     }
+
+    const itemDocRef = doc(db, "foundItems", item.id); // correct doc ID
+    const archiveDocRef = doc(db, "archivedFoundItems", item.id);
+
+    await setDoc(archiveDocRef, {
+      ...item,
+      archivedAt: new Date(),
+    });
+
+    await deleteDoc(itemDocRef);
+
+    setAlert({
+      show: true,
+      message: "Item successfully archived!",
+      type: "success",
+    });
+
+    // update UI
+    setItems((prev) => prev.filter((i) => i.id !== item.id));
+
+  } catch (error) {
+    console.error("Error archiving item:", error);
+    setAlert({
+      show: true,
+      message: "Failed to archive item. Please try again.",
+      type: "danger",
+    });
   }
+};
   
 
   return (
@@ -223,13 +315,14 @@ const handleVerifyItem = async (foundDocId) => {
                 className="btn btn-danger" 
                 onClick={async () => {
                   if (selectedItemId) {
-                    await archiveItem(selectedItemId); // call your archive function
+                    await archiveItem(selectedItemId); // pass full item object
                   }
-                  setShowConfirm(false); // close modal
+                  setShowConfirm(false);
                 }}
               >
                 Archive
               </button>
+
             </Modal.Footer>
           </Modal>
 
@@ -258,32 +351,34 @@ const handleVerifyItem = async (foundDocId) => {
             />
           </div>
           <button className={`processClaimBtn  ${location.pathname === `/admin/transactions/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/admin/transactions/${user?.uid}`)}>Process Claim</button>
-          <div className='actions-row' style={{width: '500px', marginTop: '10px'}}>
+          <div className='actions-row2' style={{width: '500px'}}>
                 <button onClick={() => handleNavigate(`/admin/found-items/archive/${user?.uid}`)}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-archive" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
                   <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
                 </svg>
-                  Achieved
+                  Achieve
                   </button>
-                Academic Year:
+                Year:
                 <DropdownButton
                   id="dropdown-academic-year"
-                  title="Select Year"
+                  title={selectedYear === "All" ? "All Years" : selectedYear}
                   variant="secondary"
                   size="sm"
                   style={{ marginLeft: '10px' }}
                 >
-                  <Dropdown.Item onClick={() => console.log("2022–2023")}>2022–2023</Dropdown.Item>
-                  <Dropdown.Item onClick={() => console.log("2023–2024")}>2023–2024</Dropdown.Item>
-                  <Dropdown.Item onClick={() => console.log("2024–2025")}>2024–2025</Dropdown.Item>
-                  <Dropdown.Item onClick={() => console.log("2025–2026")}>2025–2026</Dropdown.Item>
+                  <Dropdown.Item onClick={() => setSelectedYear("All")}>All Years</Dropdown.Item>
+                  <Dropdown.Item onClick={() => setSelectedYear("2022")}>2022</Dropdown.Item>
+                  <Dropdown.Item onClick={() => setSelectedYear("2023")}>2023</Dropdown.Item>
+                  <Dropdown.Item onClick={() => setSelectedYear("2024")}>2024</Dropdown.Item>
+                  <Dropdown.Item onClick={() => setSelectedYear("2025")}>2025</Dropdown.Item>
                 </DropdownButton>
+
 
             </div>
 
 
           <div>
-            <table className='found-item-table' style={{marginTop: '30px'}}>
+            <table className='found-item-table1' style={{marginTop: '30px'}}>
               <thead>
                 <tr>
                   <th style={{minWidth: '180px'}}>Item ID No.</th>
@@ -297,9 +392,15 @@ const handleVerifyItem = async (foundDocId) => {
                   </tr>
               </thead>
               <tbody>
-                {displayedItems.length > 0 ? (
-                  displayedItems.map((item, index) => (
-                    <tr className='body-row' key={index}>
+                {loading ? (
+                  
+                    <div colSpan="8" style={{ textAlign: "center", padding: "20px" }}>
+                      <img src="/Spin_black.gif" alt="Loading..." style={{ width: "50px" }} />
+                    </div>
+                  
+                ) : displayedItems.length > 0 ? (
+                  displayedItems.map((item, index) => (                    
+                  <tr className='body-row' key={index}>
                       <td >{item.itemId}</td>
                       <td>
                         {item.images && item.images.length > 0 ? (
@@ -312,14 +413,45 @@ const handleVerifyItem = async (foundDocId) => {
                       <td>{item.dateFound}</td>
                       <td>{item.locationFound}</td>
                       <td>
-                      <div className='founder-details'>
-                          <img src={item.personalInfo?.profileURL} alt="" style={{width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover'}}/>
-                        <div className='personal-info'>
-                          <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>{item.personalInfo?.firstName} {item.personalInfo?.lastName}</p>
-                          <p style={{ fontStyle: 'italic', color: 'black' }}>{item.personalInfo?.course?.abbr || 'Unknown'} </p>
+                        <div className='founder-details'>
+                          {item.isGuest === true ? (
+                            // Guest Display
+                            <div 
+                              style={{
+                                width: '50px',
+                                height: '50px',
+                                borderRadius: '40px',
+                                backgroundColor: '#007bff', // Bootstrap Blue
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '12px',
+                                textAlign: 'center'
+                              }}
+                            >
+                              Guest
+                            </div>
+                          ) : (
+                            <>
+                              <img 
+                                src={item.personalInfo?.profileURL || "/default-profile.png"} 
+                                alt="profile"
+                                style={{width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover'}}
+                              />
+                              <div className='personal-info'>
+                                <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>
+                                  {`${item.personalInfo?.firstName || ""} ${item.personalInfo?.lastName || ""}`.trim()}
+                                </p>
+                                <p style={{ fontStyle: 'italic', color: 'black' }}>
+                                  {item.personalInfo?.course?.abbr || "Unknown"}
+                                </p>
+                              </div>
+                            </>
+                          )}
                         </div>
-                      </div>
-                    </td>
+                      </td>
                     <td>
                       <div className='owner-details'>
                         {item.claimedBy ? (
@@ -357,7 +489,7 @@ const handleVerifyItem = async (foundDocId) => {
                             </div>
                             <div className='personal-info'>
                               <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>Unknown</p>
-                              <p style={{ fontStyle: 'italic', color: 'black' }}>Unknown</p>
+                              
                             </div>
                           </>
                         )}
@@ -405,13 +537,14 @@ const handleVerifyItem = async (foundDocId) => {
                             </Dropdown.Item>
 
                             <Dropdown.Item 
-                              onClick={() => {
-                                setSelectedItemId(item.itemId); 
-                                setShowConfirm(true);
-                              }}
-                            >
-                              Archive
-                            </Dropdown.Item>
+                            onClick={() => {
+                              setSelectedItemId(item); // save full item object
+                              setShowConfirm(true);
+                            }}
+                          >
+                            Archive
+                          </Dropdown.Item>
+
                             <Dropdown.Item onClick={() => handleVerifyItem(item.id)}>Verify Item</Dropdown.Item>
                           </Dropdown.Menu>
                         </Dropdown>
@@ -431,7 +564,7 @@ const handleVerifyItem = async (foundDocId) => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center' }}>No found items found.</td>
+                    <td colSpan="8" style={{ textAlign: 'center' }}>No lost items found.</td>
                   </tr>
                 )}
               </tbody>

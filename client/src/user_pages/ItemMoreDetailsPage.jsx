@@ -69,17 +69,20 @@ function ItemMoreDetailsPage() {
         <UserBlankHeader/>
         <div className="manage-item-container">
 
-          <h1 style={{left: '45%'}}>{item.itemName}</h1>
+          <h1 style={{left: '50%'}}>{item.itemName}</h1>
 
-          {item.images?.length > 0 && (
+          <div className="item-image">
+            {item.images?.length > 0 && (
             <img
               src={item.images[0]}
               alt="Item"
-              style={{ width: "600px", height: "600px", borderRadius: "10px", objectFit: 'cover' }}
             />
           )}
 
-          <div className="more-details-information" style={{position: 'absolute',top: '10%', left: '45%', width: '700px', maxWidth: '800px', backgroundColor: 'white', padding: '10px', borderRadius: '10px'}}>
+          </div>
+
+          
+          <div className="more-details-information" >
             {type === "lost" && (
               <>
                 <p>{item.itemId}</p>

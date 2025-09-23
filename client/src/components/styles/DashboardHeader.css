@@ -60,24 +60,25 @@
 .header-right svg {
     cursor: pointer;
 }
-.account-dropdown {
+.account-dropdown2 {
     opacity: 0;
     z-index: 10;
 }
 
 
-.account-dropdown.dropDown{
+.account-dropdown2.dropDown{
     margin-left: -100px;
     opacity: 1;
+    z-index: 4000;
 }
 
-.notify-panel {
+.notify-panel2 {
     opacity: 0;
 }
 
 
 
-.notify-panel.notifyPanel{
+.notify-panel2.notifyPanel{
     position: absolute;
     top: 150%;
     left: 73%;
@@ -90,4 +91,90 @@
     width: 100%;
     align-items: center;
     padding: 10px;
+}
+
+@media (max-width: 1450px) {
+
+    .dropdown-containers2 {
+        position: absolute;
+        top: 50px;
+        left: 1050px;
+    }
+    .account-dropdown2.dropDown
+    {
+        margin-top: -50px;
+    }
+    .notify-panels2.notifyPanel
+    {
+        margin-left: 50px;
+    }
+
+    
+    
+}
+@media (max-width: 1200px) {
+    .dropdown-containers2 {
+        position: absolute;
+        top: 50px;
+        left: 700px;
+    }
+    .account-dropdown2.dropDown
+    {
+        margin-top: -50px;
+    }
+    .notify-panels2.notifyPanel
+    {
+        margin-left: 50px;
+    }
+    
+}
+
+@media (max-width: 992px) {
+     .dropdown-containers2 {
+        position: absolute;
+        top: 50px;
+        left: 450px;
+    }
+    .account-dropdown2.dropDown2
+    {
+        margin-top: -50px;
+    }
+    .notify-panels2.notifyPanel
+    {
+        margin-left: 50px;
+    }
+    
+}
+
+@media (max-width: 768px) {
+    .dropdown-containers2 {
+        position: absolute;
+        top: 50px;
+        left: 250px;
+    }
+    .account-dropdown2.dropDown2
+    {
+        margin-top: -50px;
+    }
+    .notify-panels2.notifyPanel
+    {
+        margin-left: 50px;
+    }
+    
+}
+
+@media (max-width: 576px) {
+    .dropdown-containers2 {
+        position: absolute;
+        top: 50px;
+        left: 70px;
+    }
+    .account-dropdown2.dropDown2
+    {
+        margin-top: -50px;
+    }
+    .notify-panels2.notifyPanel
+    {
+        margin-left: 50px;
+    }
 }

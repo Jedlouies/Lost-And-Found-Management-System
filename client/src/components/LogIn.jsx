@@ -4,6 +4,7 @@ import { Form, Button, Card, Alert } from 'react-bootstrap'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useNavigate } from 'react-router-dom'
 import { doc, getDoc } from 'firebase/firestore'
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from '../firebase.jsx'
 
 function LogIn() {

@@ -66,10 +66,10 @@ export default function GuestFoundMatchResults() {
           Matching Found Items (Guest)
         </h1>
 
-        {matches.map((match, index) => {
-          const lostItem = match.lostItem || {};
+        {matches.map((matches, index) => {
+          const lostItem = matches.lostItem || {};
           const posterInfo = lostItem.personalInfo || {};
-          const scores = match.scores || {};
+          const scores = matches.scores || {};
 
           return (
             <div key={index} className="matching-card">
@@ -134,9 +134,9 @@ export default function GuestFoundMatchResults() {
               </div>
 
               {/* Poster info */}
-              <div className="results-more">
+              <div className="results-more" style={{marginTop: '-90px'}}>
                 <p className="text-sm" style={{ color: "black", fontSize: "12px" }}>
-                  <strong>Transaction ID:</strong> {match.transactionId}
+                  <strong>Transaction ID:</strong> {matches.transactionId}
                 </p>
 
                 <div className="matching-profile-info"
@@ -183,7 +183,7 @@ export default function GuestFoundMatchResults() {
                 </div>
               </div>
 
-              <div className="matching-card-actions">
+              <div className="matching-card-actions" style={{marginTop: '-250px'}}>
                 <button onClick={() => setSelectedItem(lostItem)}>Details</button>
               </div>
             </div>

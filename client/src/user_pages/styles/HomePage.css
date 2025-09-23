@@ -248,3 +248,117 @@
     background-color: white;
     scale: 1.05;
 }
+
+@media (max-width: 1450px) {
+  .home-body {
+    width: 1450px;
+    
+  }
+  .home-container {
+    max-width: 1380px;
+  }
+  
+  .banner2 {
+    width: 80%;
+  }
+}
+
+@media (max-width: 1200px) {
+    .banner2 {
+        width: 63%;
+        left: 12%;
+    }
+    .lost-item-card, .found-item-card {
+        z-index: 100;
+    }
+    .banner2 h1 {
+        font-size: 38px;
+    }
+
+    .home-lost-container {
+        width: 1000px;
+    }
+    .home-found-container {
+        width: 1000px;
+    }
+    
+}
+
+@media (max-width: 992px) {
+    .banner2 {
+        width: 48%;
+        left: 12%;
+    }
+    .lost-item-card, .found-item-card {
+        z-index: 100;
+    }
+    .banner2 strong {
+        font-size: 12px;
+    }
+     .home-lost-container {
+        width: 900px;
+    }
+     .home-found-container {
+        width: 900px;
+    }
+}
+
+@media (max-width: 768px) {
+    .banner2 {
+        width: 33%;
+        left: 12%;
+    }
+    .lost-item-card, .found-item-card {
+        z-index: 100;
+    }
+    .banner2 h1 {
+        font-size: 28px;
+        margin-top: 10px;
+
+    }
+
+    .banner2 strong {
+        font-size: 10px;
+    }
+
+     .home-lost-container {
+        width: 700px;
+    }
+    .home-found-container {
+        width: 700px;
+    }
+
+
+}
+
+@media (max-width: 576px) {
+    .banner2 {
+        width: 20%;
+        left: 12%;
+    }
+    .lost-item-card, .found-item-card {
+        z-index: 100;
+    }
+    .banner2 h1 {
+        font-size: 15px;
+        margin-top: 30px;
+
+    }
+
+    .banner2 strong {
+        font-size: 10px;
+        margin-left: -10px;
+    }
+
+    .banner2 h5 {
+       font-size: 12px;
+    }
+    .home-lost-container {
+        width: 500px;
+    }
+    .home-found-container {
+        width: 500px;
+    }
+
+
+}

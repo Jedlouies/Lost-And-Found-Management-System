@@ -51,9 +51,9 @@ function UserLostProcedurePage() {
 
   return (
     <>
-    <div className='pro-body'>
-          <UserLostItemsPage />
-          <div className='background'/>
+    <div className='pro-body' style={{position: 'absolute', height: '120vh'}}>
+          
+      <div className='background'/>
     <div className='user-lost-procedure-body'>
        <h1>Item Lost Procedures</h1>
       <svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" fill="orange" class="bi bi-exclamation-octagon" viewBox="0 0 16 16">

@@ -10,7 +10,10 @@ import { useNotification } from "../context/NotificationContext";
 function NavigationBar() {
   const [expanded, setExpanded] = useState(false);
   const [message, setMessage] = useState(false);
-  const { unreadCount, clearNotifications } = useNotification();
+  const [unreadCount, setUnreadCount] = useState(0);  // ✅ add this
+  const { clearNotifications } = useNotification();   // ✅ only pull clearNotifications
+
+  
 
   const navigate = useNavigate();
   const auth = getAuth();
@@ -25,7 +28,6 @@ function NavigationBar() {
     setExpanded((prev) => !prev);
   };
 
-  // 🔹 Listen to unread notifications
   useEffect(() => {
     if (!user) return;
 

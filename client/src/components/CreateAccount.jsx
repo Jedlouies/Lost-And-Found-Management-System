@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext.jsx'
 import { useNavigate } from 'react-router-dom'
 import { signInAnonymously } from "firebase/auth";
 import { auth } from "../firebase";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase";
 
 function CreateAccount() {
   const navigate = useNavigate();

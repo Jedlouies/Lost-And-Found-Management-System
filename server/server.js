@@ -2,62 +2,23 @@ import express from "express";
 import cors from "cors";
 import fetch from "node-fetch";
 import sharp from "sharp";
-import { db, resend  } from "./firebaseAdmin.js";
+import { db, resend, openai } from "./firebaseAdmin.js";
 import { v4 as uuidv4 } from "uuid";
-import { pipeline } from "@xenova/transformers";
-import pixelmatch from "pixelmatch";
-import { PNG } from "pngjs";
 
-
-
+// --- Server Setup ---
 const app = express();
 app.use(express.json());
+app.use(cors({ origin: "*" }));
 
-// --- Enable CORS ---
-app.use(cors({
-  origin: "*",
-  methods: "GET,POST,PUT,DELETE,OPTIONS",
-  allowedHeaders: "Content-Type, Authorization"
-}));
-
-// --- Test Endpoint ---
-app.get("/", (req, res) => {
-  res.send("AI-Powered Matching API is running!");
-});
-
-app.use(cors({
-  origin: 'http://localhost:5173', // or '*' for testing
-}));
-
-// --- Transaction ID Generator ---
+// --- Transaction & Item ID ---
 function generateTransactionId() {
   return 'TX-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
 }
-
-// --- Item ID Generator ---
 function generateItemId() {
-  const part1 = Math.floor(100 + Math.random() * 900);   // 3 digits
-  const part2 = Math.floor(1000 + Math.random() * 9000); // 4 digits
-  const part3 = Math.floor(100 + Math.random() * 900);   // 3 digits
-  return `ITM-${part1}-${part2}-${part3}`;
+  return `ITM-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(100 + Math.random() * 900)}`;
 }
 
-/* --------------------------------------------------
-   AI MODELS FOR TEXT EMBEDDINGS
---------------------------------------------------- */
-let textEmbedder = null;
-
-async function getTextEmbedder() {
-  if (!textEmbedder) {
-    console.log("Loading AI text model...");
-    textEmbedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
-  }
-  return textEmbedder;
-}
-
-/* --------------------------------------------------
-   HELPER: Cosine Similarity
---------------------------------------------------- */
+// --- Cosine Similarity ---
 function cosineSimilarity(vecA, vecB) {
   const dot = vecA.reduce((sum, val, i) => sum + val * vecB[i], 0);
   const normA = Math.sqrt(vecA.reduce((sum, val) => sum + val * val, 0));
@@ -65,119 +26,143 @@ function cosineSimilarity(vecA, vecB) {
   return dot / (normA * normB);
 }
 
-/* --------------------------------------------------
-   TEXT SIMILARITY (AI)
---------------------------------------------------- */
-async function compareTextAI(text1, text2) {
-  if (!text1 || !text2) return 0;
-  const embedder = await getTextEmbedder();
-  const emb1 = await embedder(text1, { pooling: 'mean', normalize: true });
-  const emb2 = await embedder(text2, { pooling: 'mean', normalize: true });
-  return cosineSimilarity(emb1.data, emb2.data) * 100;
-}
-
-/* --------------------------------------------------
-   IMAGE SIMILARITY (Pixelmatch)
---------------------------------------------------- */
-async function fetchImageAsPNG(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Failed to fetch image: ${url}`);
-  const buffer = await response.arrayBuffer();
-  return sharp(Buffer.from(buffer))
-    .resize(224, 224) // normalize size
-    .png()
-    .toBuffer();
-}
-
-async function compareImages(url1, url2) {
+// --- Text Embeddings ---
+async function getTextEmbedding(text) {
+  if (!text) return [];
   try {
-    if (!url1 || !url2) return 0;
-
-    const [img1Buffer, img2Buffer] = await Promise.all([
-      fetchImageAsPNG(url1),
-      fetchImageAsPNG(url2),
-    ]);
-
-    const img1 = PNG.sync.read(img1Buffer);
-    const img2 = PNG.sync.read(img2Buffer);
-
-    const { width, height } = img1;
-    const diff = new PNG({ width, height });
-
-    const numDiffPixels = pixelmatch(img1.data, img2.data, diff.data, width, height, { threshold: 0.1 });
-    const similarity = 100 - (numDiffPixels / (width * height)) * 100;
-
-    return Math.max(0, Math.min(100, similarity));
-  } catch (error) {
-    console.error("Image comparison error:", error);
-    return 0;
+    const response = await openai.embeddings.create({
+      model: "text-embedding-3-small",
+      input: text,
+    });
+    return response.data[0].embedding;
+  } catch (err) {
+    console.error("Text embedding error:", err);
+    return [];
   }
 }
 
-/* --------------------------------------------------
-   MATCHING LOGIC
---------------------------------------------------- */
+// --- Image Preprocessing & Embedding ---
+async function preprocessImage(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Failed to fetch image: ${url}`);
+  const buffer = await response.arrayBuffer();
+  const processed = await sharp(Buffer.from(buffer))
+    .resize(224, 224, { fit: "cover" })
+    .png()
+    .toBuffer();
+  return Buffer.from(processed).toString("base64");
+}
+
+async function getImageEmbedding(url) {
+  try {
+    // Ask GPT-5 to describe the image
+    const visionRes = await openai.chat.completions.create({
+      model: "gpt-4o-mini", // GPT-5 capable of vision
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Describe this image in a short, detailed phrase suitable for matching lost & found items." },
+            { type: "image_url", image_url: { url } }
+          ]
+        }
+      ]
+    });
+
+    const description = visionRes.choices[0].message.content || "";
+
+    // Get an embedding of that description
+    const embedRes = await openai.embeddings.create({
+      model: "text-embedding-3-small",
+      input: description
+    });
+
+    return embedRes.data[0].embedding;
+  } catch (err) {
+    console.error("Image embedding error:", err);
+    return [];
+  }
+}
+
+// --- Object Detection Replacement ---
+// No GPT chat. Just return the URL so we can use embeddings for relevance.
+async function detectObjects(url) {
+  return [url]; // placeholder for embedding comparison
+}
+
+// --- Check Relevance ---
+async function isRelevantObject(itemName, detectedObjects) {
+  const itemEmb = await getTextEmbedding(itemName);
+  for (const obj of detectedObjects) {
+    const objEmb = await getTextEmbedding(obj);
+    const sim = cosineSimilarity(itemEmb, objEmb);
+    if (sim >= 0.5) return true; // relevance threshold
+  }
+  return false;
+}
+
+// --- Compare Images ---
+async function compareImagesWithFilter(lostUrls, foundUrls) {
+  let bestScore = 0;
+  for (const lostUrl of lostUrls) {
+    const lostEmb = await getImageEmbedding(lostUrl);
+    if (!lostEmb.length) continue;
+
+    for (const foundUrl of foundUrls) {
+      const foundEmb = await getImageEmbedding(foundUrl);
+      if (!foundEmb.length) continue;
+
+      const score = Math.max(0, Math.min(100, cosineSimilarity(lostEmb, foundEmb) * 100));
+      if (score > bestScore) bestScore = score;
+    }
+  }
+  return bestScore;
+}
+
+
+// --- Calculate Match Score ---
 async function calculateMatchScore(lostItem, foundItem) {
-  const nameScore = await compareTextAI(lostItem.itemName || "", foundItem.itemName || "");
-  const descScore = await compareTextAI(lostItem.itemDescription || "", foundItem.itemDescription || "");
-  const locationScore = await compareTextAI(lostItem.locationLost || "", foundItem.locationFound || "");
-
+  const nameScore = cosineSimilarity(await getTextEmbedding(lostItem.itemName || ""), await getTextEmbedding(foundItem.itemName || "")) * 100;
+  const descScore = cosineSimilarity(await getTextEmbedding(lostItem.itemDescription || ""), await getTextEmbedding(foundItem.itemDescription || "")) * 100;
+  const locationScore = cosineSimilarity(await getTextEmbedding(lostItem.locationLost || ""), await getTextEmbedding(foundItem.locationFound || "")) * 100;
   const categoryMatch = (lostItem.category?.toLowerCase() === foundItem.category?.toLowerCase()) ? 100 : 0;
+  const overallTextScore = nameScore * 0.5 + descScore * 0.3 + locationScore * 0.1 + categoryMatch * 0.1;
 
-  const overallTextScore =
-    (nameScore * 0.5 + descScore * 0.3 + locationScore * 0.1 + categoryMatch * 0.1);
+  const lostUrls = Array.isArray(lostItem.images) ? lostItem.images : [lostItem.images];
+  const foundUrls = Array.isArray(foundItem.images) ? foundItem.images : [foundItem.images];
+  const imageScore = await compareImagesWithFilter(lostUrls, foundUrls);
 
-  const lostImageUrl = Array.isArray(lostItem.images) ? lostItem.images[0] : lostItem.images;
-  const foundImageUrl = Array.isArray(foundItem.images) ? foundItem.images[0] : foundItem.images;
-
-  const imageScore = (lostImageUrl && foundImageUrl)
-    ? await compareImages(lostImageUrl, foundImageUrl)
-    : 0;
-
-  const overallScore = (overallTextScore * 0.6 + imageScore * 0.4);
-
-  const toPercentage = (val) => parseFloat(val.toFixed(2));
+  const overallScore = overallTextScore * 0.4 + imageScore * 0.6;
+  const toPct = (v) => parseFloat(v.toFixed(2));
 
   return {
-    nameScore: toPercentage(nameScore),
-    descriptionScore: toPercentage(descScore),
-    locationScore: toPercentage(locationScore),
-    categoryScore: toPercentage(categoryMatch),
-    overallTextScore: toPercentage(overallTextScore),
-    imageScore: toPercentage(imageScore),
-    overallScore: toPercentage(overallScore),
+    nameScore: toPct(nameScore),
+    descriptionScore: toPct(descScore),
+    locationScore: toPct(locationScore),
+    categoryScore: toPct(categoryMatch),
+    overallTextScore: toPct(overallTextScore),
+    imageScore: toPct(imageScore),
+    overallScore: toPct(overallScore),
   };
 }
 
-/* --------------------------------------------------
-   API: found-to-lost
---------------------------------------------------- */
+// --- API: Found-to-Lost ---
 app.post("/api/match/found-to-lost", async (req, res) => {
   try {
     const { uidFound } = req.body;
     const foundDoc = await db.collection("foundItems").doc(uidFound).get();
     if (!foundDoc.exists) return res.status(404).json({ error: "Found item not found." });
-
     const foundItem = foundDoc.data();
 
-    const lostSnapshot = await db.collection("lostItems")
-      .where("category", "==", foundItem.category)
-      .get();
-
+    const lostSnapshot = await db.collection("lostItems").where("category", "==", foundItem.category).get();
     const matches = [];
+
     for (const lostDoc of lostSnapshot.docs) {
       const lostItem = lostDoc.data();
+      if (["claimed", "pending", "canceled"].includes(lostItem.status) || lostItem.archivedStatus) continue;
 
-      // 🔎 Skip excluded items
-      if (
-        lostItem.claimedStatus === "claimed" ||
-        lostItem.archivedStatus === true ||
-        lostItem.status === "pending" ||
-        lostItem.status === "canceled"
-      ) {
-        continue;
-      }
-
+      const lostUrls = Array.isArray(lostItem.images) ? lostItem.images : [lostItem.images];
+      const foundUrls = Array.isArray(foundItem.images) ? foundItem.images : [foundItem.images];
       const scores = await calculateMatchScore(lostItem, foundItem);
 
       const matchData = {
@@ -188,48 +173,37 @@ app.post("/api/match/found-to-lost", async (req, res) => {
         scores,
         createdAt: new Date().toISOString()
       };
-
       await db.collection("matches").add(matchData);
       matches.push(matchData);
     }
 
     matches.sort((a, b) => b.scores.overallScore - a.scores.overallScore);
-    res.json(matches);
+    const filteredMatches = matches.filter(m => m.scores.overallScore >= 60);
+    res.json(filteredMatches);
+
   } catch (error) {
     console.error("Error in /api/match/found-to-lost:", error);
     res.status(500).json({ error: "Internal server error." });
   }
 });
 
-/* --------------------------------------------------
-   API: lost-to-found
---------------------------------------------------- */
+// --- API: Lost-to-Found ---
 app.post("/api/match/lost-to-found", async (req, res) => {
   try {
     const { uidLost } = req.body;
     const lostDoc = await db.collection("lostItems").doc(uidLost).get();
     if (!lostDoc.exists) return res.status(404).json({ error: "Lost item not found." });
-
     const lostItem = lostDoc.data();
 
-    const foundSnapshot = await db.collection("foundItems")
-      .where("category", "==", lostItem.category)
-      .get();
-
+    const foundSnapshot = await db.collection("foundItems").where("category", "==", lostItem.category).get();
     const matches = [];
+
     for (const foundDoc of foundSnapshot.docs) {
       const foundItem = foundDoc.data();
+      if (["claimed", "pending", "canceled"].includes(foundItem.status) || foundItem.archivedStatus) continue;
 
-      // 🔎 Skip excluded items
-      if (
-        foundItem.claimedStatus === "claimed" ||
-        foundItem.archivedStatus === true ||
-        foundItem.status === "pending" ||
-        foundItem.status === "canceled"
-      ) {
-        continue;
-      }
-
+      const lostUrls = Array.isArray(lostItem.images) ? lostItem.images : [lostItem.images];
+      const foundUrls = Array.isArray(foundItem.images) ? foundItem.images : [foundItem.images];
       const scores = await calculateMatchScore(lostItem, foundItem);
 
       const matchData = {
@@ -240,47 +214,40 @@ app.post("/api/match/lost-to-found", async (req, res) => {
         scores,
         createdAt: new Date().toISOString()
       };
-
       await db.collection("matches").add(matchData);
       matches.push(matchData);
     }
 
     matches.sort((a, b) => b.scores.overallScore - a.scores.overallScore);
-    res.json(matches);
+    const filteredMatches = matches.filter(m => m.scores.overallScore >= 60);
+    res.json(filteredMatches);
   } catch (error) {
     console.error("Error in /api/match/lost-to-found:", error);
     res.status(500).json({ error: "Internal server error." });
   }
 });
 
-
-/* --------------------------------------------------
-   API: Email
---------------------------------------------------- */
-
+// --- API: Send Email ---
 app.post("/api/send-email", async (req, res) => {
   try {
     const { to, subject, html } = req.body;
 
+    
+
     const { data, error } = await resend.emails.send({
-      from: "Spotsync <onboarding@resend.dev>",
+      from: "Spotsync <Onboarding@spotsync.site>",
       to,
       subject,
       html,
     });
-
-    if (error) {
-      console.error("Resend API error:", error);
-      return res.status(500).json({ error });
-    }
-
+    if (error) return res.status(500).json({ error });
     res.json({ success: true, data });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({ error: err.message });
   }
 });
-/* --------------------------------------------------
-   START SERVER
---------------------------------------------------- */
-app.listen(4000, () => console.log(" Server running on http://localhost:4000"));
+
+// --- Start Server ---
+const PORT = 4000;
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

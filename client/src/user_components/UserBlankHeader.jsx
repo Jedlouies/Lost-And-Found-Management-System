@@ -104,7 +104,7 @@ useEffect(() => {
     <div className='header-body'>
 
 
-        <div className='header-right-tables'>
+        <div className='header-right'>
           <div style={{position: 'relative'}}>
           <svg ref={bellRef} xmlns="http://www.w3.org/2000/svg" width="25" height="20" fill="white" class="bi bi-bell" viewBox="0 0 16 16" 
           onClick={() => {
@@ -148,11 +148,14 @@ useEffect(() => {
            <p onClick={toggleDropDown}>{lastName}</p>
         </div>
     </div>
-    <div className={`account-dropdown ${dropDown ? 'dropDown' : ''}`} ref={dropdownRef}>
+    <div className='dropdown-containers2'>
+
+    <div className={`account-dropdown2 ${dropDown ? 'dropDown' : ''}`} ref={dropdownRef}>
       <HeaderAccountDropdown />  
      </div>
-    <div className={`notify-panels ${notifyPanel ? 'notifyPanel' : ''}`} ref={notifyRef}>
+    <div className={`notify-panels2 ${notifyPanel ? 'notifyPanel' : ''}`} ref={notifyRef}>
       <HeaderNotifyDropdown />
+    </div>
     </div>
     </> 
   )

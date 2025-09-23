@@ -153,7 +153,8 @@ function UserProfilePage() {
           </div>
 
           </div>
-              <div className='profile-other-details'>
+          <div className='all-profile-details'>
+            <div className='profile-other-details'>
                 <p><strong>Firstname: </strong>{firstName}</p>
                 <p><strong>Lastname: </strong>{lastName}</p>
                 <p><strong>Gender: </strong>{gender}</p>
@@ -173,7 +174,9 @@ function UserProfilePage() {
                 <p><strong>Bio: </strong> {bio}</p>
 
               </div>
-            </div>
+          </div>
+              
+        </div>
     </>
   )
 }

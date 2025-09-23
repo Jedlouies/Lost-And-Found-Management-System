@@ -1,27 +1,107 @@
-import React from 'react';
-import Chart from 'react-apexcharts';
-import './styles/ClaimedLostFound.css';
+import React, { useEffect, useState } from "react";
+import Chart from "react-apexcharts";
+import "./styles/ClaimedLostFound.css";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 
 function ClaimedLostFoundChart() {
+  const [series, setSeries] = useState([]);
+  const [loading, setLoading] = useState(true); // added loading state
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+
+  // helper: count by month
+  const getMonthlyCounts = (items, type = "found", year = new Date().getFullYear()) => {
+    const counts = Array(12).fill(0);
+
+    items.forEach((item) => {
+      let date = null;
+
+      if (type === "found" && item.dateFound) {
+        date = item.dateFound.toDate ? item.dateFound.toDate() : new Date(item.dateFound);
+      }
+      if (type === "lost" && item.dateLost) {
+        date = item.dateLost.toDate ? item.dateLost.toDate() : new Date(item.dateLost);
+      }
+
+      if (date && date.getFullYear() === year) {
+        const month = date.getMonth();
+        counts[month]++;
+      }
+    });
+
+    return counts.map((count, i) => ({
+      x: new Date(year, i).toLocaleString("default", { month: "short" }),
+      y: count,
+    }));
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true); // start loading
+
+        // Found Items
+        const foundSnap = await getDocs(collection(db, "foundItems"));
+        const foundItems = foundSnap.docs.map((doc) => doc.data());
+
+        // Lost Items
+        const lostSnap = await getDocs(collection(db, "lostItems"));
+        const lostItems = lostSnap.docs.map((doc) => doc.data());
+
+        // Claimed (from lost items)
+        const claimedItems = lostItems.filter(
+          (item) => item.claimStatus === "claimed"
+        );
+
+        setSeries([
+          {
+            name: "Item Claimed",
+            color: "#9EBAD6",
+            data: getMonthlyCounts(claimedItems, "lost"),
+          },
+          {
+            name: "Lost Items",
+            color: "#384959",
+            data: getMonthlyCounts(lostItems, "lost"),
+          },
+          {
+            name: "Found Items",
+            color: "#88BDF1",
+            data: getMonthlyCounts(foundItems, "found"),
+          },
+        ]);
+
+        setLoading(false); // finish loading
+      } catch (err) {
+        console.error("Error fetching chart data:", err);
+        setLoading(false); // stop loading even if error
+      }
+    };
+
+    fetchData();
+
+    const interval = setInterval(fetchData, 24 * 60 * 60 * 1000); // refresh every 24h
+    return () => clearInterval(interval);
+  }, []);
+
   const options = {
     colors: ["#1A56DB", "#F43F5E", "#10B981"],
     chart: {
-    type: "bar",
-    fontFamily: "Inter, sans-serif",
-    toolbar: {
-      show: true,
-      tools: {
-        download: true,
-        selection: true,
-        zoom: true,
-        zoomin: false,
-        zoomout: false,
-        pan: false,
-        reset: false,
-        customIcons: [],
+      type: "bar",
+      fontFamily: "Inter, sans-serif",
+      toolbar: {
+        show: true,
+        tools: {
+          download: true,
+          selection: true,
+          zoom: true,
+          zoomin: false,
+          zoomout: false,
+          pan: false,
+          reset: false,
+        },
       },
     },
-  },
     plotOptions: {
       bar: {
         horizontal: false,
@@ -30,45 +110,14 @@ function ClaimedLostFoundChart() {
         borderRadius: 2,
       },
     },
-    tooltip: {
-      shared: true,
-      intersect: false,
-      style: { fontFamily: "Inter, sans-serif"},
-    },
-    states: {
-      hover: { filter: { type: "darken", value: 1 } },
-    },
-    stroke: {
-      show: true,
-      width: 0,
-      colors: ["transparent"],
-    },
-    grid: {
-      show: true,
-      strokeDashArray: 4,
-      padding: { left: 10, right: 2, top: -14 },
-      borderColor: 'gray', 
-    },
     dataLabels: { enabled: false },
     legend: {
       show: true,
       position: "top",
-      
-      borderRadius: "80px",
-      labels: {
-        colors: ["#6B7280"],
-        useSeriesColors: false,
-      },
     },
     xaxis: {
       type: "category",
-      labels: {
-        show: true,
-        style: {
-          fontFamily: "Inter, sans-serif",
-          cssClass: 'text-xs font-normal fill-gray-500 dark:fill-gray-400',
-        },
-      },
+      labels: { show: true },
       axisBorder: { show: false },
       axisTicks: { show: false },
     },
@@ -76,66 +125,15 @@ function ClaimedLostFoundChart() {
     fill: { opacity: 1 },
   };
 
-  const series = [
-    {
-      name: "Item Claimed",
-      color: "#9EBAD6",
-      data: [
-        { x: "Jan", y: 100 },
-        { x: "Feb", y: 150 },
-        { x: "March", y: 180 },
-        { x: "April", y: 320 },
-        { x: "May", y: 230 },
-        { x: "June", y: 190 },
-        { x: "July", y: 120 },
-        { x: "Aug", y: 330 },
-        { x: "Sept", y: 140 },
-        { x: "Oct", y: 120 },
-        { x: "Nov", y: 310 },
-        { x: "Dec", y: 170 },
-      ],
-    },
-    {
-      name: "Lost Items",
-      color: "#384959",
-      data: [
-        { x: "Jan", y: 400 },
-        { x: "Feb", y: 234 },
-        { x: "March", y: 342 },
-        { x: "April", y: 350 },
-        { x: "May", y: 420 },
-        { x: "June", y: 390 },
-        { x: "July", y: 420 },
-        { x: "Aug", y: 400 },
-        { x: "Sept", y: 160 },
-        { x: "Oct", y: 180 },
-        { x: "Nov", y: 350 },
-        { x: "Dec", y: 270 },
-      ],
-    },
-    {
-      name: "Found Items",
-      color: "#88BDF1",
-      data: [
-        { x: "Jan", y: 343 },
-        { x: "Feb", y: 321 },
-        { x: "March", y: 234 },
-        { x: "April", y: 213 },
-        { x: "May", y: 342 },
-        { x: "June", y: 125 },
-        { x: "July", y: 156 },
-        { x: "Aug", y: 430 },
-        { x: "Sept", y: 230 },
-        { x: "Oct", y: 230 },
-        { x: "Nov", y: 120 },
-        { x: "Dec", y: 324 },
-      ],
-    },
-  ];
-
   return (
-    <div className="body">
-      <Chart options={options} series={series} type="bar" height={'100%'} />
+    <div className="body" style={{ position: "relative", height: "400px" }}>
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
+          <img src="/Spin_black.gif" alt="Loading..." style={{ width: "40px", height: "40px" }} />
+        </div>
+      ) : (
+        <Chart options={options} series={series} type="bar" height="100%" />
+      )}
     </div>
   );
 }

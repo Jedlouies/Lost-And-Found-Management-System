@@ -1,6 +1,8 @@
 import admin from "firebase-admin";
 import dotenv from "dotenv";
 import { Resend } from "resend";
+import OpenAI from "openai";
+
 
 dotenv.config();
 
@@ -26,3 +28,8 @@ if (!admin.apps.length) {
 
 export const db = admin.firestore();
 export const resend = new Resend(process.env.RESEND_API_KEY);
+export const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY, 
+});
+
+

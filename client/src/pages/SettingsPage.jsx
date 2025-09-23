@@ -7,6 +7,8 @@ import BlankHeader from '../components/BlankHeader';
 import './styles/SettingsPage.css';
 import FloatingAlert from '../components/FloatingAlert';
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { Modal, Button, Spinner, Form } from "react-bootstrap";
+
 
 
 function SettingsPage() {
@@ -329,38 +331,56 @@ const handleUpdate = async () => {
   return (
     <>
 
-      {showPasswordModal && (
-        <div style={{
-          position: "fixed",
-          top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: "rgba(0,0,0,0.5)",
-          display: "flex", justifyContent: "center", alignItems: "center",
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: "white",
-            padding: "20px",
-            borderRadius: "10px",
-            width: "300px",
-            textAlign: "center"
-          }}>
-            <h4>Confirm Your Password</h4>
-            <input 
-              type="password" 
-              placeholder="Enter Password" 
+      <Modal
+        show={showPasswordModal}
+        onHide={() => setShowPasswordModal(false)}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Your Password</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <Form.Group controlId="passwordInput">
+            <Form.Label>Enter Password</Form.Label>
+            <Form.Control
+              type="password"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              style={{width: "100%", marginBottom: "10px", padding: "5px", backgroundColor: 'transparent', border: '3px solid #475C6F', borderRadius: '5px', color: 'black'}}
+              autoFocus
             />
-            <div className='password-modal-buttons' style={{display: "flex", justifyContent: "space-between"}}>
-              <button onClick={() => setShowPasswordModal(false)}>Cancel</button>
-              <button onClick={handleConfirmPassword} disabled={checkingPassword}>
-                {checkingPassword ? "Checking..." : "Confirm"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </Form.Group>
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button 
+            variant="secondary" 
+            onClick={() => setShowPasswordModal(false)}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="primary" 
+            onClick={handleConfirmPassword} 
+            disabled={checkingPassword}
+          >
+            {checkingPassword ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                /> Checking...
+              </>
+            ) : (
+              "Confirm"
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
         {alert && (
           <FloatingAlert
@@ -387,10 +407,7 @@ const handleUpdate = async () => {
           )}
           <div >
           <h4>Profile Picture</h4>
-          <input type="file" accept="image/*" style={{border: 'solid #475C6F 2px ', borderRadius: '5px', width: '500px'}} onChange={handleProfileChange} />
-          <button onClick={handleProfileUpload} disabled={uploadingProfile}>
-            {uploadingProfile ? 'Uploading...' : 'Upload'}
-          </button> 
+          <input type="file" accept="image/*" style={{border: 'solid #475C6F 2px ', borderRadius: '5px', width: '600px'}} onChange={handleProfileChange} />
           </div>     
         </div>
         
@@ -399,10 +416,7 @@ const handleUpdate = async () => {
 
         <div style={{marginTop: '10px'}}>
           <h4>Cover Photo</h4>
-          <input type="file" accept="image/*" style={{border: 'solid #475C6F 2px ', borderRadius: '5px', width: '500px'}} onChange={handleCoverChange} />
-          <button onClick={handleCoverUpload} disabled={uploadingCover}>
-            {uploadingCover ? 'Uploading...' : 'Upload'}
-          </button>
+          <input type="file" accept="image/*" style={{border: 'solid #475C6F 2px ', borderRadius: '5px', width: '600px'}} onChange={handleCoverChange} />
 
         </div>
         </div>

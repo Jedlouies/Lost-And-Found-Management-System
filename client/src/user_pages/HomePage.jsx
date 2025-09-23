@@ -25,6 +25,8 @@ function HomePage() {
   const [alert, setAlert] = useState({ type: "", message: "", visible: false });
   const auth = getAuth();
   const user = auth.currentUser;
+  const [loadingLost, setLoadingLost] = useState(true);
+  const [loadingFound, setLoadingFound] = useState(true);
 
   const handleNavigate = (path) => {
     
@@ -37,6 +39,8 @@ function HomePage() {
   useEffect(() => {
     const fetchItems = async () => {
       try {
+        setLoadingLost(true);
+        setLoadingFound(true);
 
         const lostSnapshot = await getDocs(collection(db, 'lostItems'));
         const lostData = lostSnapshot.docs.map(doc => ({
@@ -44,17 +48,20 @@ function HomePage() {
           ...doc.data(),
         }));
         setLostItems(lostData);
+        setLoadingLost(false);
 
-    
         const foundSnapshot = await getDocs(collection(db, 'foundItems'));
         const foundData = foundSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
         }));
         setFoundItems(foundData);
+        setLoadingFound(false); 
 
       } catch (error) {
         console.error("Error fetching items:", error);
+        setLoadingLost(false);
+        setLoadingFound(false);
       }
     };
 
@@ -165,7 +172,7 @@ useEffect(() => {
       <MessageAdminButton setAlert={setAlert} />
 
       {alert.visible && (
-        <FloatingAlert
+        <FloatingAlert  
           message={alert.message}
           type={alert.type}
           visible={alert.visible}
@@ -209,7 +216,9 @@ useEffect(() => {
         </h1>
         <h4 style={{ position: 'absolute', top: '15%', left: '90%', color: '#475C6F', cursor: 'pointer' }} onClick={() => handleNavigate(`/users/lost-items/${user?.uid}`)}>More</h4>
         <div className="home-lost-container" ref={lostContainerRef}>
-          {recentLostItems.length > 0 ? (
+          {loadingLost ? (
+            <img src="/Spin_black.gif" alt="loading..." style={{ width: "70px", height: "70px" }} />
+          ) : recentLostItems.length > 0 ? (
             recentLostItems.map((item, index) => (
               <div
                 className="lost-item-card"
@@ -236,18 +245,30 @@ useEffect(() => {
                   <h4 style={{fontSize: '15px'}}>{item.itemName}</h4>
                   <div className="own">
                     <img
-                      src={item.personalInfo?.profileURL}
-                      alt=""
-                      style={{ width: "50px", height: "50px", borderRadius: "40px", objectFit: "cover" }}
+                      src={item.personalInfo?.profileURL || "/default-profile.png"}
+                      alt="profile"
+                      style={{
+                        width: "50px",
+                        height: "50px",
+                        borderRadius: "40px",
+                        objectFit: "cover",
+                      }}
                     />
                     <p>
                       <strong style={{ fontSize: "14px" }}>
-                        {item.personalInfo?.firstName} {item.personalInfo?.lastName}
+                        {item.isGuest === true
+                          ? item.personalInfo?.firstName || "Guest"
+                          : `${item.personalInfo?.firstName || ""} ${item.personalInfo?.lastName || ""}`.trim()}
                       </strong>
                       <br />
-                      {item.personalInfo?.course?.abbr} Student
+                      {item.isGuest !== true && (
+                        <span>
+                          {item.personalInfo?.course?.abbr
+                            ? `${item.personalInfo.course.abbr} Student`
+                            : "Unknown"}
+                        </span>
+                      )}
                     </p>
-                    
                   </div>
                   <p style={{ marginTop: "10px", fontSize: "12px", color: 'black', height: '60px', width: '250px', textAlign: 'left', marginLeft: '10px' }}>
                       {item.howItemLost && item.howItemLost.length > 120
@@ -255,12 +276,11 @@ useEffect(() => {
                         : item.howItemLost}
                     </p> 
                 </div>
-                <p style={{color: 'black', fontSize: '8px', position: 'absolute', top: '93%', marginLeft: '100px', fontStyle: 'italic'}}>(Click the card to view details)</p>
               </div>
             ))
-          ) : (
-            <p style={{color: 'black'}}>No recent lost items found.</p>
-          )}
+            ) : (
+              <p style={{color: 'black'}}>No recent found items found.</p>
+            )}
         </div>
         <h1 style={{ fontSize: '30px', alignItems: 'center', top: '57%', fontWeight: '500' }}>
           <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-bag-check" viewBox="0 0 16 16" style={{ marginRight: '10px', color: '#475C6F' }}>
@@ -271,7 +291,9 @@ useEffect(() => {
         </h1>
         <h4 style={{ position: 'absolute', top: '57%', left: '90%', color: '#475C6F', cursor: 'pointer' }} onClick={() => handleNavigate(`/users/found-items/${user?.uid}`)}>More</h4>
         <div className="home-found-container" ref={foundContainerRef}>
-          {recentFoundItems.length > 0 ? (
+          {loadingFound ? (
+            <img src="/Spin_black.gif" alt="loading..." style={{ width: "70px", height: "70px" }} />
+          ) : recentFoundItems.length > 0 ? (
             recentFoundItems.map((item, index) => (
               <div
                 className="lost-item-card"
@@ -298,26 +320,38 @@ useEffect(() => {
                   <h4 style={{fontSize: '15px'}}>{item.itemName}</h4>
                   <div className="own">
                     <img
-                      src={item.personalInfo?.profileURL}
-                      alt=""
-                      style={{ width: "50px", height: "50px", borderRadius: "40px", objectFit: "cover" }}
+                      src={item.personalInfo?.profileURL || "/default-profile.png"}
+                      alt="profile"
+                      style={{
+                        width: "50px",
+                        height: "50px",
+                        borderRadius: "40px",
+                        objectFit: "cover",
+                      }}
                     />
                     <p>
                       <strong style={{ fontSize: "14px" }}>
-                        {item.personalInfo?.firstName} {item.personalInfo?.lastName}
+                        {item.isGuest === true
+                          ? item.personalInfo?.firstName || "Guest"
+                          : `${item.personalInfo?.firstName || ""} ${item.personalInfo?.lastName || ""}`.trim()}
                       </strong>
                       <br />
-                      {item.personalInfo?.course?.abbr} Student
+                      {item.isGuest !== true && (
+                        <span>
+                          {item.personalInfo?.course?.abbr
+                            ? `${item.personalInfo.course.abbr} Student`
+                            : "Unknown"}
+                        </span>
+                      )}
                     </p>
-                    
                   </div>
+
                   <p style={{ marginTop: "10px", fontSize: "12px", color: 'black', height: '60px', width: '250px', textAlign: 'left', marginLeft: '10px' }}>
                       {item.howItemFound && item.howItemFound.length > 120
                         ? item.howItemFound.slice(0, 120) + "..."
                         : item.howItemFound}
                     </p>
                 </div>
-                <p style={{color: 'black', fontSize: '8px', position: 'absolute', top: '93%', marginLeft: '100px', fontStyle: 'italic'}}>(Click the card to view details)</p>
 
               </div>
             ))

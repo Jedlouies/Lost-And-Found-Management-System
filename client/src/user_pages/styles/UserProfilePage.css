@@ -57,9 +57,9 @@
 
 .profile-other-details {
     position: absolute;
-    line-height: 10px;
+    line-height: normal;
     left: 5%;
-    top: 65%;
+   margin-top: -140px;
 }
 
 .profile-other-details p{
@@ -75,7 +75,8 @@
     position: absolute;
     line-height: 10px;
     left: 40%;
-    top: 65%;
+     margin-top: -140px;
+
 }
 
 .profile-other-details2 p{
@@ -106,4 +107,17 @@
 .profile-quick-action button:hover {
     background-color: #CFE5F9;
     color: #475C6F;
+}
+
+
+.all-profile-details {
+    position: absolute;
+    top: 55%;
+    left: 1%;
+    border-radius: 10px;
+    
+    background-color: white;
+    justify-content: center;
+    width: 1400px;
+    height: 300px;
 }

@@ -303,16 +303,7 @@ const finalizeClaim = async () => {
     });
 
     
-    await addDoc(collection(db, "claimHistory"), {
-      itemId: matchData.foundItem.itemId,
-      itemName: matchData.foundItem.itemName || "",
-      dateClaimed: new Date().toISOString(),
-      founder: matchData.foundItem.personalInfo || null,
-      owner: matchData.lostItem?.personalInfo || null,
-      claimantPhoto: capturedImage,
-      userAccount: currentUser.uid || null,
-      status: "completed"
-    });
+   
 
     await notifyUser(currentUser?.uid, `<b>Transaction ID: ${matchData.transactionId}</b> — The system has successfully processed a matching request for a lost item report. 
       The results generated are: 
@@ -325,8 +316,90 @@ const finalizeClaim = async () => {
       `);
     await notifyUser(matchData.foundItem?.uid, `Thank you <b>"${matchData.foundItem?.personalInfo?.firstName}"!</b>  The item you reported found <b>"${matchData.foundItem?.itemName}"</b> 
       has been successfully claimed by its rightful owner.  
-We appreciate your honesty and contribution. Kindly rate your experience with the process.
-`);
+      We appreciate your honesty and contribution. Kindly rate your experience with the process.
+      `);
+
+      try {
+                  const emailResUser = await fetch("http://localhost:4000/api/send-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      to: String(currentUser?.email),
+                      subject: "Transaction Processed",
+                      html: `<b>Transaction ID: ${matchData.transactionId}</b> — The system has successfully processed a matching request for a lost item report. 
+                        The results generated are: 
+                        Image Match ${matchData.scores?.imageScore}%, 
+                        Description Match ${matchData.scores?.descriptionScore}%, 
+                        and an Overall Match Rate of ${matchData.scores?.overallScore}%. 
+                        Please review the transaction details for further verification.`
+                    })
+                  });
+
+                  const emailDataUser = await emailResUser.json();
+                  console.log("Email response for user:", emailDataUser);
+
+                  if (!emailResUser.ok) {
+                    console.error("Failed to send email to user:", emailDataUser);
+                  } else {
+                    console.log("Email successfully sent to user:", email);
+                  }
+
+                } catch (emailErrorUser) {
+                  console.error("Error sending email to user:", emailErrorUser);
+                }
+
+
+                try {
+                  const emailResUser = await fetch("http://localhost:4000/api/send-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      to: String(matchData.lostItem?.personalInfo?.email),
+                      subject: "Transaction Processed",
+                      html:` Hello <b>"${matchData.lostItem?.personalInfo?.firstName}"!</b>  Your lost item <b>"${matchData.lostItem?.itemName}"</b> has been successfully claimed.  
+      Please take a moment to rate your experience and help us improve the matching process.
+      `
+                    })
+                  });
+
+                  const emailDataUser = await emailResUser.json();
+                  console.log("Email response for user:", emailDataUser);
+
+                  if (!emailResUser.ok) {
+                    console.error("Failed to send email to user:", emailDataUser);
+                  } else {
+                    console.log("Email successfully sent to user:", matchData.lostItem?.personalInfo?.email);
+                  }
+
+                } catch (emailErrorUser) {
+                  console.error("Error sending email to user:", emailErrorUser);
+                }
+
+                try {
+                  const emailResUser = await fetch("http://localhost:4000/api/send-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      to: String(matchData.foundItem?.personalInfo?.email),
+                      subject: "Transaction Processed",
+                      html:` Hello <b>"${matchData.foundItem?.personalInfo?.firstName}"!</b>  Your lost item <b>"${matchData.foundItem?.itemName}"</b> has been successfully claimed.  
+      Please take a moment to rate your experience and help us improve the matching process.
+      `
+                    })
+                  });
+
+                  const emailDataUser = await emailResUser.json();
+                  console.log("Email response for user:", emailDataUser);
+
+                  if (!emailResUser.ok) {
+                    console.error("Failed to send email to user:", emailDataUser);
+                  } else {
+                    console.log("Email successfully sent to user:", matchData.foundItem?.personalInfo?.email);
+                  }
+
+                } catch (emailErrorUser) {
+                  console.error("Error sending email to user:", emailErrorUser);
+                }
 
     setShowScanner(false);  
     setIsScanning(false);
@@ -385,19 +458,7 @@ We appreciate your honesty and contribution. Kindly rate your experience with th
         <canvas ref={canvasRef} style={{ display: "none" }} />
 
         
-        {capturedImage && (
-          <div className="captured-section">
-            <img
-              src={capturedImage}
-              alt="Captured"
-              style={{
-                width: "200px",
-                border: "2px solid #475C6F",
-                borderRadius: "8px",
-              }}
-            />
-          </div>
-        )}
+        
 
 
         <div className="qr-scanner-container" style={{ position: "absolute" }}>
@@ -405,8 +466,8 @@ We appreciate your honesty and contribution. Kindly rate your experience with th
           {capturedImage && scanFeedback && (
             <div style={{
               position: "relative",
-              top: "-250px",
-              left: "200%",
+              top: "-550px",
+              left: "220%",
               transform: "translateX(-50%)",
               backgroundColor: "#000000cc",
               color: "white",
@@ -440,7 +501,7 @@ We appreciate your honesty and contribution. Kindly rate your experience with th
                 <div
                   style={{
                     position: "absolute",
-                    top: -150,
+                    top: -390,
                     left: 300,
                     width: "100%",
                     height: "100%",
@@ -500,9 +561,26 @@ We appreciate your honesty and contribution. Kindly rate your experience with th
             )}
         </div>
 
+
+        
+            {capturedImage && (
+          <div className="captured-section">
+            <img
+              src={capturedImage}
+              alt="Captured"
+              style={{
+                width: "200px",
+                border: "2px solid #475C6F",
+                borderRadius: "8px",
+              }}
+            />
+          </div>
+        )}
      
         {qrResult && (
-          <div className="qr-result">
+          
+          <div className="qr-result" style={{backgroundColor: 'white', width: '270px', borderRadius: '20px', padding: '10px'}}>
+            
             <p>Scanned ID Info:</p>
             <p style={{ fontWeight: "400"}}>Fullname: {qrResult.fullname}</p>
             <p style={{ fontWeight: "400" }}>ID Number: {qrResult.idNumber}</p>
@@ -512,7 +590,7 @@ We appreciate your honesty and contribution. Kindly rate your experience with th
 
     
         {userData && (
-          <div className="qr-results" style={{ marginTop: "160px" }}>
+          <div className="qr-results" style={{ marginTop: "170px", backgroundColor: 'white', width: '500px', borderRadius: '20px', padding: '10px' }}>
             <p><b>Matched User Account:</b></p>
             {userData.error ? (
               <p style={{ color: "red" }}>{userData.error}</p>
@@ -523,7 +601,7 @@ We appreciate your honesty and contribution. Kindly rate your experience with th
                   alt="Profile" 
                   style={{ width: "60px", height: "60px", borderRadius: "100%", objectFit: "cover" }}
                 />
-                <p style={{position: "absolute", top: "15%", left: "25%", fontSize: "20px", width: "600px", marginLeft: "20px", fontWeight: "600", color: '#475C6F'}}>
+                <p style={{position: "absolute", top: "15%", left: "15%", fontSize: "20px", width: "600px", marginLeft: "20px", fontWeight: "600", color: '#475C6F'}}>
                   {userData.firstName} {userData.middleName} {userData.lastName}
                 </p>
                 <p style={{ fontWeight: "400" }}>Email: {userData.email}</p>

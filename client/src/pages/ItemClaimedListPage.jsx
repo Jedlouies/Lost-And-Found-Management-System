@@ -13,10 +13,11 @@ function ItemClaimedListPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [items, setItems] = useState([]);
   const [previewImage, setPreviewImage] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedYear, setSelectedYear] = useState("All");
 
   const itemsPerPage = 6;
 
-  
   useEffect(() => {
     const fetchClaimedItems = async () => {
       try {
@@ -31,20 +32,30 @@ function ItemClaimedListPage() {
         setItems(claimed);
       } catch (error) {
         console.error("Error fetching claimed items:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchClaimedItems();
   }, []);
 
-  const totalPages = Math.ceil(items.length / itemsPerPage);
+  // Filter items by selectedYear
+  const filteredItems = items.filter(item => {
+    if (selectedYear === "All") return true;
+    if (!item.dateClaimed) return false;
+    const year = new Date(item.dateClaimed).getFullYear();
+    return year.toString() === selectedYear;
+  });
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
     }
   };
 
-  const displayedItems = items.slice(
+  const displayedItems = filteredItems.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -57,7 +68,6 @@ function ItemClaimedListPage() {
         <div className='found-item-container' style={{ position: 'absolute', top: '80px' }}>
           <h1>Claimed List</h1>
 
-          
           <div className='searchBar'>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#475C6F" className="bi bi-search" viewBox="0 0 16 16">
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
@@ -65,27 +75,25 @@ function ItemClaimedListPage() {
             <input type="text" placeholder='Search' />
           </div>
 
-          
-          <div className='actions-row' style={{ width: '500px', marginTop: '10px', marginLeft: '40px' }}>
-            
+          <div className='actions-row1' style={{ width: '500px', marginTop: '-15px', marginLeft: '40px' }}>
             Academic Year:
             <DropdownButton
               id="dropdown-academic-year"
-              title="Select Year"
+              title={selectedYear === "All" ? "All Years" : selectedYear}
               variant="secondary"
               size="sm"
               style={{ marginLeft: '10px' }}
             >
-              <Dropdown.Item>2022–2023</Dropdown.Item>
-              <Dropdown.Item>2023–2024</Dropdown.Item>
-              <Dropdown.Item>2024–2025</Dropdown.Item>
-              <Dropdown.Item>2025–2026</Dropdown.Item>
+              <Dropdown.Item onClick={() => setSelectedYear("All")}>All</Dropdown.Item>
+              <Dropdown.Item onClick={() => setSelectedYear("2022")}>2022</Dropdown.Item>
+              <Dropdown.Item onClick={() => setSelectedYear("2023")}>2023</Dropdown.Item>
+              <Dropdown.Item onClick={() => setSelectedYear("2024")}>2024</Dropdown.Item>
+              <Dropdown.Item onClick={() => setSelectedYear("2025")}>2025</Dropdown.Item>
             </DropdownButton>
           </div>
 
-          
           <div>
-            <table className='found-item-table' style={{ marginTop: '30px' }}>
+            <table className='found-item-table1' style={{marginTop: '20px'}}>
               <thead>
                 <tr>
                   <th>Item ID No.</th>
@@ -95,53 +103,51 @@ function ItemClaimedListPage() {
                   <th>Date Claimed</th>
                   <th>Founder</th>
                   <th>Owner</th>
-                 
                 </tr>
               </thead>
               <tbody>
-                {displayedItems.length > 0 ? (
+                {loading ? (
+                  
+                    <div colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
+                      <img src="/Spin_black.gif" alt="Loading..." style={{ width: "50px" }} />
+                    </div>
+                  
+                ) : displayedItems.length > 0 ? (
                   displayedItems.map((item, index) => (
                     <tr className='body-row' key={index}>
                       <td>{item.itemId}</td>
-
                       <td>
                         <div className='item-image'>
                           {item.images && item.images.length > 0 ? (
                             <img 
-                            src={item.images[0]} 
-                            alt={item.itemName} 
-                            style={{ width: "50px", height: "50px", borderRadius: "100%", objectFit: "cover", cursor: "pointer" }} 
-                            onMouseEnter={() => setPreviewImage(item.images[0])}
-                            onMouseLeave={() => setPreviewImage(null)}
-                          />
-
+                              src={item.images[0]} 
+                              alt={item.itemName} 
+                              style={{ width: "50px", height: "50px", borderRadius: "100%", objectFit: "cover", cursor: "pointer" }} 
+                              onMouseEnter={() => setPreviewImage(item.images[0])}
+                              onMouseLeave={() => setPreviewImage(null)}
+                            />
                           ) : (
                             <div className="no-image">No Item</div>
                           )}
                         </div>
                       </td>
-
-                     
                       <td>
                         <div className='item-image'>
                           {item.ownerActualFace ? (
                             <img 
-                            src={item.ownerActualFace} 
-                            alt="Owner Face" 
-                            style={{ width: "50px", height: "50px", borderRadius: "50%", objectFit: "cover", border: "2px solid #475C6F", cursor: "pointer" }} 
-                            onMouseEnter={() => setPreviewImage(item.ownerActualFace)}
-                            onMouseLeave={() => setPreviewImage(null)}
-                          />
-
+                              src={item.ownerActualFace} 
+                              alt="Owner Face" 
+                              style={{ width: "50px", height: "50px", borderRadius: "50%", objectFit: "cover", border: "2px solid #475C6F", cursor: "pointer" }} 
+                              onMouseEnter={() => setPreviewImage(item.ownerActualFace)}
+                              onMouseLeave={() => setPreviewImage(null)}
+                            />
                           ) : (
                             <div className="no-image">No Face</div>
                           )}
                         </div>
                       </td>
-
                       <td>{item.itemName}</td>
                       <td>{new Date(item.dateClaimed).toLocaleDateString()}</td>
-                      
                       <td>
                         <div className='founder-details'>
                           <img src={item.founder?.profileURL || ""} alt="" style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} />
@@ -151,7 +157,6 @@ function ItemClaimedListPage() {
                           </div>
                         </div>
                       </td>
-
                       <td>
                         <div className='owner-details'>
                           <img src={item.owner?.profileURL || ""} alt="" style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} />
@@ -161,36 +166,30 @@ function ItemClaimedListPage() {
                           </div>
                         </div>
                       </td>
-
-                     
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center' }}>No claimed items found.</td>
+                    <td colSpan="7" style={{ textAlign: 'center' }}>No claimed items found.</td>
                   </tr>
                 )}
               </tbody>
-
-              
               <tfoot>
                 <tr className='footer'>
                   <td colSpan="7" style={{ textAlign: 'center', padding: '10px 0' }}>
                     <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>{'<'}</button>
-                    {
-                      [...Array(totalPages)].map((_, i) => i + 1).map((pageNum) => (
-                        <button
-                          key={pageNum}
-                          onClick={() => handlePageChange(pageNum)}
-                          style={{
-                            fontWeight: currentPage === pageNum ? 'bold' : 'normal',
-                            margin: '0 5px'
-                          }}
-                        >
-                          {pageNum}
-                        </button>
-                      ))
-                    }
+                    {[...Array(totalPages)].map((_, i) => i + 1).map((pageNum) => (
+                      <button
+                        key={pageNum}
+                        onClick={() => handlePageChange(pageNum)}
+                        style={{
+                          fontWeight: currentPage === pageNum ? 'bold' : 'normal',
+                          margin: '0 5px'
+                        }}
+                      >
+                        {pageNum}
+                      </button>
+                    ))}
                     <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>{'>'}</button>
                   </td>
                 </tr>
@@ -198,7 +197,8 @@ function ItemClaimedListPage() {
             </table>
           </div>
         </div>
-                {previewImage && (
+
+        {previewImage && (
           <div 
             style={{
               position: "fixed",
@@ -219,7 +219,6 @@ function ItemClaimedListPage() {
             />
           </div>
         )}
-
       </div>
     </>
   );

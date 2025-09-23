@@ -32,7 +32,7 @@ function GuestReportFoundPage() {
   const [firstName, setFirstName] = useState('Guest');
   const [lastName, setLastName] = useState('Guest');
   const [middleName, setMiddleName] = useState('Guest');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(userData.email);
   const [contactNumber, setContactNumber] = useState('Guest');
   const [address, setAddress] = useState('Guest');
 
@@ -42,6 +42,8 @@ function GuestReportFoundPage() {
   const dbRealtime = getDatabase();
 
   const WORD_LIMIT = 150;
+
+  
 
   const limitWords = (text, setFn) => {
     const words = text.trim().split(/\s+/);
@@ -56,33 +58,35 @@ function GuestReportFoundPage() {
     return text.trim().split(/\s+/).filter(Boolean).length;
   };
 
-  useEffect(() => {
-    const fetchUserInfo = async () => {
+ useEffect(() => {
+  const fetchGuestInfo = async () => {
+    try {
       const user = auth.currentUser;
-      if (!user || user.isAnonymous) return;
+      if (!user) return; // not logged in
 
-      if (!currentUser) return;
-      const userRef = doc(db, 'users', currentUser.uid);
+      // Always check Firestore "users" collection for guest records
+      const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
+
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        setFirstName(userData.firstName || '');
-        setLastName(userData.lastName || '');
-        setMiddleName(userData.middleName || '');
-        setEmail(userData.email || '');
-        setContactNumber(userData.contactNumber || '');
-        setAddress(userData.address || '');
-        setProfileURL(userData.profileURL || '');
-        setCoverURL(userData.coverURL || '');
-        setCourse(userData.course || '');
-        setSection(userData.section || '');
-        setYearLevel(userData.yearLevel || '');
-        setBirthdate(userData.birthdate || '');
-        setFounder(`${userData.firstName || ''} ${userData.lastName || ''}`);
+        console.log("Fetched guest user data:", userData);
+
+        setEmail(userData.email || "");  // <-- fetch the guest email
+        setFirstName(userData.firstName || "Guest");
+        setLastName(userData.lastName || "Guest");
+        setFounder(`${userData.firstName || "Guest"} ${userData.lastName || ""}`);
+      } else {
+        console.warn("Guest user document not found in Firestore.");
       }
-    };
-    fetchUserInfo();
-  }, [currentUser]);
+    } catch (err) {
+      console.error("Error fetching guest user info:", err);
+    }
+  };
+
+  fetchGuestInfo();
+}, []);
+
 
   const handleImageChange = (e) => {
     setImages(e.target.files);
@@ -146,8 +150,8 @@ function GuestReportFoundPage() {
         itemName,
         dateFound,
         locationFound,
-        archivedStatus: 'false',
-        isGuest: !currentUser,
+        archivedStatus: false,
+        isGuest: true,
         founder,
         owner,
         claimStatus,
@@ -189,6 +193,37 @@ function GuestReportFoundPage() {
           `Your found item <b>${itemName}</b> has been submitted as Guest. 
           Please surrender it to the OSA for verification. The item is currently on a pending status.`
         );
+
+        const recipientEmail = email;
+         console.log("Current user email:", recipientEmail);
+
+         try {
+                  const emailResUser = await fetch("http://localhost:4000/api/send-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      to: String(recipientEmail),
+                      subject: "Instructions for Found Items",
+                      html: `
+                        <p>Hello ${firstName},</p>
+                        <p>Your found item <b>${itemName}</b> has been submitted as Guest.</p>
+                        <p>Please surrender it to the OSA for verification. The item is currently on a pending status.</p>
+                      `
+                    })
+                  });
+
+                  const emailDataUser = await emailResUser.json();
+                  console.log("Email response for user:", emailDataUser);
+
+                  if (!emailResUser.ok) {
+                    console.error("Failed to send email to user:", emailDataUser);
+                  } else {
+                    console.log("Email successfully sent to user:", email);
+                  }
+
+                } catch (emailErrorUser) {
+                  console.error("Error sending email to user:", emailErrorUser);
+                }
 
         navigate(`/guest/found/matching/${currentUser.uid}`, { state: { matches } });
       } else {
@@ -315,7 +350,7 @@ function GuestReportFoundPage() {
             ) : isSubmitting ? (
               <>
                 <img src="/Spin.gif" alt="Loading..." style={{ width: "20px", height: "20px" }} />
-                <span>Submitting Item...</span>
+                <span>Submitting</span>
               </>
             ) : (
               "Submit Report"

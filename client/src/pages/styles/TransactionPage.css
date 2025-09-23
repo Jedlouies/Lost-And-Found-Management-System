@@ -12,7 +12,7 @@
     display: flex;
     align-content: center;
     justify-content: center;
-    top: 20%;
+    top: 7%;
     left: 20px;
     width: 90%;
     height: 70%;
@@ -64,7 +64,7 @@
 
 .transaction-process-btn {
     position: absolute; 
-    top: 94%; 
+    top: 85%; 
     left: 75%; 
     width: 200px; 
     height: 40px; 
@@ -114,3 +114,41 @@
   visibility: visible;
   opacity: 1;
 }
+
+.loading-container {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.loading-container img {
+  width: 80px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  width: 400px;
+  text-align: center;
+}
+
+/* Custom modal width */
+.custom-modal-width {
+  max-width: 400px; /* adjust as needed */
+  width: 100%;
+}
+
+

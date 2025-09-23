@@ -144,7 +144,7 @@
         itemName,
         dateLost,
         locationLost,
-        archivedStatus: 'false',
+        archivedStatus: false,
         founder,
         owner,
         claimStatus,
@@ -182,26 +182,40 @@
       for (let i = 0; i < top4Matches.length; i++) {
         const match = top4Matches[i];
 
-        if (match.scores?.overallScore >= 80 && match.foundItem?.uid) {
+        if (match.scores?.overallScore >= 60 && match.foundItem?.uid) {
           
           await notifyUser(
             match.foundItem?.uid,
             `Your found item <b>${match.foundItem.itemName}</b> may possibly match with a newly reported lost item: <b>${itemName}</b>.`
           );
 
-          await fetch("http://localhost:4000/api/send-email", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              to: match.foundItem?.personalInfo?.email, 
-              subject: "Possible Lost & Found Match",
-              html: `
+          try {
+            const emailRes = await fetch("http://localhost:4000/api/send-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                to: match.foundItem?.personalInfo?.email,   // replace with the email variable
+                subject: "Best Possible Match for Found Item",
+                html: `
                 <p>Hello,</p>
                 <p>Your found item <b>${match.foundItem.itemName}</b> may possibly match with a newly reported lost item: <b>${itemName}</b>.</p>
                 <p>Please log in to check the full details.</p>
-              `
-            })
-          });
+              `,
+              }),
+            });
+
+            const emailData = await emailRes.json();
+            console.log("📧 Email API response:", emailData);
+
+            if (!emailRes.ok) {
+              console.error(`❌ Failed to send email to ${match.foundItem?.personalInfo?.email}:`, emailData);
+            } else {
+              console.log(`✅ Email successfully sent to ${match.foundItem?.personalInfo?.email}`);
+            }
+          } catch (err) {
+            console.error(`⚠️ Error sending email to ${match.foundItem?.personalInfo?.email}:`, err);
+          }
+
 
 
           if (i === 0) {
@@ -209,34 +223,33 @@
               currentUser.uid,
               `This is the most possible match for your lost item <b>${itemName}</b>: Found item <b>${match.foundItem?.itemName}</b>.`
             );
-                      await fetch("http://localhost:4000/api/send-email", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              to: currentUser.email, 
-              subject: "Best Match Found for Your Lost Item",
-              html: `
-                <p>Hello ${firstName},</p>
-                <p>This is the most possible match for your lost item <b>${itemName}</b>: Found item <b>${match.foundItem?.itemName}</b>.</p>
-                <p>Please log in to view more details.</p>
-              `
-            })
-          });
+            try {
+                  const emailResUser = await fetch("http://localhost:4000/api/send-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      to: email, 
+                      subject: "Best Match Found for Your Lost Item",
+                      html: `
+                        <p>Hello ${firstName},</p>
+                        <p>This is the most possible match for your lost item <b>${itemName}</b>: Found item <b>${match.foundItem?.itemName}</b>.</p>
+                        <p>Please log in to view more details.</p>
+                      `
+                    })
+                  });
 
-          await fetch("http://localhost:4000/api/send-email", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              to: "camara.jedlouies15@gmail.com", 
-              subject: "Testing",
-              html: `
-                <p>Hello This is the Tester,</p>
-                <p>This is the test for the email</p>
-              `,
-              test: true
-            })
-          });
+                  const emailDataUser = await emailResUser.json();
+                  console.log("Email response for user:", emailDataUser);
 
+                  if (!emailResUser.ok) {
+                    console.error("Failed to send email to user:", emailDataUser);
+                  } else {
+                    console.log("Email successfully sent to user:", email);
+                  }
+
+                } catch (emailErrorUser) {
+                  console.error("Error sending email to user:", emailErrorUser);
+                }
             
           }
 
@@ -293,9 +306,8 @@
 
     return (
       <>
-        <UserLostItemsPage />
         <div className='background'/>
-        <div className="user-lost-procedure-body">
+        <div className="user-lost-procedure-body2" >
           <p style={{ position: 'absolute', fontSize: '15px', left: '82%', top: '5%', width: '200px' }}>
             <strong>NOTE: </strong>
             To achieve a more successful matching process, 
@@ -312,10 +324,10 @@
           <h1>Report Lost Form</h1>
           <form className="lost-item-form" onSubmit={handleSubmit}>
             <label>Item Images:</label>
-            <input type="file" multiple accept="image/*" onChange={handleImageChange} style={{ width: '1000px', border: '2px solid #475C6F'}} required />
+            <input className='file' type="file" multiple accept="image/*" onChange={handleImageChange} style={{ width: '1000px', border: '2px solid #475C6F'}} required />
             <br />
             <label>Item Name:</label>
-            <input type="text" value={itemName} placeholder='e.g Nike Cap' onChange={(e) => setItemName(e.target.value)} style={{ width: '1000px' }} required />
+            <input className='file' type="text" value={itemName} placeholder='e.g Nike Cap' onChange={(e) => setItemName(e.target.value)} style={{ width: '1000px' }} required />
             <br />
             <label>Date Lost:</label>
             <input
@@ -400,7 +412,7 @@
             ) : isSubmitting ? (
               <>
                 <img src="/Spin.gif" alt="Loading..." style={{ width: "20px", height: "20px" }} />
-                <span>Matching Items...</span>
+                <span>Matching</span>
               </>
             ) : (
               "Submit Report"

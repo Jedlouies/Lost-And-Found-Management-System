@@ -8,6 +8,7 @@ import { db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { onSnapshot } from "firebase/firestore";
+import { set } from 'firebase/database';
 
 function UserFoundItemsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,6 +19,8 @@ function UserFoundItemsPage() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [savedItems, setSavedItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [loadingFound, setLoadingFound] = useState(true);
+  
 
   const navigate = useNavigate();
   
@@ -26,12 +29,15 @@ function UserFoundItemsPage() {
   useEffect(() => {
     const fetchItems = async () => {
       try {
+        setLoadingFound(true);
+
         const foundSnapshot = await getDocs(collection(db, 'foundItems'));
         const foundData = foundSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
         }));
         setFoundItems(foundData);
+        setLoadingFound(false);
       } catch (error) {
         console.error("Error fetching items:", error);
       }
@@ -141,7 +147,7 @@ function UserFoundItemsPage() {
             {savedItems.length > 0 ? (
               savedItems.map((item) => (
                 <div
-                 className='saved-items-container'
+                  className="saved-items-container"
                   key={item.id}
                   style={{
                     border: "1px solid #ddd",
@@ -151,29 +157,53 @@ function UserFoundItemsPage() {
                     display: "flex",
                     gap: "10px",
                     alignItems: "center",
-                    
                   }}
-                  onClick={() =>
-                          navigate(`/users/lost-items/more-details/${item.id}`, {
-                            state: { type: 'lost', item },
-                          })
-                        }
                 >
-                  {item.images?.length > 0 ? (
-                    <img
-                      src={item.images[0]}
-                      alt="saved"
-                      style={{ width: "60px", height: "60px", borderRadius: "5px", objectFit: "cover" }}
-                    />
-                  ) : (
-                    <div style={{ width: "60px", height: "60px", background: "#eee", borderRadius: "5px" }} />
-                  )}
-                  <div style={{ flex: 1 }}>
-                    <strong style={{color: 'black'}}>{item.personalInfo?.firstName}'s {item.itemName}</strong>
-                    <p style={{ fontSize: "12px", margin: 0., color: 'black' }}>{item.personalInfo?.course?.abbr} Student</p>
+                  <div
+                    style={{ display: "flex", gap: "10px", flex: 1, cursor: "pointer" }}
+                    onClick={() =>
+                      navigate(`/users/lost-items/more-details/${item.id}`, {
+                        state: { type: "lost", item },
+                      })
+                    }
+                  >
+                    {item.images?.length > 0 ? (
+                      <img
+                        src={item.images[0]}
+                        alt="saved"
+                        style={{
+                          width: "60px",
+                          height: "60px",
+                          borderRadius: "5px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "60px",
+                          height: "60px",
+                          background: "#eee",
+                          borderRadius: "5px",
+                        }}
+                      />
+                    )}
+                    <div>
+                      <strong style={{ color: "black" }}>
+                        {item.personalInfo?.firstName}'s {item.itemName}
+                      </strong>
+                      <p style={{ fontSize: "12px", margin: 0, color: "black" }}>
+                        {item.personalInfo?.course?.abbr} Student
+                      </p>
+                    </div>
                   </div>
+
                   <button
-                    onClick={() => toggleSave(item)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      toggleSave(item);
+                    }}
                     style={{
                       background: "red",
                       color: "white",
@@ -213,10 +243,11 @@ function UserFoundItemsPage() {
       <UserNavigationBar />
       <div className='found-item-body'>
         <UserFoundHeader /> 
-        <h1 style={{ fontSize: '30px', alignItems: 'center', top: '9%', fontWeight: '500', marginLeft: '20px', color: '#475C6F' }}>
+        
+          <div className='user-lost-searchBar2'>
+             <h1 style={{position: 'absolute', left: '-15%', top: '2%',  fontSize: '30px', fontWeight: '500', color: '#475C6F'}}>
           Found Items
-        </h1>
-          <div className='user-lost-searchBar'>
+          </h1>
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#475C6F" className="bi bi-search" viewBox="0 0 16 16">
               <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
             </svg>
@@ -296,8 +327,13 @@ function UserFoundItemsPage() {
 
 
         <div className="page-lost-container" ref={foundContainerRef}>
-          {filteredFoundItems.length > 0 ? (
-            filteredFoundItems.map((item, index) => {
+         
+          {loadingFound ? (
+              <div style={{ display: "flex", justifyContent: "center", alignContent: 'center', marginTop: "30px" }}>
+                <img src="/Spin_black.gif" alt="Loading..." style={{ width: "60px", height: '60px'}} />
+              </div>
+            ) : filteredFoundItems.length > 0 ? (
+              filteredFoundItems.map((item, index) => {
               const isSaved = savedItems.some((saved) => saved.id === item.id);
 
               return (
@@ -328,16 +364,29 @@ function UserFoundItemsPage() {
                       <h4>{item.itemName}</h4>
                       <div className="own">
                         <img
-                          src={item.personalInfo?.profileURL}
-                          alt=""
-                          style={{ width: "50px", height: "50px", borderRadius: "40px", objectFit: "cover" }}
+                          src={item.personalInfo?.profileURL || "/default-profile.png"}
+                          alt="profile"
+                          style={{
+                            width: "50px",
+                            height: "50px",
+                            borderRadius: "40px",
+                            objectFit: "cover",
+                          }}
                         />
                         <p>
                           <strong style={{ fontSize: "14px" }}>
-                            {item.personalInfo?.firstName} {item.personalInfo?.lastName}
+                            {item.isGuest === true
+                              ? item.personalInfo?.firstName || "Guest"
+                              : `${item.personalInfo?.firstName || ""} ${item.personalInfo?.lastName || ""}`.trim()}
                           </strong>
                           <br />
-                          {item.personalInfo?.course?.abbr} Student
+                          {item.isGuest !== true && (
+                            <span>
+                              {item.personalInfo?.course?.abbr
+                                ? `${item.personalInfo.course.abbr} Student`
+                                : "Unknown"}
+                            </span>
+                          )}
                         </p>
                       </div>
                       <p

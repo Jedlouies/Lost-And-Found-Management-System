@@ -1,116 +1,88 @@
-  import React, { useState, useEffect } from 'react';
-  import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
-  import { db } from '../firebase';
-  import NavigationBar from '../components/NavigationBar';
-  import './styles/TransactionPage.css';
-  import { useNavigate } from 'react-router-dom';
-  import { getAuth} from "firebase/auth";
-  import BlankHeader from '../components/BlankHeader';
-  import FloatingAlert from '../components/FloatingAlert';
-  import { useAuth } from "../context/AuthContext"; 
+import React, { useState, useEffect } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
+import NavigationBar from "../components/NavigationBar";
+import "./styles/TransactionPage.css";
+import { useNavigate } from "react-router-dom";
+import { getAuth } from "firebase/auth";
+import BlankHeader from "../components/BlankHeader";
+import FloatingAlert from "../components/FloatingAlert";
+import { useAuth } from "../context/AuthContext";
 
-  function TransactionPage() {
-    const navigate = useNavigate();
-    const auth = getAuth();
-    const user = auth.currentUser;
-    const { currentUser } = useAuth();
-    
+// 🔹 Bootstrap imports
+import { Modal, Button, Form, Spinner } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
 
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
-    const [showDropdown, setShowDropdown] = useState(false);
-    const [selectedMatch, setSelectedMatch] = useState(null);
-    const [alert, setAlert] = useState(null);
+function TransactionPage() {
+  const navigate = useNavigate();
+  const auth = getAuth();
+  const { currentUser } = useAuth();
+   const user = auth.currentUser;
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedMatch, setSelectedMatch] = useState(null);
+  const [alert, setAlert] = useState(null);
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    setIsModalOpen(true); // Open modal when page loads
+  }, []);
 
-     const handleNavigate = (path) => {
-  navigate(path);
-  setExpanded(prev => !prev);
+  // 🔹 Fetch specific match
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      setAlert({
+        message: "Please enter a transaction ID.",
+        type: "warning",
+      });
+      return;
+    }
 
-};
+    try {
+      setLoading(true);
+      const matchesRef = collection(db, "matches");
+      const snapShot = await getDocs(matchesRef);
 
-    useEffect(() => {
-      const fetchMatches = async () => {
-        if (!searchQuery.trim()) {
-          setSearchResults([]);
+      const foundMatch = snapShot.docs
+        .map((doc) => ({ id: doc.id, ...doc.data() }))
+        .find(
+          (match) =>
+            match.transactionId?.toLowerCase() === searchQuery.toLowerCase()
+        );
+
+      if (foundMatch) {
+        if (foundMatch.claimStatus === "claimed") {
+          setAlert({
+            message: "Item already claimed!",
+            type: "warning",
+          });
+          setLoading(false);
           return;
         }
-        try {
-          const matchesRef = collection(db, 'matches');
-          const snapShot = await getDocs(matchesRef);
-          const results = snapShot.docs
-            .map(doc => ({ id: doc.id, ...doc.data() }))
-            .filter(match =>
-              match.transactionId?.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-
-          setSearchResults(results);
-          setShowDropdown(true);
-
-        } catch (error) {
-          console.error("Error fetching matches:", error);
-        }
-      };
-      fetchMatches();
-    }, [searchQuery]);
-
-const handleSelectMatch = async (matchId) => {
-  try {
-    const matchRef = doc(db, 'matches', matchId);
-    const matchSnap = await getDoc(matchRef);
-
-    if (matchSnap.exists()) {
-      const matchData = { id: matchSnap.id, ...matchSnap.data() };
-
-      
-      if (matchData.claimStatus === "claimed") {
-        setAlert({ message: "Item already claimed!", type: "warning" });
-        return; 
+        setSelectedMatch(foundMatch);
+        setIsModalOpen(false);
+        setAlert(null);
+      } else {
+        setSelectedMatch(null);
+        setAlert({
+          message: "No transaction found with that ID.",
+          type: "error",
+        });
       }
-
-      setSelectedMatch(matchData);
+    } catch (error) {
+      console.error("Error fetching match:", error);
+      setAlert({
+        message: "Error searching for transaction.",
+        type: "error",
+      });
+    } finally {
+      setLoading(false);
     }
-    setShowDropdown(false);
-  } catch (error) {
-    console.error("Error fetching selected match:", error);
-  }
-};
+  };
 
-const handleSearch = async () => {
-  if (!searchQuery.trim()) {
-    setAlert({ message: "Please enter a transaction ID.", type: "warning" });
-    return;
-  }
-
-  try {
-    const matchesRef = collection(db, 'matches');
-    const snapShot = await getDocs(matchesRef);
-
-    const foundMatch = snapShot.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .find(match => match.transactionId?.toLowerCase() === searchQuery.toLowerCase());
-
-    if (foundMatch) {
-      if (foundMatch.claimStatus === "claimed") {
-        setAlert({ message: "Item already claimed!", type: "warning" });
-        return;
-      }
-      setSelectedMatch(foundMatch);
-      setIsModalOpen(true);
-      setAlert(null);
-    } else {
-      setSelectedMatch(null);
-      setAlert({ message: "No transaction found with that ID.", type: "error" });
-    }
-  } catch (error) {
-    console.error("Error fetching match:", error);
-    setAlert({ message: "Error searching for transaction.", type: "error" });
-  }
-};
-
+  
 
     return (
       <>
@@ -126,23 +98,49 @@ const handleSearch = async () => {
           />
         )}
 
-        <div style={{ position: 'absolute', width: '1400px', top: '10%', left: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-search" viewBox="0 0 16 16">
-            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-          </svg>
-          <input
-            type="text"
-            placeholder="Enter Transaction ID"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()} 
-            style={{ width: '100%', padding: '8px', borderRadius: '10px', border: '2px solid #475C6F', backgroundColor: 'transparent', color: '#475C6F', fontSize: '16px' }}
-          />
-          <button onClick={handleSearch} style={{ padding: '8px 16px', borderRadius: '8px', backgroundColor: '#475C6F', color: 'white', border: 'none' }}>
-            Search
-          </button>
-        </div>
+{/* 🔹 Bootstrap Modal */}
+<Modal
+  show={isModalOpen}
+  onHide={() => {
+    // Only allow Cancel to close, not clicking outside or pressing ESC
+    setIsModalOpen(false);
+    navigate(`/admin/found-items/${user?.uid}`); // go back to lost-items when cancel/close
+  }}
+  centered
+  backdrop="static"  // prevents clicking outside to close
+  keyboard={false}   // prevents ESC to close
+  dialogClassName="custom-modal-width" // custom width class
+>
+  <Modal.Header>
+    <Modal.Title>Transaction ID</Modal.Title>
+  </Modal.Header>
+  <Modal.Body>
+    <Form.Control
+      type="text"
+      placeholder="Enter Transaction ID"
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+    />
+  </Modal.Body>
+  <Modal.Footer>
+    <Button
+      variant="secondary"
+      onClick={() => {
+        setIsModalOpen(false);
+        navigate(`/admin/found-items/${user?.uid}`); // redirect when cancel
+      }}
+    >
+      Cancel
+    </Button>
+    <Button variant="primary" onClick={handleSearch} disabled={loading}>
+      {loading ? <Spinner animation="border" size="sm" /> : "Search"}
+    </Button>
+  </Modal.Footer>
+</Modal>
 
+        {/* 🔹 Open Modal Button */}
+        
           <div className='transaction-content'>
            
             {selectedMatch?.lostItem ? (
@@ -152,12 +150,54 @@ const handleSearch = async () => {
                 <p style={{fontSize: '30px', fontWeight: 'bolder'}}> {selectedMatch.lostItem.itemName}</p>
                 <span style={{fontSize: '10px'}}>Item ID Number: {selectedMatch.lostItem.itemId}</span>
                 <div style={{width: '70%', display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#F0F0F0', padding: '10px', borderRadius: '10px'}}> 
-                  <img src={selectedMatch.lostItem.personalInfo?.profileURL} alt=""  style={{width: '50px', height: '50px', borderRadius: '30px', objectFit: 'cover'}}/>
+                <div style={{
+                  width: '70%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '10px', 
+                  backgroundColor: '#F0F0F0', 
+                  padding: '10px', 
+                  borderRadius: '10px'
+                }}> 
+                  {selectedMatch.lostItem.personalInfo?.firstName === "Guest" ? (
+                    <div
+                      style={{
+                        width: '50px',
+                        height: '50px',
+                        borderRadius: '50%',
+                        backgroundColor: 'blue',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 'bold',
+                        fontSize: '12px'
+                      }}
+                    >
+                      Guest
+                    </div>
+                  ) : (
+                    <img
+                      src={selectedMatch.lostItem.personalInfo?.profileURL || ""}
+                      alt="profile"
+                      style={{
+                        width: '50px',
+                        height: '50px',
+                        borderRadius: '50%',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  )}
                   <div style={{display: 'flex', flexDirection: 'column', height: '90%'}}>
-                    <span style={{fontSize: '15px', fontWeight: 'bold'}}>{selectedMatch.lostItem.personalInfo?.firstName} {selectedMatch.lostItem.personalInfo?.lastName}</span>
-                    <span style={{fontSize: '15px'}}>{selectedMatch.lostItem.personalInfo.course?.abbr}</span>
-                    
+                    <span style={{fontSize: '15px', fontWeight: 'bold'}}>
+                      {selectedMatch.lostItem.personalInfo?.firstName || "Guest"}{" "}
+                      {selectedMatch.lostItem.personalInfo?.lastName || ""}
+                    </span>
+                    <span style={{fontSize: '15px'}}>
+                      {selectedMatch.lostItem.personalInfo?.course?.abbr || ""}
+                    </span>
                   </div> 
+                </div>
                 </div>
                 <div className='item-transaction-details'>
                   <div>
@@ -310,12 +350,54 @@ const handleSearch = async () => {
                 <p style={{fontSize: '30px', fontWeight: 'bolder'}}> {selectedMatch.foundItem.itemName}</p>
                 <span style={{fontSize: '10px'}}>Item ID Number: {selectedMatch.foundItem.itemId}</span>
                 <div style={{width: '70%', display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#F0F0F0', padding: '10px', borderRadius: '10px'}}> 
-                  <img src={selectedMatch.foundItem.personalInfo?.profileURL} alt=""  style={{width: '50px', height: '50px', borderRadius: '30px', objectFit: 'cover'}}/>
+                <div style={{
+                  width: '70%', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '10px', 
+                  backgroundColor: '#F0F0F0', 
+                  padding: '10px', 
+                  borderRadius: '10px'
+                }}> 
+                  {selectedMatch.foundItem.personalInfo?.firstName === "Guest" ? (
+                    <div
+                      style={{
+                        width: '50px',
+                        height: '50px',
+                        borderRadius: '50%',
+                        backgroundColor: 'blue',
+                        color: 'white',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 'bold',
+                        fontSize: '12px'
+                      }}
+                    >
+                      Guest
+                    </div>
+                  ) : (
+                    <img
+                      src={selectedMatch.foundItem.personalInfo?.profileURL || ""}
+                      alt="profile"
+                      style={{
+                        width: '50px',
+                        height: '50px',
+                        borderRadius: '50%',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  )}
                   <div style={{display: 'flex', flexDirection: 'column', height: '90%'}}>
-                    <span style={{fontSize: '15px', fontWeight: 'bold'}}>{selectedMatch.foundItem.personalInfo?.firstName} {selectedMatch.foundItem.personalInfo?.lastName}</span>
-                    <span style={{fontSize: '15px'}}>{selectedMatch.foundItem.personalInfo.course.abbr}</span>
-                    
-                  </div>
+                    <span style={{fontSize: '15px', fontWeight: 'bold'}}>
+                      {selectedMatch.foundItem.personalInfo?.firstName || "Guest"}{" "}
+                      {selectedMatch.foundItem.personalInfo?.lastName || ""}
+                    </span>
+                    <span style={{fontSize: '15px'}}>
+                      {selectedMatch.foundItem.personalInfo?.course?.abbr || ""}
+                    </span>
+                  </div> 
+                </div>
                   
                 </div>
                 <div className='item-transaction-details'>
@@ -351,18 +433,48 @@ const handleSearch = async () => {
             )}
           </div>
          <button
-          className={`transaction-process-btn ${location.pathname === `/admin/process-claim/${selectedMatch?.id}` ? "active" : ""}`}
-          onClick={() =>
-            navigate(`/admin/process-claim/${currentUser.uid}`, {
-              state: { match: selectedMatch, userId: currentUser.uid }, 
-            })
-          }
-        >
-          Process
-          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-forward" viewBox="0 0 16 16">
-            <path d="M9.502 5.513a.144.144 0 0 0-.202.134V6.65a.5.5 0 0 1-.5.5H2.5v2.9h6.3a.5.5 0 0 1 .5.5v1.003c0 .108.11.176.202.134l3.984-2.933.042-.028a.147.147 0 0 0 0-.252l-.042-.028zM8.3 5.647a1.144 1.144 0 0 1 1.767-.96l3.994 2.94a1.147 1.147 0 0 1 0 1.946l-3.994 2.94a1.144 1.144 0 0 1-1.767-.96v-.503H2a.5.5 0 0 1-.5-.5v-3.9a.5.5 0 0 1 .5-.5h6.3z"/>
-          </svg>
-        </button>
+            className={`transaction-process-btn ${
+              location.pathname === `/admin/process-claim/${selectedMatch?.id}` ? "active" : ""
+            }`}
+            onClick={() => {
+              const isGuestClaimant =
+                selectedMatch?.lostItem?.personalInfo?.firstName === "Guest";
+
+              if (isGuestClaimant) {
+                navigate(`/admin/guest/process-claim/${currentUser.uid}`, {
+                  state: { match: selectedMatch, userId: currentUser.uid },
+                });
+              } else {
+                navigate(`/admin/process-claim/${currentUser.uid}`, {
+                  state: { match: selectedMatch, userId: currentUser.uid },
+                });
+              }
+            }}
+          >
+            Process
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="25"
+              height="25"
+              fill="currentColor"
+              className="bi bi-forward"
+              viewBox="0 0 16 16"
+            >
+              <path d="M9.502 5.513a.144.144 0 0 0-.202.134V6.65a.5.5 0 0 1-.5.5H2.5v2.9h6.3a.5.5 0 0 1 .5.5v1.003c0 .108.11.176.202.134l3.984-2.933.042-.028a.147.147 0 0 0 0-.252l-.042-.028zM8.3 5.647a1.144 1.144 0 0 1 1.767-.96l3.994 2.94a1.147 1.147 0 0 1 0 1.946l-3.994 2.94a1.144 1.144 0 0 1-1.767-.96v-.503H2a.5.5 0 0 1-.5-.5v-3.9a.5.5 0 0 1 .5-.5h6.3z"/>
+            </svg>
+          </button>
+
+        
+          <button
+            className="transaction-process-btn"
+            style={{
+              left: '60%'
+            }}
+            onClick={() => setIsModalOpen(true)}
+          >
+            Change Transaction
+          </button>
+        
 
         </div>
         

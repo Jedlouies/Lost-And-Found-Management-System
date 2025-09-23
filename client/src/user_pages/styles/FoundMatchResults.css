@@ -8,6 +8,7 @@
     background-repeat: no-repeat;
 }
 
+
 .matching-results {
     font-size: 10px;
     line-height: 5px;
@@ -106,4 +107,31 @@
 .more-match:hover {
     background-color: #BDDDFC;
     color: black;
+}
+
+.background4 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-height: 100%;
+  text-align: center;
+  background: #000000;
+  background-image: url("/landing-page-img.png"); /* adjust path */
+  background-size: cover;    /* makes image cover entire area */
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.p-6 {
+    
+    position: absolute;
+    display: flex;
+    top: 7%;
+    left: 6%;
+    width: 100%;
+    background-color: #D9D9D9;
+    background-size: cover;   
+    background-position: center;
+    background-repeat: no-repeat;
 }

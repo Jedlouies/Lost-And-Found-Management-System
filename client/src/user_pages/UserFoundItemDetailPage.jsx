@@ -145,7 +145,7 @@ const handleSubmit = async (e) => {
       itemName,
       dateFound,
       locationFound,
-      archivedStatus: 'false',
+      archivedStatus: false,
       founder,
       owner,
       claimStatus,
@@ -197,6 +197,37 @@ const handleSubmit = async (e) => {
             the system will notify possible owners and post the item.`, 
             "info"
           );
+
+          try {
+            const emailRes = await fetch("http://localhost:4000/api/send-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                to: email,   
+                subject: "Instructions for Found Items",
+                html: `
+                        <p>Hello ${firstName},</p>
+                        <p>Your found item <b>${itemName}</b> has been submitted as Guest</b>.</p>
+                        <p>Please surrender it to the OSA for verification. The item is currently on a pending status.</p>
+                      `,
+              }),
+            });
+
+            const emailData = await emailRes.json();
+            console.log("📧 Email API response:", emailData);
+
+            if (!emailRes.ok) {
+              console.error(`❌ Failed to send email to ${email}:`, emailData);
+            } else {
+              console.log(`✅ Email successfully sent to ${email}`);
+            }
+          } catch (err) {
+            console.error(`⚠️ Error sending email to ${email}:`, err);
+          }
+
+          
+
+          
         
       
     }
@@ -354,7 +385,7 @@ const handleSubmit = async (e) => {
             ) : isSubmitting ? (
               <>
                 <img src="/Spin.gif" alt="Loading..." style={{ width: "20px", height: "20px" }} />
-                <span>Matching Items...</span>
+                <span>Matching</span>
               </>
             ) : (
               "Submit Report"

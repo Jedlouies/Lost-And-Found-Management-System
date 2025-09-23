@@ -1,44 +1,44 @@
-  import React, { useEffect, useState } from 'react';
-  import '../user_pages/styles/UserLostItemDetailPage.css'
+import React, { useEffect, useState } from 'react';
+import '../user_pages/styles/UserLostItemDetailPage.css'
 import { db, auth } from '../firebase'; 
-  import { addDoc, collection, doc, getDoc, serverTimestamp } from 'firebase/firestore';
-  import { useAuth } from '../context/AuthContext'; 
-  import { useNavigate } from 'react-router-dom';
-  import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp} from "firebase/database";
-  import Header from '../components/Header'
+import { addDoc, collection, doc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext'; 
+import { useNavigate } from 'react-router-dom';
+import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
+import Header from '../components/Header'
 
-  function GuestReportLostPage() {
-    const { currentUser } = useAuth();
-    const navigate = useNavigate();
+function GuestReportLostPage() {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
-    const [itemName, setItemName] = useState('');
-    const [dateLost, setDateLost] = useState('');
-    const [locationLost, setLocationLost] = useState('');
-    const [category, setCategory] = useState('');
-    const [itemDescription, setItemDescription] = useState('');
-    const [howItemLost, setHowItemLost] = useState('');
-    const [profileURL, setProfileURL] = useState('Guest');
-    const [coverURL, setCoverURL] = useState('Guest');
-    const [course, setCourse] = useState('Guest');
-    const [section, setSection] = useState('Guest');
-    const [yearLevel, setYearLevel] = useState('Guest');
-    const [birthdate, setBirthdate] = useState('Guest');
-    const [images, setImages] = useState(null);
+  const [itemName, setItemName] = useState('');
+  const [dateLost, setDateLost] = useState('');
+  const [locationLost, setLocationLost] = useState('');
+  const [category, setCategory] = useState('');
+  const [itemDescription, setItemDescription] = useState('');
+  const [howItemLost, setHowItemLost] = useState('');
+  const [profileURL, setProfileURL] = useState('Guest');
+  const [coverURL, setCoverURL] = useState('Guest');
+  const [course, setCourse] = useState('Guest');
+  const [section, setSection] = useState('Guest');
+  const [yearLevel, setYearLevel] = useState('Guest');
+  const [birthdate, setBirthdate] = useState('Guest');
+  const [images, setImages] = useState(null);
 
-    const [founder] = useState('Unknown');  
-    const [owner, setOwner] = useState('Guest');             
-    const [claimStatus] = useState('unclaimed');
+  const [founder] = useState('Unknown');  
+  const [owner, setOwner] = useState('Guest');             
+  const [claimStatus] = useState('unclaimed');
 
-    const [firstName, setFirstName] = useState('Guest');
-    const [lastName, setLastName] = useState('Guest');
-    const [middleName, setMiddleName] = useState('Guest');
-    const [email, setEmail] = useState('');
-    const [contactNumber, setContactNumber] = useState('Guest');
-    const [address, setAddress] = useState('Guest');
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isMatching, setIsMatching] = useState(false);
+  const [firstName, setFirstName] = useState('Guest');
+  const [lastName, setLastName] = useState('Guest');
+  const [middleName, setMiddleName] = useState('Guest');
+  const [email, setEmail] = useState('');   // 👈 guest email fetched from Firestore
+  const [contactNumber, setContactNumber] = useState('Guest');
+  const [address, setAddress] = useState('Guest');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isMatching, setIsMatching] = useState(false);
 
-    const dbRealtime = getDatabase();
+  const dbRealtime = getDatabase();
     
   const WORD_LIMIT = 150;
 
@@ -55,24 +55,21 @@ import { db, auth } from '../firebase';
     return text.trim().split(/\s+/).filter(Boolean).length;
   };
 
-
-    
-
-    useEffect(() => {
-      const fetchUserInfo = async () => {
-        const user = auth.currentUser;
-      
-
-        if (!currentUser) return;
+  // ✅ Fetch guest data (including email) from Firestore
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      if (!currentUser) return;
+      try {
         const userRef = doc(db, 'users', currentUser.uid);
         const userSnap = await getDoc(userRef);
+
         if (userSnap.exists()) {
           const userData = userSnap.data();
-          
+
           setFirstName(userData.firstName || "Guest");
           setLastName(userData.lastName || "Guest");
           setMiddleName(userData.middleName || "");
-          setEmail(userData.email || ""); // 👈 this pulls the guest’s email
+          setEmail(userData.email || "");  // 👈 this ensures we have guest email
           setContactNumber(userData.contactNumber || "Guest");
           setAddress(userData.address || "Guest");
           setProfileURL(userData.profileURL || "Guest");
@@ -82,34 +79,36 @@ import { db, auth } from '../firebase';
           setYearLevel(userData.yearLevel || "Guest");
           setBirthdate(userData.birthdate || "Guest");
           setOwner(`${userData.firstName || "Guest"} ${userData.lastName || ""}`);
+        } else {
+          console.warn("Guest Firestore document not found.");
         }
-      };
-      fetchUserInfo();
-    }, [currentUser]);
-
-    const handleImageChange = (e) => {
-      setImages(e.target.files);
+      } catch (err) {
+        console.error("Error fetching guest info:", err);
+      }
     };
+    fetchUserInfo();
+  }, [currentUser]);
 
-    
+  const handleImageChange = (e) => {
+    setImages(e.target.files);
+  };
 
-    const uploadLostItemImage = async (file, folder) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'lost-items'); 
-      formData.append('folder', folder);
+  const uploadLostItemImage = async (file, folder) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'lost-items'); 
+    formData.append('folder', folder);
 
-      const res = await fetch(
-        'https://api.cloudinary.com/v1_1/dunltzf6e/image/upload',
-        { method: 'POST', body: formData }
-      );
+    const res = await fetch(
+      'https://api.cloudinary.com/v1_1/dunltzf6e/image/upload',
+      { method: 'POST', body: formData }
+    );
 
-      const data = await res.json();
-      if (!data.secure_url) throw new Error('Image upload failed.');
-      return data.secure_url;
-    };
+    const data = await res.json();
+    if (!data.secure_url) throw new Error('Image upload failed.');
+    return data.secure_url;
+  };
 
-    
   const notifyUser = async (uid, message, type = "match") => {
     if (!uid) return;
     const notifRef = ref(dbRealtime, `notifications/${uid}`);
@@ -122,183 +121,166 @@ import { db, auth } from '../firebase';
     });
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  setIsSubmitting(true);
-  try {
-    const user = auth.currentUser;
-
-    if (!user) {
-      alert("You must be signed in as a guest or user to submit.");
-      return;
-    }
-
-    const uid = user.uid; 
-
-    const imageURLs = [];
-    if (images && images.length > 0) {
-      for (let i = 0; i < images.length; i++) {
-        const url = await uploadLostItemImage(
-          images[i], 
-          `lost-items/${uid}` 
-        );
-        imageURLs.push(url);
+    try {
+      const user = auth.currentUser;
+      if (!user) {
+        alert("You must be signed in as a guest or user to submit.");
+        return;
       }
-    }
 
-    const customItemId = `ITM-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(100 + Math.random() * 900)}`;
+      const uid = user.uid; 
 
-    const docRef = await addDoc(collection(db, 'lostItems'), {
-      itemId: customItemId,
-      uid,
-      images: imageURLs,
-      itemName,
-      dateLost,
-      locationLost,
-      archivedStatus: 'false',
-      isGuest: !currentUser,
-      founder,
-      owner,
-      claimStatus,
-      category,
-      itemDescription,
-      howItemLost,
-      personalInfo: {
-        firstName,
-        middleName,
-        lastName,
-        email,
-        contactNumber,
-        address,
-        profileURL,
-        coverURL,
-        course,
-        section,
-        yearLevel,
-        birthdate,
-      },
-      createdAt: serverTimestamp(),
-    });
-
-    if (currentUser) {
-      const matchResponse = await fetch("http://localhost:4000/api/match/lost-to-found", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uidLost: docRef.id }),
-      });
-
-      if (!matchResponse.ok) throw new Error("Matching failed");
-      const matches = await matchResponse.json();
-
-      const top4Matches = matches.slice(0, 4);
-
-      for (let i = 0; i < top4Matches.length; i++) {
-        const match = top4Matches[i];
-
-        console.log("Found Email:", match.foundItem?.personalInfo?.email)
-
-        if (match.scores?.overallScore >= 40 && match.foundItem?.uid) {
-          
-          await notifyUser(
-            match.foundItem?.uid,
-            `Your found item <b>${match.foundItem.itemName}</b> may possibly match with a newly reported lost item: <b>${itemName}</b>.`
+      // Upload images
+      const imageURLs = [];
+      if (images && images.length > 0) {
+        for (let i = 0; i < images.length; i++) {
+          const url = await uploadLostItemImage(
+            images[i], 
+            `lost-items/${uid}` 
           );
-
-          await fetch("http://localhost:4000/api/send-email", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              to: match.foundItem?.personalInfo?.email, 
-              subject: "Possible Lost & Found Match",
-              html: `
-                <p>Hello,</p>
-                <p>Your found item <b>${match.foundItem.itemName}</b> may possibly match with a newly reported lost item: <b>${itemName}</b>.</p>
-                <p>Please log in to check the full details.</p>
-              `
-            })
-          });
-
-
-          if (i === 0) {
-            await notifyUser(
-              currentUser.uid,
-              `This is the most possible match for your lost item <b>${itemName}</b>: Found item <b>${match.foundItem?.itemName}</b>.`
-            );
-              try {
-                  const emailResUser = await fetch("http://localhost:4000/api/send-email", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      to: email, 
-                      subject: "Best Match Found for Your Lost Item",
-                      html: `
-                        <p>Hello ${firstName},</p>
-                        <p>This is the most possible match for your lost item <b>${itemName}</b>: Found item <b>${match.foundItem?.itemName}</b>.</p>
-                        <p>Please log in to view more details.</p>
-                      `
-                    })
-                  });
-
-                  const emailDataUser = await emailResUser.json();
-                  console.log("Email response for user:", emailDataUser);
-
-                  if (!emailResUser.ok) {
-                    console.error("Failed to send email to user:", emailDataUser);
-                  } else {
-                    console.log("Email successfully sent to user:", email);
-                  }
-
-                } catch (emailErrorUser) {
-                  console.error("Error sending email to user:", emailErrorUser);
-                }
-
-          
-        
-            
-          }
-
-
+          imageURLs.push(url);
         }
       }
 
-      navigate(`/guest/lost/matching/${currentUser.uid}`, { state: { matches } });
-    } else {
-     
-      alert("Thank you for reporting! Your lost item has been submitted as Guest.");
-      navigate("/guest"); 
+      // Generate itemId
+      const customItemId = `ITM-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(100 + Math.random() * 900)}`;
+
+      // Save lost item to Firestore
+      const docRef = await addDoc(collection(db, 'lostItems'), {
+        itemId: customItemId,
+        uid,
+        images: imageURLs,
+        itemName,
+        dateLost,
+        locationLost,
+        archivedStatus: false,
+        isGuest: true,
+        founder,
+        owner,
+        claimStatus,
+        category,
+        itemDescription,
+        howItemLost,
+        personalInfo: {
+          firstName,
+          middleName,
+          lastName,
+          email,
+          contactNumber,
+          address,
+          profileURL,
+          coverURL,
+          course,
+          section,
+          yearLevel,
+          birthdate,
+        },
+        createdAt: serverTimestamp(),
+      });
+
+      // ✅ Matching process
+      if (currentUser) {
+        const matchResponse = await fetch("http://localhost:4000/api/match/lost-to-found", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ uidLost: docRef.id }),
+        });
+
+        if (!matchResponse.ok) throw new Error("Matching failed");
+        const matches = await matchResponse.json();
+        const top4Matches = matches.slice(0, 4);
+
+        for (let i = 0; i < top4Matches.length; i++) {
+          const match = top4Matches[i];
+
+          if (match.scores?.overallScore >= 60 && match.foundItem?.uid) {
+            await notifyUser(
+              match.foundItem?.uid,
+              `Your found item <b>${match.foundItem.itemName}</b> may possibly match with a newly reported lost item: <b>${itemName}</b>.`
+            );
+
+            await fetch("http://localhost:4000/api/send-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                to: match.foundItem?.personalInfo?.email || "",
+                subject: "Best Possible Match for Found Item",
+                html: `
+                  <p>Hello,</p>
+                  <p>Your found item <b>${match.foundItem.itemName}</b> may possibly match with a newly reported lost item: <b>${itemName}</b>.</p>
+                  <p>Please log in to check the full details.</p>
+                `
+              })
+            });
+
+            if (i === 0) {
+              await notifyUser(
+                currentUser.uid,
+                `This is the most possible match for your lost item <b>${itemName}</b>: Found item <b>${match.foundItem?.itemName}</b>.`
+              );
+
+              try {
+                const emailResUser = await fetch("http://localhost:4000/api/send-email", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    to: email,  // 👈 fixed (ensure it's a string)
+                    subject: "Best Match Found for Your Lost Item",
+                    html: `
+                      <p>Hello ${firstName},</p>
+                      <p>This is the most possible match for your lost item <b>${itemName}</b>: Found item <b>${match.foundItem?.itemName}</b>.</p>
+                      <p>Please log in to view more details.</p>
+                    `
+                  })
+                });
+
+                const emailDataUser = await emailResUser.json();
+                console.log("Email response for guest:", emailDataUser);
+
+                if (!emailResUser.ok) {
+                  console.error("Failed to send email to guest:", emailDataUser);
+                } else {
+                  console.log("Email successfully sent to guest:", email);
+                }
+              } catch (emailErrorUser) {
+                console.error("Error sending email to guest:", emailErrorUser);
+              }
+            }
+          }
+        }
+
+        navigate(`/guest/lost/matching/${currentUser.uid}`, { state: { matches } });
+      } else {
+        alert("Thank you for reporting! Your lost item has been submitted as Guest.");
+        navigate("/guest"); 
+      }
+
+      await addDoc(collection(db, 'itemManagement'), {
+        itemId: customItemId,  
+        uid,
+        images: imageURLs,
+        itemName,
+        archivedStatus: false,
+        dateSubmitted: new Date().toISOString(),
+        itemDescription,
+        type: "Lost",  
+        location: locationLost,
+        category,
+        status: "Posted",
+        createdAt: serverTimestamp(),
+      });
+
+    } catch (error) {
+      console.error(error);
+      alert('Failed to submit lost item report.');
     }
-
-   
-    await addDoc(collection(db, 'itemManagement'), {
-      itemId: customItemId,  
-      uid,
-      images: imageURLs,
-      itemName,
-      archivedStatus: false,
-      dateSubmitted: new Date().toISOString(),
-      itemDescription,
-      type: "Lost",  
-      location: locationLost,
-      category,
-      status: "Posted",
-      createdAt: serverTimestamp(),
-    });
-
-  } catch (error) {
-    console.error(error);
-    alert('Failed to submit lost item report.');
-  }
-  setIsSubmitting(false);
-  setIsMatching(false);
-};
-
-
-
-
-
+    setIsSubmitting(false);
+    setIsMatching(false);
+  };
 
     return (
       <>

@@ -160,7 +160,7 @@ function HeaderNotifyDropdown() {
                                 </strong>
                                 <span
                                   dangerouslySetInnerHTML={{ __html: n.message }}
-                                  style={{ marginLeft: "2px" }}
+                                  style={{ marginLeft: "2px", color: 'black'}}
                                 />
                               </span>
                             </p>

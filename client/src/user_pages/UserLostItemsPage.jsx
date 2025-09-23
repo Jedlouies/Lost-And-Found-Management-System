@@ -17,19 +17,26 @@ function UserLostItemsPage() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [savedItems, setSavedItems] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [loadingLost, setLoadingLost] = useState(true);
+  
+  
+  
 
   const navigate = useNavigate();
 
-  // Fetch Lost Items
   useEffect(() => {
     const fetchItems = async () => {
       try {
+        setLoadingLost(true);
+
+
         const lostSnapshot = await getDocs(collection(db, 'lostItems'));
         const lostData = lostSnapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
         }));
         setLostItems(lostData);
+        setLoadingLost(false);
       } catch (error) {
         console.error("Error fetching lost items:", error);
       }
@@ -37,7 +44,6 @@ function UserLostItemsPage() {
     fetchItems();
   }, []);
 
-  // Fetch user data
   useEffect(() => {
     const fetchData = async () => {
       if (!currentUser) return;
@@ -131,7 +137,7 @@ function UserLostItemsPage() {
             {savedItems.length > 0 ? (
               savedItems.map((item) => (
                 <div
-                 className='saved-items-container'
+                  className="saved-items-container"
                   key={item.id}
                   style={{
                     border: "1px solid #ddd",
@@ -141,29 +147,53 @@ function UserLostItemsPage() {
                     display: "flex",
                     gap: "10px",
                     alignItems: "center",
-                    
                   }}
-                  onClick={() =>
-                          navigate(`/users/lost-items/more-details/${item.id}`, {
-                            state: { type: 'lost', item },
-                          })
-                        }
                 >
-                  {item.images?.length > 0 ? (
-                    <img
-                      src={item.images[0]}
-                      alt="saved"
-                      style={{ width: "60px", height: "60px", borderRadius: "5px", objectFit: "cover" }}
-                    />
-                  ) : (
-                    <div style={{ width: "60px", height: "60px", background: "#eee", borderRadius: "5px" }} />
-                  )}
-                  <div style={{ flex: 1 }}>
-                    <strong style={{color: 'black'}}>{item.personalInfo?.firstName}'s {item.itemName}</strong>
-                    <p style={{ fontSize: "12px", margin: 0., color: 'black' }}>{item.personalInfo?.course?.abbr} Student</p>
+                  <div
+                    style={{ display: "flex", gap: "10px", flex: 1, cursor: "pointer" }}
+                    onClick={() =>
+                      navigate(`/users/lost-items/more-details/${item.id}`, {
+                        state: { type: "lost", item },
+                      })
+                    }
+                  >
+                    {item.images?.length > 0 ? (
+                      <img
+                        src={item.images[0]}
+                        alt="saved"
+                        style={{
+                          width: "60px",
+                          height: "60px",
+                          borderRadius: "5px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "60px",
+                          height: "60px",
+                          background: "#eee",
+                          borderRadius: "5px",
+                        }}
+                      />
+                    )}
+                    <div>
+                      <strong style={{ color: "black" }}>
+                        {item.personalInfo?.firstName}'s {item.itemName}
+                      </strong>
+                      <p style={{ fontSize: "12px", margin: 0, color: "black" }}>
+                        {item.personalInfo?.course?.abbr} Student
+                      </p>
+                    </div>
                   </div>
+
                   <button
-                    onClick={() => toggleSave(item)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      toggleSave(item);
+                    }}
                     style={{
                       background: "red",
                       color: "white",
@@ -206,8 +236,7 @@ function UserLostItemsPage() {
         <h1 style={{ fontSize: '30px', fontWeight: '500', marginLeft: '20px', marginTop: '50px', color: '#475C6F' }}>
           Lost Items
         </h1>
-
-        {/* Search and Category Filter */}
+        
         <div className='user-lost-searchBar'>
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#475C6F" className="bi bi-search" viewBox="0 0 16 16">
             <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
@@ -219,6 +248,7 @@ function UserLostItemsPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <select
+          className='category'
             name="category"
             id="category"
             value={selectedCategory}
@@ -289,8 +319,12 @@ function UserLostItemsPage() {
 
         {/* Lost Items Grid */}
         <div className="page-lost-container" ref={lostContainerRef}>
-          {filteredLostItems.length > 0 ? (
-            filteredLostItems.map((item, index) => {
+          {loadingLost ? (
+              <div style={{ display: "flex", justifyContent: "center", alignContent: 'center', marginTop: "30px" }}>
+                <img src="/Spin_black.gif" alt="Loading..." style={{ width: "60px", height: '60px'}} />
+              </div>
+            ) : filteredLostItems.length > 0 ? (
+              filteredLostItems.map((item, index) => {
               const isSaved = savedItems.some((saved) => saved.id === item.id);
               return (
                 <div
@@ -318,18 +352,32 @@ function UserLostItemsPage() {
                     <h4>{item.itemName}</h4>
                     <div className="own">
                       <img
-                        src={item.personalInfo?.profileURL}
-                        alt=""
-                        style={{ width: "50px", height: "50px", borderRadius: "40px", objectFit: "cover" }}
+                        src={item.personalInfo?.profileURL || "/default-profile.png"}
+                        alt="profile"
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          objectFit: "cover",
+                        }}
                       />
                       <p>
                         <strong style={{ fontSize: "14px" }}>
-                          {item.personalInfo?.firstName} {item.personalInfo?.lastName}
+                          {item.isGuest === true
+                            ? item.personalInfo?.firstName || "Guest"
+                            : `${item.personalInfo?.firstName || ""} ${item.personalInfo?.lastName || ""}`.trim()}
                         </strong>
                         <br />
-                        {item.personalInfo?.course?.abbr} Student
+                        {item.isGuest !== true && (
+                          <span>
+                            {item.personalInfo?.course?.abbr
+                              ? `${item.personalInfo.course.abbr} Student`
+                              : "Unknown"}
+                          </span>
+                        )}
                       </p>
                     </div>
+
                     <p style={{ marginTop: "10px", fontSize: "12px", color: 'black', height: '60px', width: '250px', textAlign: 'left', marginLeft: '10px' }}>
                       {item.howItemLost && item.howItemLost.length > 120
                         ? item.howItemLost.slice(0, 120) + "..."

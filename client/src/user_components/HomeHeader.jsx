@@ -10,7 +10,7 @@ import { getAuth } from 'firebase/auth';
 import { useNotification } from "../context/NotificationContext";
 
 
-function DashboardHeader() {
+function HomeHeader() {
   const { currentUser } = useAuth();
   const [dropDown, setDropDown] = useState(false);
   const [notifyPanel, setNotifyPanel] = useState(false);
@@ -101,7 +101,14 @@ useEffect(() => {
 
   return (
     <>
-    
+    <div className='dropdown-containers'>
+      <div className={`account-dropdown ${dropDown ? 'dropDown' : ''}`} ref={dropdownRef}>
+      <HeaderAccountDropdown />  
+     </div>
+    <div className={`notify-panel ${notifyPanel ? 'notifyPanel' : ''}`} ref={notifyRef}>
+      <HeaderNotifyDropdown />
+    </div>
+    </div>
     <div className='home-header-body'>
         <button onClick={() => navigate(`/admin/lost-items/${user?.uid}`)}>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bag-x" viewBox="0 0 16 16">
@@ -163,14 +170,10 @@ useEffect(() => {
            <p onClick={toggleDropDown}>{lastName}</p>
         </div>
     </div>
-    <div className={`account-dropdown ${dropDown ? 'dropDown' : ''}`} ref={dropdownRef}>
-      <HeaderAccountDropdown />  
-     </div>
-    <div className={`notify-panel ${notifyPanel ? 'notifyPanel' : ''}`} ref={notifyRef}>
-      <HeaderNotifyDropdown />
-    </div>
+    
+
     </>
   )
 }
 
-export default DashboardHeader
+export default HomeHeader

@@ -31,6 +31,7 @@ function ItemManagementPage() {
   const [bulkMode, setBulkMode] = useState(false);
 const [selectedItems, setSelectedItems] = useState([]);
 const [alert, setAlert] = useState(null);
+const [loading, setLoading] = useState(true);
 
 
 
@@ -41,6 +42,7 @@ const [alert, setAlert] = useState(null);
 useEffect(() => {
     if (!currentUser) return; 
 
+    setLoading(true);
     
     const q = query(
       collection(db, 'itemManagement'),
@@ -67,6 +69,7 @@ useEffect(() => {
           };
         });
         setItems(managementItems);
+        setLoading(false);
       },
       (error) => {
         console.error("Error fetching item management data:", error);
@@ -197,7 +200,13 @@ const filteredItems = items.filter(item => {
                 </tr>
               </thead>
               <tbody>
-                {displayedItems.length > 0 ? (
+                {loading ? (
+                  
+                    <div colSpan="8" style={{ textAlign: "center", justifyContent: 'center', alignItems: 'center', padding: "20px" }}>
+                      <img src="/Spin_black.gif" alt="Loading..." style={{ width: "50px" }} />
+                    </div>
+                  
+                ) : displayedItems.length > 0 ? (
                   displayedItems.map((item, index) => {
                     const normalizedStatus = item.status?.toLowerCase() || '';
 

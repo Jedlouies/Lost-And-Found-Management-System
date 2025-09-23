@@ -26,7 +26,7 @@
     position: absolute;
     width: 700px;
     border-radius: 5px;
-    top: 9%;
+    top: 8%;
     left: 3%;
     background-color: #D9D9D9;
     color: #475C6F;
@@ -176,7 +176,7 @@
     display: flex;
     flex-direction: row;
     position: absolute;
-    top: 8%;
+    top: 2%;
     left: 65%;
     width: 500px;
     height: 40px;
@@ -289,7 +289,7 @@
     position: absolute;
     width: 700px;
     border-radius: 5px;
-    top: 9%;
+    top: 92%;
     left: 3%;
     background-color: #D9D9D9;
     color: #475C6F;
@@ -311,4 +311,117 @@
     padding: 2px;
 }
 
+@media (max-width: 1200px) {
+    .manage-item-body {
+        height: 120vh;
+    }
+    .manage-item-container {
+        height: 400px;
+    }
+    .manage-item-table {
+        height: 650px;
+        overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+    }
+    
+    .searchBar svg {
+        top: 12%;
+    }
+
+    .searchBar input {
+        width: auto;
+        top: 12%;
+}
+}
+
+@media (max-width: 992px) {
+    .manage-item-body {
+        height: 120vh;
+    }
+    .manage-item-container {
+        height: 400px;
+    }
+    .manage-item-table {
+        height: 650px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .searchBar svg {
+        top: 12%;
+    }
+
+    .searchBar input {
+        min-width: 300px;
+        top: 12%;
+    }
+
+    .actions-row {
+        left: 60%;
+    }
+}
+
+@media (max-width: 768px) {
+    .manage-item-body {
+        height: 120vh;
+    }
+    .manage-item-container {
+        height: 400px;
+    }
+    .manage-item-table {
+        height: 650px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .searchBar svg {
+        top: 12%;
+        left: -25%;
+    }
+
+    .searchBar input {
+        min-width: 300px;
+        left: -22%;
+        top: 12%;
+    }
+
+    .actions-row {
+        left: 50%;
+    }
+    .manage-item-container h1{
+        opacity: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .manage-item-body {
+        height: 120vh;
+    }
+    .manage-item-container {
+        height: 400px;
+    }
+    .manage-item-table {
+        height: 650px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .searchBar svg {
+        top: 12%;
+        left: -39%;
+    }
+
+    .searchBar input {
+        min-width: 200px;
+        left: -35%;
+        top: 12%;
+    }
+
+    .actions-row {
+        left: 40%;
+    }
+    .manage-item-container h1{
+        opacity: 0;
+    }
+}
 
