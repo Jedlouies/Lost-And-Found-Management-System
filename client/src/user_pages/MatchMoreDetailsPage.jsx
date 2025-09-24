@@ -113,6 +113,7 @@ function MatchMoreDetailsPage() {
           </div>
 
           {/* Matches */}
+          <h2>Matching Results</h2>
           <div
             style={{
               position: "absolute",
@@ -124,7 +125,7 @@ function MatchMoreDetailsPage() {
               marginTop: "20px",
             }}
           >
-            <h2>Matching Results</h2>
+            
             {filteredMatches?.length > 0 ? (
               filteredMatches.map((match, index) => (
                 <div
