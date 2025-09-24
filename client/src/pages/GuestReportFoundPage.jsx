@@ -32,7 +32,7 @@ function GuestReportFoundPage() {
   const [firstName, setFirstName] = useState('Guest');
   const [lastName, setLastName] = useState('Guest');
   const [middleName, setMiddleName] = useState('Guest');
-  const [email, setEmail] = useState(userData.email);
+  const [email, setEmail] = useState('');
   const [contactNumber, setContactNumber] = useState('Guest');
   const [address, setAddress] = useState('Guest');
 
