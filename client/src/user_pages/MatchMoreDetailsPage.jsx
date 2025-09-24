@@ -113,6 +113,7 @@ function MatchMoreDetailsPage() {
           </div>
 
           {/* Matches */}
+          <div style={{display: 'flex', flexDirection: 'column'}}>
           <h2>Matching Results</h2>
           <div
             style={{
@@ -202,6 +203,8 @@ function MatchMoreDetailsPage() {
               <p>No matches found for this item.</p>
             )}
           </div>
+          </div>
+          
         </div>
       </div>
     </>
