@@ -568,7 +568,7 @@ const [guestSaved, setGuestSaved] = useState(false);
           onClick={finalizeClaim}
           disabled={loading}
           style={{
-            marginTop: "5px",
+            marginTop: "41%",
             height: "50px",
             width: "250px",
             padding: "12px 25px",

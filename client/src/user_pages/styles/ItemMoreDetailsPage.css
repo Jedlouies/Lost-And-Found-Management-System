@@ -26,6 +26,29 @@
     border-radius: 10px;
     object-fit: cover;
 }
+@media (max-width: 1920px) {
+    .more-details-information p,
+    .more-details-information h3 {
+        font-size: small;
+    } 
+
+    .manage-item-container h1{
+        font-size: xx-large;
+    }
+
+    .more-details-information {
+        margin-top: 20px;
+        margin-right: 400px;
+        margin-left: 1%;
+        min-width: 500px;
+    }
+
+    .item-image img {
+        width: 500px;
+        height: 600px;
+    }
+}
+
 
 @media (max-width: 1200px) {
     .more-details-information p,
