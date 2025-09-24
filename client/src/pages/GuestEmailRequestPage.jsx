@@ -87,13 +87,7 @@ export default function GuestEmailRequestPage() {
                 </Form.Group>
 
                 <div className="d-flex justify-content-between">
-                  <Button 
-                    variant="secondary" 
-                    onClick={handleSkip}
-                    disabled={loading}
-                  >
-                    Skip
-                  </Button>
+                
                   <Button 
                     variant="primary" 
                     type="submit"
