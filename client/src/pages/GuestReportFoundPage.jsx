@@ -42,6 +42,8 @@ function GuestReportFoundPage() {
   const dbRealtime = getDatabase();
 
   const WORD_LIMIT = 150;
+  const expiryTime = Date.now() + 24 * 60 * 60 * 1000;
+
 
   
 
@@ -190,8 +192,9 @@ function GuestReportFoundPage() {
 
         await notifyUser(
           currentUser.uid,
-          `Your found item <b>${itemName}</b> has been submitted as Guest. 
-          Please surrender it to the OSA for verification. The item is currently on a pending status.`
+          `Hello <b>${firstName}</b> Your found item <b>${itemName}</b> has been submitted. 
+            Please surrender it to the OSA for verification. The item is currently on a pending status  for 24 hours and Once verified, 
+            the system will notify possible owners and post the item.`
         );
 
         const recipientEmail = email;
@@ -206,8 +209,10 @@ function GuestReportFoundPage() {
                       subject: "Instructions for Found Items",
                       html: `
                         <p>Hello ${firstName},</p>
-                        <p>Your found item <b>${itemName}</b> has been submitted as Guest.</p>
-                        <p>Please surrender it to the OSA for verification. The item is currently on a pending status.</p>
+                        <p>Your found item <b>${itemName}</b> has been submitted.</b>.</p>
+                        <p>Please surrender it to the OSA for verification. 
+                        <p>The item is currently on a pending status  for 24 hours and Once verified,</p> 
+                        <p>the system will notify possible owners and post the item.</p>
                       `
                     })
                   });
@@ -236,6 +241,7 @@ function GuestReportFoundPage() {
         uid,
         images: imageURLs,
         itemName,
+        expiryTime,
         archivedStatus: false,
         dateSubmitted: new Date().toISOString(),
         itemDescription,

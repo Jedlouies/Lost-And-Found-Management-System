@@ -45,7 +45,7 @@ function UserFoundItemDetailPage() {
   const dbRealtime = getDatabase();
 
   const [customLocation, setCustomLocation] = useState("");
-
+  const expiryTime = Date.now() + 24 * 60 * 60 * 1000;
 
   const WORD_LIMIT = 150;
 
@@ -195,8 +195,8 @@ const handleSubmit = async (e) => {
         
           await notifyUser(
             currentUser.uid,
-            `Your found item <b>${itemName}</b> has been submitted. 
-            Please surrender it to the OSA for verification. The item is currently on a pending status and Once verified, 
+            `Hello <b>${firstName}</b> Your found item <b>${itemName}</b> has been submitted. 
+            Please surrender it to the OSA for verification. The item is currently on a pending status  for 24 hours and Once verified, 
             the system will notify possible owners and post the item.`, 
             "info"
           );
@@ -210,8 +210,10 @@ const handleSubmit = async (e) => {
                 subject: "Instructions for Found Items",
                 html: `
                         <p>Hello ${firstName},</p>
-                        <p>Your found item <b>${itemName}</b> has been submitted as Guest</b>.</p>
-                        <p>Please surrender it to the OSA for verification. The item is currently on a pending status.</p>
+                        <p>Your found item <b>${itemName}</b> has been submitted.</b>.</p>
+                        <p>Please surrender it to the OSA for verification. 
+                        <p>The item is currently on a pending status  for 24 hours and Once verified,</p> 
+                        <p>the system will notify possible owners and post the item.</p>
                       `,
               }),
             });
@@ -248,6 +250,7 @@ const handleSubmit = async (e) => {
       locationFound: locationFound === "Others" ? customLocation : locationFound,
       category,
       status: "Pending",
+      expiryTime,
       highestMatchingRate: top4Matches?.[0]?.scores?.overallScore ?? 0,
       topMatches: top4Matches,
       personalInfo: {

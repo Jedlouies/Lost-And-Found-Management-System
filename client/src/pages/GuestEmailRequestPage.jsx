@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import { setDoc, doc } from "firebase/firestore";
+import { query, where, collection, getDocs } from "firebase/firestore";
 import { Form, Button, Card, Alert, Spinner } from "react-bootstrap";
 import { useAuth } from '../context/AuthContext'; 
 import Header from "../components/Header";
@@ -21,7 +22,19 @@ export default function GuestEmailRequestPage() {
         return;
       }
 
-      setLoading(true); // start loading
+      setLoading(true); 
+
+      if (email) {
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("email", "==", email));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        setError("This email is already registered in the system.");
+        setLoading(false);
+        return;
+      }
+    }
 
       await setDoc(
         doc(db, "users", currentUser.uid),
@@ -30,7 +43,7 @@ export default function GuestEmailRequestPage() {
           role: "guest",
           createdAt: new Date(),
         },
-        { merge: true } // 👈 important: don’t overwrite other fields
+        { merge: true } 
       );
 
       navigate(`/guest/${currentUser.uid}`);
@@ -38,7 +51,7 @@ export default function GuestEmailRequestPage() {
       console.error("Error creating guest:", err);
       setError("Failed to save guest info.");
     } finally {
-      setLoading(false); // stop loading
+      setLoading(false); 
     }
   }
 
@@ -54,7 +67,7 @@ export default function GuestEmailRequestPage() {
           <Card style={{ width: "25rem" }}>
             <Card.Body>
               <h3 className="text-center mb-3">Email Address</h3>
-              <p className="text-muted text-center">
+              <p  style={{color: 'red'}}>
                 Provide your email to receive updates about your lost item.  
                 If you skip, you won’t get any notifications.
               </p>
@@ -94,7 +107,7 @@ export default function GuestEmailRequestPage() {
                           size="sm"
                           role="status"
                           aria-hidden="true"
-                        />  Saving...
+                        /> 
                       </>
                     ) : (
                       "Save & Continue"

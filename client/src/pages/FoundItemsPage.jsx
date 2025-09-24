@@ -261,7 +261,7 @@ const archiveItem = async (item) => {
       return; 
     }
 
-    const itemDocRef = doc(db, "foundItems", item.id); // correct doc ID
+    const itemDocRef = doc(db, "foundItems", item.id); 
     const archiveDocRef = doc(db, "archivedFoundItems", item.id);
 
     await setDoc(archiveDocRef, {
@@ -277,7 +277,6 @@ const archiveItem = async (item) => {
       type: "success",
     });
 
-    // update UI
     setItems((prev) => prev.filter((i) => i.id !== item.id));
 
   } catch (error) {
