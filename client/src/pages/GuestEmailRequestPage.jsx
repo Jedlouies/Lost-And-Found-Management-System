@@ -76,7 +76,7 @@ export default function GuestEmailRequestPage() {
 
               <Form onSubmit={handleSave}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Email (Optional)</Form.Label>
+                  <Form.Label>Email</Form.Label>
                   <Form.Control
                     type="email"
                     placeholder="Enter your email"
