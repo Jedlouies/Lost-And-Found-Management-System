@@ -51,7 +51,7 @@ function UserFoundProcedurePage() {
 
   return (
     <>
-    <div className='pro-body' style={{position: 'absolute', height: '120vh', backgroundColor: '#D9D9D9', width: '100%', height: '200px'}}>
+    <div className='pro-body' style={{position: 'absolute', height: '120vh'}}>
           <div className='background' />
     <div className='user-found-procedure-body'>
        <h1>Item Found Procedures</h1>

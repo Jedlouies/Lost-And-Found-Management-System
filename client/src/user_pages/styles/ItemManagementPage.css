@@ -214,6 +214,32 @@
     border-radius: 5px;
 }
 
+.location-text {
+  cursor: pointer;
+  position: relative;
+}
+
+.floating-location {
+  display: none;
+  position: absolute;
+  top: 100%; /* below the text */
+  left: 0;
+  background: white;
+  color: #475C6F;
+  border: 1px solid #ccc;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: normal;
+  min-width: 200px;
+  z-index: 100;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.15);
+}
+
+td:hover .floating-location {
+  display: block;
+}
+
+
 .manage-item-table th:nth-child(1),
 .manage-item-table td:nth-child(1) {
     width: 9%;

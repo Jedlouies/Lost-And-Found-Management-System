@@ -246,7 +246,21 @@ const filteredItems = items.filter(item => {
                         <td style={{ minWidth: '100px' }}>{item.itemName}</td>
                         <td>{item.createdAt?.toDate ? item.createdAt.toDate().toLocaleDateString() : 'N/A'}</td>
                         <td>{item.type}</td>
-                        <td>{item.location || 'N/A'}</td>
+                        <td style={{ position: "relative", maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <span className="location-text">
+                          {item.location && item.location.length > 15
+                            ? item.location.substring(0, 15) + "..."
+                            : item.location || "N/A"}
+                        </span>
+
+                       
+                        {item.location && (
+                          <div className="floating-location">
+                            {item.location}
+                          </div>
+                        )}
+                      </td>
+
                         <td>{item.category}</td>
                         <td>
                           <span

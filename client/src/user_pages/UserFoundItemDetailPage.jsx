@@ -44,6 +44,9 @@ function UserFoundItemDetailPage() {
 
   const dbRealtime = getDatabase();
 
+  const [customLocation, setCustomLocation] = useState("");
+
+
   const WORD_LIMIT = 150;
 
   const limitWords = (text, setFn) => {
@@ -144,7 +147,7 @@ const handleSubmit = async (e) => {
       images: imageURLs,
       itemName,
       dateFound,
-      locationFound,
+      locationFound: locationFound === "Others" ? customLocation : locationFound,
       archivedStatus: false,
       founder,
       owner,
@@ -242,7 +245,7 @@ const handleSubmit = async (e) => {
       dateSubmitted: new Date().toISOString(),
       itemDescription,
       type: "Found",  
-      location: locationFound,
+      locationFound: locationFound === "Others" ? customLocation : locationFound,
       category,
       status: "Pending",
       highestMatchingRate: top4Matches?.[0]?.scores?.overallScore ?? 0,
@@ -280,8 +283,8 @@ const handleSubmit = async (e) => {
   
   return (
     <>
-      <div className='background'/>
-      <div className="user-found-procedure-body">
+      
+      <div className="user-found-procedure-body" style={{position: 'absolute', top: '5%', left: '1%'}}>
         <p style={{position: 'absolute', fontSize: '15px', left: '82%', top: '5%', width: '200px'}}>
           <strong>NOTE: </strong>
           To achieve a more successful matching process, 
@@ -302,15 +305,109 @@ const handleSubmit = async (e) => {
           <input type="file" multiple accept="image/*" onChange={handleImageChange} style={{width: '1000px', border: '2px solid #475C6F'}} required/>
 
           <br />
-          <label>Item Name:</label>
-          <input type="text" value={itemName} placeholder='e.g Nike Cap' onChange={(e) => setItemName(e.target.value)} style={{width: '1000px'}} required />
+          <label >Item Name</label>
+          <input
+            type="text"
+            value={itemName}
+            placeholder="e.g. Nike Black Baseball Cap"
+            onChange={(e) => {
+              const words = e.target.value.trim().split(/\s+/);
+              if (words.length <= 5) {
+                setItemName(e.target.value);
+              } else {
+                setItemName(words.slice(0, 5).join(" "));
+              }
+            }}
+            style={{width: "1000px"}}
+            required
+          />
           <br />
 
           <label>Date Found:</label>
           <input type="date" value={dateFound} onChange={(e) => setDateFound(e.target.value)} style={{width: '200px'}} required />
 
           <label>Location Found:</label>
-          <input type="text" value={locationFound} placeholder=' e.g Building 42 - CEA Complex' onChange={(e) => setLocationFound(e.target.value)} style={{width: '400px'}} required />
+          <select
+            value={locationFound}
+            onChange={(e) => setLocationFound(e.target.value)}
+            style={{
+              width: "400px",
+              height: "35px",
+              borderRadius: "8px",
+              border: "2px solid #475C6F",
+              color: "#475C6F",
+              backgroundColor: "transparent",
+              padding: "5px"
+            }}
+            required
+          >
+            <option value="">Select Location</option>
+            <option value="Arts and Culture Building">Arts and Culture Building</option>
+            <option value="Guidance and Testing Center">Guidance and Testing Center</option>
+            <option value="College of Medicine">College of Medicine</option>
+            <option value="Old Engineering Building">Old Engineering Building</option>
+            <option value="ICT Building">ICT Building</option>
+            <option value="Administration Building">Administration Building</option>
+            <option value="Finance and Accounting Building / SHS Building">Finance and Accounting Building / SHS Building</option>
+            <option value="Gymnasium Lobby">Gymnasium Lobby</option>
+            <option value="Gymnasium">Gymnasium</option>
+            <option value="Culinary Building">Culinary Building</option>
+            <option value="NSTP Building">NSTP Building</option>
+            <option value="Cafeteria">Cafeteria</option>
+            <option value="Guardhouse">Guardhouse</option>
+            <option value="LRC">LRC</option>
+            <option value="Girl’s Trade Building">Girl’s Trade Building</option>
+            <option value="Food Innovation Center">Food Innovation Center</option>
+            <option value="University Health Center (with OSA)">University Health Center (with OSA)</option>
+            <option value="Old Science Building">Old Science Building</option>
+            <option value="Old Education Building">Old Education Building</option>
+            <option value="Old Student Center">Old Student Center</option>
+            <option value="Science Complex">Science Complex</option>
+            <option value="Engineering Complex (Right Wing)">Engineering Complex (Right Wing)</option>
+            <option value="Engineering Complex (Left Wing)">Engineering Complex (Left Wing)</option>
+            <option value="Student Center & Education Complex">Student Center & Education Complex</option>
+            <option value="Fabrication Laboratory Shop">Fabrication Laboratory Shop</option>
+            <option value="Technology Building">Technology Building</option>
+            <option value="Faculty Resource Center">Faculty Resource Center</option>
+            <option value="Campus Residences / Dorm (new)">Campus Residences / Dorm (new)</option>
+            <option value="Fab Lab Building">Fab Lab Building</option>
+            <option value="Child Minding Center">Child Minding Center</option>
+            <option value="BGMS">BGMS</option>
+            <option value="Supply and Property Management Section">Supply and Property Management Section</option>
+            <option value="Waiting Shed (Building 24)">Waiting Shed (Building 24)</option>
+            <option value="Movable Classroom 1">Movable Classroom 1</option>
+            <option value="Movable Classroom 2">Movable Classroom 2</option>
+            <option value="Movable Classroom 3">Movable Classroom 3</option>
+            <option value="Movable Classroom 4">Movable Classroom 4</option>
+            <option value="Movable Classroom 5">Movable Classroom 5</option>
+            <option value="Movable Classroom 6">Movable Classroom 6</option>
+            <option value="Movable Classroom 7">Movable Classroom 7</option>
+            <option value="Movable Classroom 8">Movable Classroom 8</option>
+            <option value="Others">Others (please specify)</option>
+          </select>
+
+          {locationFound === "Others" && (
+            <input
+            className="custom-location-input"
+              type="text"
+              placeholder="Please specify location"
+              value={customLocation}
+              onChange={(e) => setCustomLocation(e.target.value)}
+              style={{
+                position: "absolute",
+                left: "32%",
+                top: "23%",
+                width: "350px",
+                height: "25px",
+                marginTop: "8px",
+                backgroundColor: "white",
+                border: "none",
+                padding: "5px"
+              }}
+              required
+            />
+          )}
+
 
           <label>Category:</label>
           <select value={category} onChange={(e) => setCategory(e.target.value)} style={{width: '140px', borderRadius: '10px', backgroundColor: 'transparent', border: '2px solid #475C6F', color: '#475C6F'}} required>

@@ -1,7 +1,7 @@
 .user-found-procedure-body {
     position: absolute;
     top: 9%;
-    left: 6%;
+    left: 4%;
     background-color: white;
     width: 1420px;
     height: 650px;
@@ -75,3 +75,7 @@
     color: black;
 }
 
+.custom-location-input:focus {
+    outline: none;
+    border: none;
+}

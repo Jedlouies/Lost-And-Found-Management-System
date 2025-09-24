@@ -119,6 +119,7 @@
     background-color: #cbcbcb;
     text-align: center;
     border-radius: 10px;
+    margin-top: 10px;
     box-shadow: 0px 2px 5px rgb(0, 0, 0, 0.5);
 }
 
@@ -379,7 +380,7 @@
        top: 9%;
     }
      .page-lost-container {
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 5px;
 
     }
