@@ -254,7 +254,6 @@ app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`)
 
 import cron from "node-cron";
 import { getDatabase } from "firebase-admin/database"; // make sure firebase-admin is set up
-import { db, resend } from "./firebaseAdmin.js"; // adjust path as needed
 
 cron.schedule("*/15 * * * *", async () => {
   console.log("⏳ Running background job...");
