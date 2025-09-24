@@ -97,7 +97,7 @@ async function handleSave(e) {
                   />
                 </Form.Group>
 
-                <div className="d-flex justify-center">
+                <div className="d-flex justify-content-center">
                 
                   <Button 
                     variant="primary" 
