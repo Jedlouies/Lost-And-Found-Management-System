@@ -130,6 +130,7 @@ function MatchMoreDetailsPage() {
                 <div
                   key={index}
                   style={{
+                    display: 'flex',
                     border: "1px solid #ddd",
                     borderRadius: "10px",
                     padding: "10px",
