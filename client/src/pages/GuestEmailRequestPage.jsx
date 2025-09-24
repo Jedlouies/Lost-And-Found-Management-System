@@ -14,46 +14,58 @@ export default function GuestEmailRequestPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSave(e) {
-    e.preventDefault();
-    try {
-      if (!currentUser) {
-        setError("No user session found.");
-        return;
-      }
+async function handleSave(e) {
+  e.preventDefault();
+  try {
+    if (!currentUser) {
+      setError("No user session found.");
+      return;
+    }
 
-      setLoading(true); 
+    setLoading(true);
 
-      if (email) {
+    if (email) {
       const usersRef = collection(db, "users");
       const q = query(usersRef, where("email", "==", email));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
-        setError("This email is already registered in the system.");
-        setLoading(false);
-        return;
+        let isDuplicate = false;
+
+        querySnapshot.forEach((docSnap) => {
+          const userData = docSnap.data();
+          
+          if (userData.role !== "guest") {
+            isDuplicate = true;
+          }
+        });
+
+        if (isDuplicate) {
+          setError("This email is already registered in the system.");
+          setLoading(false);
+          return;
+        }
       }
     }
 
-      await setDoc(
-        doc(db, "users", currentUser.uid),
-        {
-          email: email || null,
-          role: "guest",
-          createdAt: new Date(),
-        },
-        { merge: true } 
-      );
+    await setDoc(
+      doc(db, "users", currentUser.uid),
+      {
+        email: email || null,
+        role: "guest",
+        createdAt: new Date(),
+      },
+      { merge: true }
+    );
 
-      navigate(`/guest/${currentUser.uid}`);
-    } catch (err) {
-      console.error("Error creating guest:", err);
-      setError("Failed to save guest info.");
-    } finally {
-      setLoading(false); 
-    }
+    navigate(`/guest/${currentUser.uid}`);
+  } catch (err) {
+    console.error("Error creating guest:", err);
+    setError("Failed to save guest info.");
+  } finally {
+    setLoading(false);
   }
+}
 
   function handleSkip() {
     navigate(`/guest/${currentUser.uid}`);
@@ -67,7 +79,7 @@ export default function GuestEmailRequestPage() {
           <Card style={{ width: "25rem" }}>
             <Card.Body>
               <h3 className="text-center mb-3">Email Address</h3>
-              <p  style={{color: 'red'}}>
+              <p  style={{color: 'black'}}>
                 Provide your email to receive updates about your lost item.  
                 If you skip, you won’t get any notifications.
               </p>
