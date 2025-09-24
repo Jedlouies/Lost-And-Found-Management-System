@@ -118,7 +118,7 @@ function MatchMoreDetailsPage() {
               position: "absolute",
               top: "45%",
               left: "35%",
-              display: "grid",
+              display: "flex",
               gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
               gap: "20px",
               marginTop: "20px",
@@ -130,7 +130,6 @@ function MatchMoreDetailsPage() {
                 <div
                   key={index}
                   style={{
-                    display: 'flex',
                     border: "1px solid #ddd",
                     borderRadius: "10px",
                     padding: "10px",
