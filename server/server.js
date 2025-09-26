@@ -248,6 +248,12 @@ app.post("/api/send-email", async (req, res) => {
   }
 });
 
+// --- Start Server ---
+const PORT = 4000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+})
+
 app.get("/", (req, res) => {
   res.send("Welcome to Raven Program");
 });
