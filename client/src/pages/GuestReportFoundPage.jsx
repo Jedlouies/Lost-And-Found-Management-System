@@ -180,7 +180,7 @@ function GuestReportFoundPage() {
 
       if (currentUser) {
         setIsMatching(true);
-        const matchResponse = await fetch("http://localhost:4000/api/match/found-to-lost", {
+        const matchResponse = await fetch("http://server.spotsync.site/api/match/found-to-lost", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ uidFound: docRef.id }),
@@ -201,7 +201,7 @@ function GuestReportFoundPage() {
          console.log("Current user email:", recipientEmail);
 
          try {
-                  const emailResUser = await fetch("http://localhost:4000/api/send-email", {
+                  const emailResUser = await fetch("http://server.spotsync.site/api/send-email", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

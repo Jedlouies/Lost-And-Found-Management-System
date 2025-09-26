@@ -142,7 +142,7 @@ const handleVerifyItem = async (foundDocId) => {
               Matching rate: <b>${match.scores.overallScore}%</b> Please bring your ID and QR Code for Verification.`
             );
             try {
-              const emailRes = await fetch("http://localhost:4000/api/send-email", {
+              const emailRes = await fetch("http://server.spotsync.site/api/send-email", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -182,7 +182,7 @@ const handleVerifyItem = async (foundDocId) => {
           );
 
           try {
-            const emailRes = await fetch("http://localhost:4000/api/send-email", {
+            const emailRes = await fetch("http://server.spotsync.site/api/send-email", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
