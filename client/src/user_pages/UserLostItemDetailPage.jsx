@@ -171,7 +171,7 @@
         createdAt: serverTimestamp(),
       });
 
-      const matchResponse = await fetch("http://server.spotsync.site/api/match/lost-to-found", {
+      const matchResponse = await fetch("https://server.spotsync.site/api/match/lost-to-found", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ uidLost: docRef.id }),
@@ -193,7 +193,7 @@
           );
 
           try {
-            const emailRes = await fetch("http://server.spotsync.site/api/send-email", {
+            const emailRes = await fetch("https://server.spotsync.site/api/send-email", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -227,7 +227,7 @@
               `This is the most possible match for your lost item <b>${itemName}</b>: Found item <b>${match.foundItem?.itemName}</b>.`
             );
             try {
-                  const emailResUser = await fetch("http://server.spotsync.site/api/send-email", {
+                  const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

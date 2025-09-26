@@ -300,7 +300,7 @@ const [guestSaved, setGuestSaved] = useState(false);
       `);
 
       try {
-                  const emailResUser = await fetch("http://localhost:4000/api/send-email", {
+                  const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -330,7 +330,7 @@ const [guestSaved, setGuestSaved] = useState(false);
 
 
                 try {
-                  const emailResUser = await fetch("http://localhost:4000/api/send-email", {
+                  const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -356,7 +356,7 @@ const [guestSaved, setGuestSaved] = useState(false);
                 }
 
                 try {
-                  const emailResUser = await fetch("http://localhost:4000/api/send-email", {
+                  const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

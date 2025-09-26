@@ -194,16 +194,243 @@ function ProcessClaimPage() {
   };
 
   // 🔹 Finalize Claim (unchanged, trimmed for brevity)
-  const finalizeClaim = async () => {
-    if (!matchData || !userData || !capturedImage) {
-      setAlert({
-        message: "Please first capture a photo and scan ID first",
-        type: "warning",
-      });
-      return;
+const finalizeClaim = async () => {
+  if (!matchData || !userData || !capturedImage) {
+    setAlert({
+      message: "Please capture a photo and scan a valid ID first.",
+      type: "warning",
+    });
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    // --- Update lost item ---
+    if (matchData.lostItem?.itemId) {
+      const lostQuery = query(
+        collection(db, "lostItems"),
+        where("itemId", "==", matchData.lostItem.itemId)
+      );
+      const lostSnap = await getDocs(lostQuery);
+
+      if (!lostSnap.empty) {
+        const lostDocId = lostSnap.docs[0].id;
+        await updateDoc(doc(db, "lostItems", lostDocId), {
+          claimStatus: "claimed",
+          owner: {
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            middleName: userData.middleName || "",
+            email: userData.email,
+            contactNumber: userData.contactNumber,
+            address: userData.address,
+            birthdate: userData.birthdate,
+            course: userData.course,
+            section: userData.section,
+            yearLevel: userData.yearLevel,
+            profileURL: userData.profileURL,
+            uid: userData.id,
+          },
+          claimantPhoto: capturedImage,
+        });
+      }
     }
-    // 🔹 Your finalize logic here (I kept it same as your original)
-  };
+
+    // --- Update found item ---
+    if (matchData.foundItem?.itemId) {
+      const foundQuery = query(
+        collection(db, "foundItems"),
+        where("itemId", "==", matchData.foundItem.itemId)
+      );
+      const foundSnap = await getDocs(foundQuery);
+
+      if (!foundSnap.empty) {
+        const foundDocId = foundSnap.docs[0].id;
+        await updateDoc(doc(db, "foundItems", foundDocId), {
+          claimStatus: "claimed",
+          claimedBy: {
+            firstName: userData.firstName,
+            lastName: userData.lastName,
+            middleName: userData.middleName || "",
+            email: userData.email,
+            contactNumber: userData.contactNumber,
+            address: userData.address,
+            birthdate: userData.birthdate,
+            course: userData.course,
+            section: userData.section,
+            yearLevel: userData.yearLevel,
+            profileURL: userData.profileURL,
+            uid: userData.id,
+          },
+          claimantPhoto: capturedImage,
+        });
+      }
+    }
+
+    // --- Update match record ---
+    if (matchDocId) {
+      const matchDocRef = doc(db, "matches", matchDocId);
+      await setDoc(matchDocRef, { claimStatus: "claimed" }, { merge: true });
+    }
+
+    // --- Save to claimedItems ---
+    await addDoc(collection(db, "claimedItems"), {
+      itemId: matchData.foundItem.itemId,
+      images: matchData.foundItem.images,
+      itemName: matchData.foundItem.itemName || "",
+      dateClaimed: new Date().toISOString(),
+      founder: matchData.foundItem.personalInfo || null,
+      owner: {
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        middleName: userData.middleName || "",
+        email: userData.email,
+        contactNumber: userData.contactNumber,
+        address: userData.address,
+        birthdate: userData.birthdate,
+        course: userData.course,
+        section: userData.section,
+        yearLevel: userData.yearLevel,
+        profileURL: userData.profileURL,
+        uid: userData.id,
+      },
+      ownerActualFace: capturedImage,
+    });
+
+    // --- Save to claimHistory ---
+    await addDoc(collection(db, "claimHistory"), {
+      itemId: matchData.foundItem.itemId,
+      itemName: matchData.foundItem.itemName || "",
+      dateClaimed: new Date().toISOString(),
+      founder: matchData.foundItem.personalInfo || null,
+      owner: {
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        middleName: userData.middleName || "",
+        email: userData.email,
+        contactNumber: userData.contactNumber,
+        address: userData.address,
+        birthdate: userData.birthdate,
+        course: userData.course,
+        section: userData.section,
+        yearLevel: userData.yearLevel,
+        profileURL: userData.profileURL,
+        uid: userData.id,
+      },
+      claimantPhoto: capturedImage,
+      userAccount: currentUser?.uid || "system",
+      status: "completed",
+    });
+
+    // --- Notifications ---
+      // Notify guest not needed, but notify founder/admin
+      await notifyUser(currentUser?.uid, `<b>Transaction ID: ${matchData.transactionId}</b> — The system has successfully processed a matching request for a lost item report. 
+      The results generated are: 
+      Image Match ${matchData.scores?.imageScore}%, 
+      Description Match ${matchData.scores?.descriptionScore}%, 
+      and an Overall Match Rate of ${matchData.scores?.overallScore}%. 
+      Please review the transaction details for further verification.`);
+    await notifyUser(matchData.lostItem?.uid, ` Hello <b>"${matchData.lostItem?.personalInfo?.firstName}"!</b>  Your lost item <b>"${matchData.lostItem?.itemName}"</b> has been successfully claimed.  
+      Please take a moment to rate your experience and help us improve the matching process.
+      `);
+    await notifyUser(matchData.foundItem?.uid, `Thank you <b>"${matchData.foundItem?.personalInfo?.firstName}"!</b>  The item you reported found <b>"${matchData.foundItem?.itemName}"</b> 
+      has been successfully claimed by its rightful owner.  
+      We appreciate your honesty and contribution. Kindly rate your experience with the process.
+      `);
+
+      try {
+                  const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      to: String(currentUser?.email),
+                      subject: "Transaction Processed",
+                      html: `<b>Transaction ID: ${matchData.transactionId}</b> — The system has successfully processed a matching request for a lost item report. 
+                        The results generated are: 
+                        Image Match ${matchData.scores?.imageScore}%, 
+                        Description Match ${matchData.scores?.descriptionScore}%, 
+                        and an Overall Match Rate of ${matchData.scores?.overallScore}%. 
+                        Please review the transaction details for further verification.`
+                    })
+                  });
+
+                  const emailDataUser = await emailResUser.json();
+                  console.log("Email response for user:", emailDataUser);
+
+                  if (!emailResUser.ok) {
+                    console.error("Failed to send email to user:", emailDataUser);
+                  } else {
+                    console.log("Email successfully sent to user:", email);
+                  }
+
+                } catch (emailErrorUser) {
+                  console.error("Error sending email to user:", emailErrorUser);
+                }
+
+
+                try {
+                  const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      to: String(matchData.lostItem?.personalInfo?.email),
+                      subject: "Transaction Processed",
+                      html:` Hello <b>"${matchData.lostItem?.personalInfo?.firstName}"!</b>  Your lost item <b>"${matchData.lostItem?.itemName}"</b> has been successfully claimed.  
+      Please take a moment to rate your experience and help us improve the matching process.
+      `
+                    })
+                  });
+
+                  const emailDataUser = await emailResUser.json();
+                  console.log("Email response for user:", emailDataUser);
+
+                  if (!emailResUser.ok) {
+                    console.error("Failed to send email to user:", emailDataUser);
+                  } else {
+                    console.log("Email successfully sent to user:", matchData.lostItem?.personalInfo?.email);
+                  }
+
+                } catch (emailErrorUser) {
+                  console.error("Error sending email to user:", emailErrorUser);
+                }
+
+                try {
+                  const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      to: String(matchData.foundItem?.personalInfo?.email),
+                      subject: "Transaction Processed",
+                      html:` Hello <b>"${matchData.foundItem?.personalInfo?.firstName}"!</b>  Your lost item <b>"${matchData.foundItem?.itemName}"</b> has been successfully claimed.  
+      Please take a moment to rate your experience and help us improve the matching process.
+      `
+                    })
+                  });
+
+                  const emailDataUser = await emailResUser.json();
+                  console.log("Email response for user:", emailDataUser);
+
+                  if (!emailResUser.ok) {
+                    console.error("Failed to send email to user:", emailDataUser);
+                  } else {
+                    console.log("Email successfully sent to user:", matchData.foundItem?.personalInfo?.email);
+                  }
+
+                } catch (emailErrorUser) {
+                  console.error("Error sending email to user:", emailErrorUser);
+                }
+
+    setAlert({ message: "Claim finalized and emails sent!", type: "success" });
+    navigate(`/admin/item-claimed-list/${currentUser?.uid || userData.id}`);
+    window.location.reload();
+  } catch (err) {
+    console.error("Error finalizing claim:", err);
+    setAlert({ message: "Error finalizing claim.", type: "error" });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <>

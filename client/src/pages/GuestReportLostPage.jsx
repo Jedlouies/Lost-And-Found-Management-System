@@ -184,7 +184,7 @@ function GuestReportLostPage() {
 
       // ✅ Matching process
       if (currentUser) {
-        const matchResponse = await fetch("http://server.spotsync.site/api/match/lost-to-found", {
+        const matchResponse = await fetch("https://server.spotsync.site/api/match/lost-to-found", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ uidLost: docRef.id }),
@@ -203,7 +203,7 @@ function GuestReportLostPage() {
               `Your found item <b>${match.foundItem.itemName}</b> may possibly match with a newly reported lost item: <b>${itemName}</b>.`
             );
 
-            await fetch("http://server.spotsync.site/api/send-email", {
+            await fetch("https://server.spotsync.site/api/send-email", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -224,7 +224,7 @@ function GuestReportLostPage() {
               );
 
               try {
-                const emailResUser = await fetch("http://server.spotsync.site/api/send-email", {
+                const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({

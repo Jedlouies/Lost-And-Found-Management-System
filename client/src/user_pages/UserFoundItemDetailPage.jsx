@@ -175,7 +175,7 @@ const handleSubmit = async (e) => {
 
     setIsMatching(true);
 
-    const matchResponse = await fetch("http://server.spotsync.site/api/match/found-to-lost", {
+    const matchResponse = await fetch("https://server.spotsync.site/api/match/found-to-lost", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ uidFound: docRef.id }),
@@ -202,7 +202,7 @@ const handleSubmit = async (e) => {
           );
 
           try {
-            const emailRes = await fetch("http://server.spotsync.site/api/send-email", {
+            const emailRes = await fetch("https://server.spotsync.site/api/send-email", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
