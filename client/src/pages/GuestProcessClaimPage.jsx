@@ -57,6 +57,38 @@ const [guestSection, setGuestSection] = useState("");
 const [guestYearLevel, setGuestYearLevel] = useState("");
 const [guestSaved, setGuestSaved] = useState(false);
 
+// 🔹 Resize/compress base64 before storing in Firestore
+const resizeBase64Img = (base64, maxWidth = 400, maxHeight = 400, quality = 0.7) => {
+  return new Promise((resolve) => {
+    let img = new Image();
+    img.src = base64;
+    img.onload = () => {
+      let canvas = document.createElement("canvas");
+      let ctx = canvas.getContext("2d");
+
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height *= maxWidth / width;
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width *= maxHeight / height;
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      resolve(canvas.toDataURL("image/jpeg", quality)); // JPEG is smaller than PNG
+    };
+  });
+};
 
 
   // 🔹 Camera handling
@@ -111,19 +143,23 @@ const [guestSaved, setGuestSaved] = useState(false);
   }, [selectedDeviceId]);
 
   // 🔹 Capture photo
-  const capturePhoto = () => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (video && canvas) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      setCapturedImage(canvas.toDataURL("image/png"));
+const capturePhoto = async () => {
+  const video = videoRef.current;
+  const canvas = canvasRef.current;
+  if (video && canvas) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const rawImage = canvas.toDataURL("image/png");
 
-      setShowGuestModal(true);
-    }
-  };
+    // 🔹 Compress before saving
+    const compressedImage = await resizeBase64Img(rawImage);
+    setCapturedImage(compressedImage);
+
+    setShowGuestModal(true);
+  }
+};
 
   // 🔹 Notify user (Realtime DB)
   const notifyUser = async (uid, message) => {

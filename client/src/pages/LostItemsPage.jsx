@@ -272,9 +272,9 @@ const archiveItem = async (item) => {
                         <div className='founder-details'>
                           {item.foundBy ? (
                             <>
-                              {item.foundBy.profileURL ? (
+                              {item.foundBy?.profileURL ? (
                                 <img 
-                                  src={item.foundBy.profileURL} 
+                                  src={item.foundBy?.profileURL} 
                                   alt="Founder" 
                                   style={{ width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover' }} 
                                 />
@@ -288,10 +288,10 @@ const archiveItem = async (item) => {
                               )}
                               <div className='personal-info'>
                                 <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>
-                                  {item.foundBy.firstName} {item.foundBy.lastName}
+                                  {item.foundBy?.firstName} {item.foundBy?.lastName}
                                 </p>
                                 <p style={{ fontStyle: 'italic', color: 'black' }}>
-                                  {item.foundBy.course?.abbr || 'Unknown'}
+                                  {item.foundBy?.course?.abbr || 'Unknown'}
                                 </p>
                               </div>
                             </>

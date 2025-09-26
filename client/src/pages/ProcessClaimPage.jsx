@@ -53,6 +53,47 @@ function ProcessClaimPage() {
   const transactionId = matchDocId || `TXN-${Date.now()}`;
   const dbRealtime = getDatabase();
 
+  const sanitizeData = (obj) => {
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v]) => [k, v === undefined ? null : v])
+  );
+};
+
+// 🔹 Resize/compress base64 before storing in Firestore
+const resizeBase64Img = (base64, maxWidth = 400, maxHeight = 400, quality = 0.7) => {
+  return new Promise((resolve) => {
+    let img = new Image();
+    img.src = base64;
+    img.onload = () => {
+      let canvas = document.createElement("canvas");
+      let ctx = canvas.getContext("2d");
+
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height *= maxWidth / width;
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width *= maxHeight / height;
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+
+      resolve(canvas.toDataURL("image/jpeg", quality)); // use JPEG
+    };
+  });
+};
+
+
+
   // 🔹 Setup available cameras
   useEffect(() => {
     const updateDevices = async () => {
@@ -77,83 +118,85 @@ function ProcessClaimPage() {
     };
   }, [selectedDeviceId]);
 
-  // 🔹 Start QR Scanner whenever device changes
-  useEffect(() => {
-    if (!videoRef.current || !selectedDeviceId) return;
+useEffect(() => {
+  if (!videoRef.current || !selectedDeviceId) return;
 
-    // stop any previous scanner
-    if (scannerRef.current) {
-      scannerRef.current.stop();
-      scannerRef.current = null;
+  if (scannerRef.current) {
+    scannerRef.current.stop();
+    scannerRef.current = null;
+  }
+
+  const qrScanner = new QrScanner(
+    videoRef.current,
+    (result) => {
+      handleScan(result); // ✅ always pass to handler
+    },
+    {
+      highlightScanRegion: true,
+      highlightCodeOutline: true,
     }
+  );
 
-    const qrScanner = new QrScanner(
-      videoRef.current,
-      (result) => {
-        if (isScanning) handleScan(result);
-      },
-      {
-        highlightScanRegion: true,
-        highlightCodeOutline: true,
-      }
-    );
+  qrScanner.start().catch((err) => console.error("Scanner start error:", err));
+  scannerRef.current = qrScanner;
 
-    qrScanner.start().catch((err) => console.error("Scanner start error:", err));
-    scannerRef.current = qrScanner;
-
-    return () => {
-      qrScanner.stop();
-    };
-  }, [selectedDeviceId, isScanning]);
+  return () => {
+    qrScanner.stop();
+  };
+}, [selectedDeviceId]); 
 
   // 🔹 Capture a still image
-  const capturePhoto = () => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (video && canvas) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      setCapturedImage(canvas.toDataURL("image/png"));
+const capturePhoto = async () => {
+  const video = videoRef.current;
+  const canvas = canvasRef.current;
+  if (video && canvas) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const rawImage = canvas.toDataURL("image/png");
 
-      setIsScanning(true); // enable scanning mode
-    }
-  };
+    // 🔹 Compress before saving
+    const compressedImage = await resizeBase64Img(rawImage);
+    setCapturedImage(compressedImage);
+
+    setIsScanning(true); // enable scanning mode
+  }
+};
 
   // 🔹 Handle QR results
-  const handleScan = async (result) => {
-    if (!result?.data) return;
+const handleScan = async (result) => {
+  if (!result?.data || qrResult) return; // ✅ ignore new scans if already scanned
 
-    setAlert({ message: "QR Code Scanned!", type: "success" });
-    setScanFeedback(null);
+  setAlert({ message: "QR Code Scanned!", type: "success" });
+  setScanFeedback(null);
 
-    const text = result.data;
-    const tokens = text.split(/\s+/);
+  const text = result.data;
+  const tokens = text.split(/\s+/);
 
-    let fullnameParts = [];
-    let idNumber = "";
-    let courseParts = [];
-    let phase = "name";
+  let fullnameParts = [];
+  let idNumber = "";
+  let courseParts = [];
+  let phase = "name";
 
-    for (let token of tokens) {
-      if (/^\d+$/.test(token)) {
-        idNumber = token;
-        phase = "course";
-      } else {
-        if (phase === "name") fullnameParts.push(token);
-        else if (phase === "course") courseParts.push(token);
-      }
+  for (let token of tokens) {
+    if (/^\d+$/.test(token)) {
+      idNumber = token;
+      phase = "course";
+    } else {
+      if (phase === "name") fullnameParts.push(token);
+      else if (phase === "course") courseParts.push(token);
     }
+  }
 
-    const parsedResult = {
-      fullname: fullnameParts.join(" "),
-      idNumber,
-      course: courseParts.join(" "),
-    };
+  const parsedResult = {
+    fullname: fullnameParts.join(" "),
+    idNumber,
+    course: courseParts.join(" "),
+  };
 
-    setQrResult(parsedResult);
-    setIsScanning(false);
+  setQrResult(parsedResult);
+  // ❌ remove setIsScanning(false) here
 
     // 🔎 Lookup user in Firestore
     try {
@@ -218,21 +261,7 @@ const finalizeClaim = async () => {
         const lostDocId = lostSnap.docs[0].id;
         await updateDoc(doc(db, "lostItems", lostDocId), {
           claimStatus: "claimed",
-          owner: {
-            firstName: userData.firstName,
-            lastName: userData.lastName,
-            middleName: userData.middleName || "",
-            email: userData.email,
-            contactNumber: userData.contactNumber,
-            address: userData.address,
-            birthdate: userData.birthdate,
-            course: userData.course,
-            section: userData.section,
-            yearLevel: userData.yearLevel,
-            profileURL: userData.profileURL,
-            uid: userData.id,
-          },
-          claimantPhoto: capturedImage,
+          foundBy: matchData.foundItem.personalInfo || null,
         });
       }
     }
@@ -249,7 +278,7 @@ const finalizeClaim = async () => {
         const foundDocId = foundSnap.docs[0].id;
         await updateDoc(doc(db, "foundItems", foundDocId), {
           claimStatus: "claimed",
-          claimedBy: {
+          claimedBy: sanitizeData({
             firstName: userData.firstName,
             lastName: userData.lastName,
             middleName: userData.middleName || "",
@@ -262,7 +291,7 @@ const finalizeClaim = async () => {
             yearLevel: userData.yearLevel,
             profileURL: userData.profileURL,
             uid: userData.id,
-          },
+          }),
           claimantPhoto: capturedImage,
         });
       }
@@ -281,7 +310,7 @@ const finalizeClaim = async () => {
       itemName: matchData.foundItem.itemName || "",
       dateClaimed: new Date().toISOString(),
       founder: matchData.foundItem.personalInfo || null,
-      owner: {
+      owner: sanitizeData({
         firstName: userData.firstName,
         lastName: userData.lastName,
         middleName: userData.middleName || "",
@@ -294,7 +323,7 @@ const finalizeClaim = async () => {
         yearLevel: userData.yearLevel,
         profileURL: userData.profileURL,
         uid: userData.id,
-      },
+      }),
       ownerActualFace: capturedImage,
     });
 
@@ -304,7 +333,7 @@ const finalizeClaim = async () => {
       itemName: matchData.foundItem.itemName || "",
       dateClaimed: new Date().toISOString(),
       founder: matchData.foundItem.personalInfo || null,
-      owner: {
+      owner: sanitizeData({
         firstName: userData.firstName,
         lastName: userData.lastName,
         middleName: userData.middleName || "",
@@ -317,7 +346,7 @@ const finalizeClaim = async () => {
         yearLevel: userData.yearLevel,
         profileURL: userData.profileURL,
         uid: userData.id,
-      },
+      }),
       claimantPhoto: capturedImage,
       userAccount: currentUser?.uid || "system",
       status: "completed",
