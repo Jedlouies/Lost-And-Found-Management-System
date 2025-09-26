@@ -1,0 +1,100 @@
+.nav-body {
+    display: block;
+    width: 80px;
+    height: 745px;
+    transition: width 0.3s ease;
+    background-color: white;
+    position: fixed;
+    justify-items: center;
+    z-index: 1000;
+}
+
+.nav-buttons span {
+  white-space: nowrap;
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.nav-body img {
+    width: 80px;
+    height: 80px;
+}
+
+.line {
+    background-color: black;
+    width: 60px;
+    height: 1px;
+    margin-bottom: 15px;
+}
+
+
+.nav-body.expanded {
+    width: 200px;
+}
+
+.nav-body.expanded span {
+    opacity: 1;
+}
+
+.nav-body.expanded .slogan{
+    position: absolute;
+    top: 4%;
+    left: 35%;
+    width: 110px;
+    height: 30px;
+}
+
+.nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px;
+  height: 40px;
+  margin-bottom: 20px;
+  width: 100%;
+  transition: all 0.3s ease;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.nav-body.expanded .nav-buttons {
+  justify-content: flex-start; 
+}
+
+.nav-body.expanded .line {
+    width: 180px;
+}
+
+.nav-buttons svg {
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+}
+
+.nav-buttons svg:hover {
+    transition: ease-in-out 0.4s;
+    scale: 1.1;
+}
+
+.nav-buttons:hover {
+    background-color: #dee9f0;
+    transition: ease-in-out 0.2s;
+}
+
+.nav-buttons.active {
+  background-color: #CFE5F9;
+  color: #23313f;
+  transition: background-color 0.3s ease;
+}
+
+.logout-message {
+    opacity: 0;
+}
+
+.logout-message.message {
+    color: #23313f;
+    opacity: 1;
+}
+
+

@@ -1,0 +1,144 @@
+.more-details-information2 p,
+.more-details-information2 h3 {
+    color: #475C6F;
+    font-size: medium;
+} 
+
+.more-details-information2 {
+    background-color: white;
+    padding: 20px;
+    border-radius: 20px;
+    position: absolute;
+    margin-top: 20px;
+    left: 50%;
+    min-width: 600px;
+    
+}
+
+.manage-item-container p {
+    color: #475C6F;
+}
+
+.item-image img {
+    position: abso;
+    width: 600px;
+    height: 600px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+@media (max-width: 1920px) {
+    .more-details-information2 p,
+    .more-details-information2 h3 {
+        font-size: small;
+    } 
+
+    .manage-item-container h1{
+        font-size: xx-large;
+    }
+
+    .more-details-information2 {
+        margin-top: 20px;
+        margin-right: 400px;
+        margin-left: 1%;
+        min-width: 500px;
+    }
+
+    .item-image img {
+        width: 500px;
+        height: 600px;
+    }
+}
+
+
+@media (max-width: 1200px) {
+    .more-details-information2 p,
+    .more-details-information2 h3 {
+        font-size: small;
+    } 
+
+    .manage-item-container h1{
+        font-size: xx-large;
+    }
+
+    .more-details-information2 {
+        margin-top: 20px;
+        margin-right: 400px;
+        margin-left: 500px;
+        min-width: 500px;
+    }
+
+    .item-image img {
+        width: 500px;
+        height: 600px;
+    }
+}
+
+@media (max-width: 992px) {
+    .more-details-information2 p,
+    .more-details-information2 h3 {
+        font-size: small;
+    } 
+
+    
+}
+
+@media (max-width: 768px) {
+    .more-details-information2 p,
+    .more-details-information2 h3 {
+        font-size: small;
+    } 
+
+    .manage-item-container h1{
+        font-size: x-large;
+        margin-top: 600px;
+        z-index: 20;
+    }
+
+    .item-image img {
+        width: 600px;
+        height: 300px;
+    }
+
+    .more-details-information2 {
+        position: absolute;
+        margin-top: 290px;
+        margin-left: 1px;
+        min-width: 550px;
+    }
+
+    .manage-item-body {
+        height: 150vh;
+        
+    }
+}
+
+@media (max-width: 576px) {
+    .more-details-information2 p,
+    .more-details-information2 h3 {
+        font-size: small;
+    } 
+
+    .manage-item-container h1{
+        font-size: x-large;
+        margin-top: 600px;
+        z-index: 20;
+    }
+
+    .item-image img {
+        width: 450px;
+        height: 300px;
+    }
+
+    .more-details-information2 {
+        position: absolute;
+        margin-top: 290px;
+        margin-left: 1px;
+        min-width: 400px;
+    }
+
+    .manage-item-body {
+        height: 150vh;
+        
+    }
+}
+

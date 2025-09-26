@@ -1,0 +1,145 @@
+.user-lost-procedure-body {
+    position: absolute;
+    top: 9%;
+    left: 6%;
+    background-color: white;
+    width: 1420px;
+    height: 650px;
+    z-index: 10;
+    border-radius: 20px;
+    padding: 10px;
+    margin-left: 40px;
+    box-shadow: 0px 2px 5px rgb(0, 0, 0, 0.7);
+}
+
+
+
+.user-lost-procedure-body h1 {
+    font-weight: bold;
+    font-size: 20px;
+    font-weight: 1000;
+    color: #475C6F;
+}
+
+
+
+.user-lost-procedure-body svg {
+    position: absolute;
+    top: 7%;
+    left: 3%;
+}
+
+.user-lost-procedure-body p {
+    position: absolute;
+    font-size: 20px;
+    top: 25%;
+    left: 5%;
+    color: black;
+}
+
+.user-lost-procedure-body button{
+    position: absolute;
+    top: 85%;
+    left: 40%;
+    background-color: #475C6F;
+    border-radius: 20px;
+    width: 200px;
+    height: 40px;
+}
+
+.user-lost-procedure-body button:hover{
+    background-color: #CFE5F9;
+    color: black;
+}
+
+@media (max-width: 1200px) {
+   .user-lost-procedure-body {
+        width: 1100px;
+   }
+
+    .user-lost-procedure-body p {
+        font-size: 16px;
+        top: 20%;
+        left: 5%;
+    }
+
+    .lost-reminders p {
+        width: 80%;
+    }
+
+    .user-lost-procedure-body button {
+        top: 80%;
+        left: 30%;
+        width: 150px;
+        height: 35px;
+    }
+}
+
+@media (max-width: 992px) {
+   .user-lost-procedure-body {
+        width: 900px;
+   }
+
+    .user-lost-procedure-body p {
+        font-size: 13px;
+        top: 20%;
+        left: 5%;
+    }
+
+    .lost-reminders p {
+        width: 60%;
+    }
+
+    .user-lost-procedure-body button {
+        top: 80%;
+        left: 30%;
+        width: 150px;
+        height: 35px;
+    }
+}
+
+@media (max-width: 768px) {
+   .user-lost-procedure-body {
+        width: 700px;
+   }
+
+    .user-lost-procedure-body p {
+        font-size: 10px;
+        top: 20%;
+        left: 5%;
+    }
+
+    .lost-reminders p {
+        width: 50%;
+    }
+
+    .user-lost-procedure-body button {
+        top: 80%;
+        left: 30%;
+        width: 150px;
+        height: 35px;
+    }
+}
+
+@media (max-width: 576px) {
+   .user-lost-procedure-body {
+        width: 500px;
+   }
+
+    .user-lost-procedure-body p {
+        font-size: 7px;
+        top: 20%;
+        left: 5%;
+    }
+
+    .lost-reminders p {
+        width: 35%;
+    }
+
+    .user-lost-procedure-body button {
+        top: 80%;
+        left: 30%;
+        width: 150px;
+        height: 35px;
+    }
+}

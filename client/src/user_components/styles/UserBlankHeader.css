@@ -1,0 +1,204 @@
+
+
+.header-body button {
+    padding: 5px;
+    display: flex;
+    margin-left: 20px;
+    background-color: transparent;
+    border: solid 2px white;
+    border-radius: 5px;
+    font-size: 12px;
+    gap: 5px;
+    justify-items: center;
+    align-content: center;
+    text-align: center;
+    height: 30px;
+}
+
+.header-body button:hover {
+    border-color: #CFE5F9;
+    color: #CFE5F9;
+}
+
+.header-body button:hover {
+    background-color: #7c8a97;
+}
+
+.header-right-tables {
+    gap: 10px;
+    display: flex;
+   
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.profile {
+    width: 30px;
+    height: 30px;
+    background-color: #ffffff;
+    border-radius: 40px;
+    cursor: pointer;
+    z-index: 400;
+}
+
+.header-right-tables p {
+    margin-top: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 400;
+}
+
+.header-right svg {
+    cursor: pointer;
+}
+
+
+
+
+.count-row {
+    margin-left: 20px;
+    display: flex;
+   align-items: center;
+   text-align: center;
+    gap: 10px;
+}
+
+.count-row p {
+    margin-top: 10px;
+}
+
+.count-row strong {
+    border: .1px solid white;
+    padding: 3px;
+    border-radius: 5px;
+}
+
+/* Styles for screens > 1700px */
+@media (min-width: 1701px) {
+    /* Adjust account dropdown position */
+    .account-dropdown.dropDown {
+        position: absolute;
+        top: 1%;
+        left: 92%; /* move further right */
+        opacity: 1;
+    }
+
+    /* Adjust notify panel position */
+    .notify-panels.notifyPanel {
+        position: absolute;
+        top: 4%;
+        left: 76%; /* move further right */
+        opacity: 1;
+        z-index: 100;
+    }
+
+    /* Adjust table header buttons on big screens */
+    .header-body button {
+        margin-left: 30px; /* bigger gap */
+        font-size: 14px;    /* slightly larger text */
+        height: 35px;       /* taller button */
+    }
+
+    /* Adjust profile size in tables header */
+    .header-right-tables .profile {
+        width: 30px;
+        height: 30px;
+    }
+
+    /* Adjust text inside tables header */
+    .header-right-tables p {
+        margin-top: 8px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 1540px) {
+
+    .dropdown-containers2 {
+        position: absolute;
+        top: 50px;
+        left: 1020px;
+    }
+    .account-dropdown2.dropDown
+    {
+        margin-top: -50px;
+        margin-left: 5px;
+    }
+    .notify-panels2.notifyPanel
+    {
+        margin-left: 50px;
+    }
+
+    
+    
+}
+@media (max-width: 1200px) {
+    .dropdown-containers2 {
+        position: absolute;
+        top: 50px;
+        left: 700px;
+    }
+       .account-dropdown2.dropDown
+    {
+        margin-top: -50px;
+        margin-left: -10px;
+    }
+    .notify-panels2.notifyPanel
+    {
+        margin-left: 50px;
+    }
+    
+}
+
+@media (max-width: 992px) {
+     .dropdown-containers2 {
+        position: absolute;
+        top: 50px;
+        left: 450px;
+    }
+    .account-dropdown2.dropDown2
+    {
+        margin-top: -50px;
+         margin-left: -10px;
+    }
+    .notify-panels2.notifyPanel
+    {
+        margin-left: 50px;
+    }
+    
+}
+
+@media (max-width: 768px) {
+    .dropdown-containers2 {
+        position: absolute;
+        top: 50px;
+        left: 250px;
+    }
+    .account-dropdown2.dropDown2
+    {
+        margin-top: -50px;
+    }
+    .notify-panels2.notifyPanel
+    {
+        margin-left: 50px;
+    }
+    
+}
+
+@media (max-width: 576px) {
+    .dropdown-containers2 {
+        position: absolute;
+        top: 50px;
+        left: 70px;
+    }
+    .account-dropdown2.dropDown2
+    {
+        margin-top: -50px;
+    }
+    .notify-panels2.notifyPanel
+    {
+        margin-left: 50px;
+    }
+}
+

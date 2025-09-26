@@ -1,0 +1,27 @@
+.notification-body {
+    position: relative;
+    top: 7%;
+    background-color: #D9D9D9;
+    width: 100%;
+    max-height: 1000px;
+    margin-left: 80px;
+}
+
+.notification-container {
+  
+  max-height: 1200px;   /* limit container height */
+  overflow-y: auto;    /* enable vertical scroll */
+  padding-right: 10px; /* avoid text cut-off */
+  scrollbar-width: none;       /* Firefox hide scrollbar */
+  -ms-overflow-style: none;    /* IE 10+ hide scrollbar */
+}
+
+.notification-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera hide scrollbar */
+}
+
+
+.notification-container h2, .notification-container p {
+    color: #475C6F;
+
+}

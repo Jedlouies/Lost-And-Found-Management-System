@@ -1,0 +1,262 @@
+.user-lost-procedure-body {
+    position: absolute;
+    top: 9%;
+    left: 6%;
+    background-color: white;
+    width: 1420px;
+    height: 650px;
+    z-index: 1000;
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow: 0px 2px 5px rgb(0, 0, 0, 0.7);
+}
+
+.user-lost-procedure-body2 {
+    overflow-x: auto;
+}
+
+.user-lost-procedure-body h1 {
+    font-weight: bold;
+    font-size: 20px;
+    font-weight: 1000;
+    color: #475C6F;
+}
+
+.lost-item-form input, 
+.lost-item-form label{
+    margin-bottom: 15px;
+    margin-left: 20px;
+    width: 100px;
+    color: #475C6F;
+}
+
+.lost-item-form textarea {
+    background-color: transparent;
+    border-radius: 10px;
+    width: 1000px;
+    height: 160px;
+    margin-left: 20px;
+    resize: none;
+    border: 2px solid #475C6F;
+}
+
+.lost-item-form input {
+    background-color: transparent;
+    border-radius: 10px;
+}
+
+.lost-item-form input::placeholder {
+    color: #475C6F;
+    opacity: 50%;
+}
+
+.user-lost-procedure-body svg {
+    position: absolute;
+    top: 7%;
+    left: 3%;
+}
+
+.user-lost-procedure-body p {
+    position: absolute;
+    font-size: 20px;
+    top: 25%;
+    left: 5%;
+    color: black;
+}
+
+.user-lost-procedure-body button{
+    position: absolute;
+    top: 85%;
+    left: 40%;
+    background-color: #475C6F;
+    border-radius: 20px;
+    width: 200px;
+    height: 40px;
+}
+
+.user-lost-procedure-body button:hover{
+    background-color: #CFE5F9;
+    color: black;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(36%) sepia(14%) saturate(624%) hue-rotate(173deg) brightness(95%) contrast(85%);
+  cursor: pointer;
+}
+
+.background2 {
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 120vh;
+  background: #000000;
+  background-image: url("/landing-page-img.png");
+  background-size: cover;    
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.user-lost-procedure-body2 {
+    position: absolute;
+    top: 9%;
+    left: 4%;
+    background-color: white;
+    width: 1420px;
+    height: 650px;
+    z-index: 1000;
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow: 0px 2px 5px rgb(0, 0, 0, 0.7);
+}
+
+.user-lost-procedure-body2 h1 {
+    font-weight: bold;
+    font-size: 20px;
+    font-weight: 1000;
+    color: #475C6F;
+}
+
+.lost-item-form input, 
+.lost-item-form label{
+    margin-bottom: 15px;
+    margin-left: 20px;
+    width: 100px;
+    color: #475C6F;
+}
+
+.lost-item-form textarea {
+    background-color: transparent;
+    border-radius: 10px;
+    width: 1000px;
+    height: 160px;
+    margin-left: 20px;
+    resize: none;
+    border: 2px solid #475C6F;
+}
+
+.lost-item-form input {
+    background-color: transparent;
+    border-radius: 10px;
+}
+
+.lost-item-form input::placeholder {
+    color: #475C6F;
+    opacity: 50%;
+}
+
+.user-lost-procedure-body2 svg {
+    position: absolute;
+    top: 7%;
+    left: 3%;
+}
+
+.user-lost-procedure-body2 p {
+    position: absolute;
+    font-size: 20px;
+    top: 25%;
+    left: 5%;
+    color: black;
+}
+
+.user-lost-procedure-body2 button{
+    position: absolute;
+    top: 85%;
+    left: 40%;
+    background-color: #475C6F;
+    border-radius: 20px;
+    width: 200px;
+    height: 40px;
+}
+
+.user-lost-procedure-body button:hover{
+    background-color: #CFE5F9;
+    color: black;
+}
+
+
+
+
+@media (max-width: 1200px) {
+    .user-lost-procedure-body, .user-lost-procedure-body2 {
+        width: 90%;
+        height: 700px;
+        left: 5%;
+        top: 5%;
+        padding: 20px;
+    }
+
+    .lost-item-form textarea {
+        width: 100%;
+        height: 120px;
+    }
+
+    .lost-item-form input, 
+    .lost-item-form label{
+        width: auto;
+        margin-left: 0;
+    }
+
+    .user-lost-procedure-body p, .user-lost-procedure-body2 p {
+        font-size: 16px;
+        top: 20%;
+        left: 5%;
+        right: 5%;
+        opacity: 0;
+    }
+
+    .user-lost-procedure-body button, .user-lost-procedure-body2 button {
+        width: 80%;
+        left: 10%;
+        top: auto;
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 992px) {
+    .user-lost-procedure-body, .user-lost-procedure-body2 {
+        height: auto;
+        top: 5%;
+        padding: 15px;
+    }
+
+    .lost-item-form textarea {
+        height: 100px;
+    }
+
+    .user-lost-procedure-body p, .user-lost-procedure-body2 p {
+        font-size: 14px;
+        top: 15%;
+        left: 5%;
+        right: 5%;
+    }
+}
+
+@media (max-width: 768px) {
+    .user-lost-procedure-body, .user-lost-procedure-body2 {
+        width: 95%;
+        height: auto;
+        top: 5%;
+        padding: 10px;
+    }
+
+    .lost-item-form textarea {
+        height: 80px;
+    }
+
+    .user-lost-procedure-body p, .user-lost-procedure-body2 p {
+        font-size: 12px;
+        top: 10%;
+        left: 5%;
+        right: 5%;
+    }
+
+    .user-lost-procedure-body button, .user-lost-procedure-body2 button {
+        width: 90%;
+        left: 5%;
+        top: auto;
+        margin-top: 15px;
+    }
+}

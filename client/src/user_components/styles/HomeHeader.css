@@ -1,0 +1,261 @@
+.home-header-body {
+    position: relative;
+    display: flex;
+    background-color: #475C6F;
+    min-width: 105%;
+    height: 50px;
+    align-items: center;
+}
+
+.home-header-body button {
+    padding: 5px;
+    display: flex;
+    margin-left: 20px;
+    background-color: transparent;
+    border: solid 2px white;
+    border-radius: 5px;
+    font-size: 12px;
+    gap: 5px;
+    justify-items: center;
+    align-content: center;
+    text-align: center;
+    height: 30px;
+}
+
+.home-header-body button:hover {
+    border-color: #CFE5F9;
+    color: #CFE5F9;
+}
+
+.home-header-body button:hover {
+    background-color: #7c8a97;
+}
+
+.home-header-right {
+    gap: 10px;
+    display: flex;
+    margin-left: 65%;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.profile {
+    width: 30px;
+    height: 30px;
+    background-color: #ffffff;
+    border-radius: 40px;
+    cursor: pointer;
+    z-index: 400;
+}
+
+.home-header-right p {
+    margin-top: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 400;
+}
+
+.home-header-right svg {
+    cursor: pointer;
+}
+.account-dropdown {
+    opacity: 0;
+    z-index: 10;
+}
+
+.account-dropdown.dropDown{
+    top: 100%;
+    left: 72%;
+    opacity: 1;
+    z-index: 10;
+}
+
+
+
+
+.notify-panel {
+    opacity: 0;
+}
+
+
+
+.notify-panel.notifyPanel{
+    position: absolute;
+    top: 150%;
+    left: 73%;
+    opacity: 1;
+}
+
+.dropdown-profile {
+    display: flex;
+    height: 40px;
+    width: 100%;
+    align-items: center;
+    padding: 10px;
+}
+
+.account-dropdown-floating {
+  position: absolute;
+  top: 60px; /* adjust to align under profile */
+  right: 10px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+  padding: 10px;
+  z-index: 1000;
+  min-width: 200px;
+}
+
+.account-dropdown-row {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.account-dropdown-row p {
+    color: black;
+}
+
+.account-dropdown-row:hover {
+  background: #f0f0f0;
+}
+
+.profile-fallback {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: navy;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+
+@media (max-width: 1920px) {
+    .home-header-body {
+        min-width: 100%;
+    }
+    .home-header-right {
+        margin-left: auto;
+        margin-right: 90px;
+    }
+
+    .dropdown-containers {
+        position: absolute;
+        top: 50px;
+        left: 78%;
+    }
+    .account-dropdown.dropDown
+    {
+        margin-top: -50px;
+        margin-left: -90px;
+    }    
+}
+
+@media (max-width: 1540px) {
+    .home-header-body {
+        min-width: 100%;
+    }
+    .home-header-right {
+        margin-left: auto;
+        margin-right: 100px;
+    }
+
+    .dropdown-containers {
+        position: absolute;
+        top: 50px;
+        left: 72%;
+    }
+    .account-dropdown.dropDown
+    {
+        margin-top: -50px;
+        margin-left: -90px;
+    }    
+}
+
+@media (max-width: 1200px) {
+    .home-header-body {
+        min-width: 100%;
+    }
+    .home-header-right {
+        margin-left: auto;
+        margin-right: 100px;
+    }
+    .dropdown-containers {
+        position: absolute;
+        top: 50px;
+        left: 65%;
+    }
+
+    .account-dropdown.dropDown
+    {
+        margin-top: -50px;
+    }
+    
+    
+}
+
+@media (max-width: 992px) {
+    .home-header-body {
+        min-width: 100%;
+    }
+    .home-header-right {
+        margin-left: auto;
+        margin-right: 100px;
+    }
+     .dropdown-containers {
+        position: absolute;
+        top: 50px;
+        left: 60%;
+    }
+    
+}
+
+@media (max-width: 768px) {
+    .home-header-body {
+        min-width: 100%;
+    }
+    .home-header-right {
+        margin-left: auto;
+        margin-right: 100px;
+    }
+     .dropdown-containers {
+        position: absolute;
+        top: 50px;
+        left: 45%;
+    }
+    
+}
+
+@media (max-width: 576px) {
+    .home-header-body {
+        min-width: 38%;
+        font-size: small;
+    }
+
+    .home-header-body input {
+        width: 80%;
+    }
+
+    .home-header-right {
+        margin-left: auto;
+        margin-right: 100px;
+    }
+    .account-dropdown.dropDown
+    {
+        margin-top: -50px;
+        margin-left: -100px;
+    }
+    
+   
+     .dropdown-containers {
+        position: absolute;
+        top: 60px;
+        left: 150px;
+    }
+    
+}

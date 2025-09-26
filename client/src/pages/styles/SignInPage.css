@@ -1,0 +1,10 @@
+.signin-body {
+    width: 100%;
+    background-image: url('/landing-page-img.png');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    height: 120vh;
+    align-content: center;
+    justify-items: center;
+}

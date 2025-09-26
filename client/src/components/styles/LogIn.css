@@ -1,0 +1,84 @@
+strong:hover{
+    cursor: pointer;
+    color: rgb(245, 63, 75);
+}
+
+
+.input-fullname {
+    display: flex;
+    gap: 10px;
+}
+
+.input-fullname input{
+    width: 195px;
+    height: 40px;
+}
+
+.create-input {
+  background-color: #475C6F;
+  width: 400px;
+  height: 40px;
+  border-radius: 8px;
+  padding: 12px 15px;
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+.create-input::placeholder {
+    color: white    ;
+}
+
+
+.card-image {
+    width: 400px;
+    height: 600px;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    background-color: white;
+    background-image: url('/spotsync-logo.png');
+    background-position: center;
+    background-size: contain;
+    
+    background-repeat: no-repeat;
+   
+}
+
+.create-container {
+    display: flex;
+}
+
+.create-account-card {
+    height: 600px;
+    padding: 10px;
+    background-color: #384959;
+    border: 0px solid white;
+    border-bottom-right-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.create-body h2, p{
+    color: white;
+}
+
+.create-body button {
+    width: 400px;
+    height: 40px;
+    font-weight: bold;
+    color: black;
+    border-radius: 10px;
+    background-color: #BDDDFC;
+}
+
+.create-body button:hover {
+    background-color: #dbe9f6;
+}
+
+@media (max-width: 728px) {
+    .create-container {
+        width: 80%;
+    }
+
+    .card-image {
+        width: 80%;
+    }
+}

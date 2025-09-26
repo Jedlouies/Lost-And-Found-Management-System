@@ -1,0 +1,188 @@
+.p-8 {
+    position: absolute;
+    display: flex;
+    width: 100%;
+    height: 120vh;
+     background-image: url("/landing-page-img.png"); 
+    background-size: cover;   
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+
+
+.matching-results {
+    font-size: 10px;
+    line-height: 5px;
+    position: absolute;
+    top: 25%;
+    margin-left: 120px;
+}
+
+.owner-info {
+    line-height: 0px;
+    margin-top: 10px;
+    color: black;
+}
+
+.matching-card{
+    margin-top: 40px; 
+    margin-left: 40px;
+    background-color: white;
+    height: 550px;
+    width: 330px;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.progress-bar-full {
+    position: relative;
+    background-color: transparent;
+    border: 1px solid black;
+    width: 190px;
+    height: 10px;
+    border-radius: 5px;
+    margin-top: -10px;
+}
+
+.progress-bar-percentage {
+    position: relative;
+    background-color: green;
+    height: 10px;
+    border-radius: 5px;
+}
+
+.results-more {
+    position: absolute;
+    top: 50%;
+}
+
+.matching-card-actions {
+    position: absolute;
+    display: flex;
+    gap: 5px;
+    top: 90%;
+}
+
+.matching-card-actions button {
+    border-radius: 20px;
+    background-color: transparent;
+    border: 2px solid #475C6F;
+    color: black;
+    height: 40px;
+    width: 300px;
+}
+
+.matching-card-actions button:hover {
+    background-color: #475C6F;
+    color: white;
+}
+
+.more-match {
+    position: absolute;
+    top: 8%;
+    left: 85%;
+    background-color: #475C6F;
+    color: white;
+    border-radius: 10px;
+    height: 30px;
+    width: 150px;
+}
+
+.matching-buttons-footer button{
+    position: absolute;
+    top: 103%;
+    background-color: #475C6F;
+    width: 180px;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+}
+
+.matching-buttons-footer button:hover {
+    background-color: #BDDDFC;
+    color: black;
+}
+
+.more-match:hover {
+    background-color: #BDDDFC;
+    color: black;
+}
+
+.floating-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.floating-panel-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80%;
+  overflow-y: auto;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background-color: transparent;
+  color: #475C6F;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.floating-panel-content p {
+    color: black;
+}
+
+.background {
+    margin-top: -80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-height: 100%;
+  text-align: center;
+  background: #000000;
+  background-image: url("/landing-page-img.png"); /* adjust path */
+  background-size: cover;    /* makes image cover entire area */
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+
+.background3 {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+}
+
+.p6 {
+ position: absolute;
+ top: 20%;
+ display: flex;   
+}
+
+
+
+@media (min-width: 1701px) {
+    .matching-card {
+        margin-right: 140px;
+    }
+
+}

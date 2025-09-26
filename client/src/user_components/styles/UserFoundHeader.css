@@ -1,0 +1,72 @@
+
+.header-body button {
+    padding: 5px;
+    display: flex;
+    margin-left: 20px;
+    background-color: transparent;
+    border: solid 2px white;
+    border-radius: 5px;
+    font-size: 12px;
+    gap: 5px;
+    justify-items: center;
+    align-content: center;
+    text-align: center;
+    height: 30px;
+}
+
+.header-body button:hover {
+    border-color: #CFE5F9;
+    color: #CFE5F9;
+}
+
+.header-body button:hover {
+    background-color: #7c8a97;
+}
+
+.header-right-found {
+    gap: 10px;
+    display: flex;
+    margin-left: auto;
+    margin-right: 100px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.profile {
+    width: 30px;
+    height: 30px;
+    background-color: #ffffff;
+    border-radius: 40px;
+    cursor: pointer;
+    z-index: 400;
+}
+
+.header-right-found p {
+    margin-top: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 400;
+}
+
+.header-found svg {
+    cursor: pointer;
+}
+
+.count-row {
+    margin-left: 20px;
+    display: flex;
+   align-items: center;
+   text-align: center;
+    gap: 10px;
+}
+
+.count-row p {
+    margin-top: 10px;
+}
+
+.count-row strong {
+    border: .1px solid white;
+    padding: 3px;
+    border-radius: 5px;
+}

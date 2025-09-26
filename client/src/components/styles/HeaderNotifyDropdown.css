@@ -1,0 +1,84 @@
+.notify-body {
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  color: black;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+  overflow-y: scroll; 
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
+}
+
+.notify-body::-webkit-scrollbar {
+  display: none; 
+}
+
+.notify-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.notify-empty {
+  text-align: center;
+  font-size: 14px;
+  color: #888;
+}
+
+.notify-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  padding: 8px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid #000000;
+}
+
+.notify-text p {
+  font-size: 10px;
+  margin: 0 0 4px 0;
+}
+
+.notify-text small {
+  font-size: 12px;
+  color: gray;
+}
+
+.notify-delete {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #888;
+}
+
+.notify-delete:hover {
+  color: red;
+}
+
+.notify-footer {
+  text-align: center;
+  padding-top: 8px;
+}
+
+.notify-footer a {
+  font-size: 13px;
+  text-decoration: none;
+  color: #007bff;
+}
+
+.notify-footer a:hover {
+  text-decoration: underline;
+}
+
+.notify-section {
+  font-size: 13px;
+  text-align: center;
+  font-weight: bold;
+  margin: 8px 0 4px 8px;
+  color: #475c6f;
+}
