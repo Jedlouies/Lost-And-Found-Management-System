@@ -1,3 +1,0 @@
-server/.env
-server/node_modules/@xenova/transformers/.cache/Xenova/clip-vit-base-patch32/onnx/model_quantized.onnx
-client/.env
