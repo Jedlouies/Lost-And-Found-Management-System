@@ -244,16 +244,36 @@ useEffect(() => {
                 <div className="card-details">
                   <h4 style={{fontSize: '15px'}}>{item.itemName}</h4>
                   <div className="own">
-                    <img
-                      src={item.personalInfo?.profileURL || "/default-profile.png"}
-                      alt="profile"
-                      style={{
-                        width: "50px",
-                        height: "50px",
-                        borderRadius: "40px",
-                        objectFit: "cover",
-                      }}
-                    />
+                    {item.isGuest ? (
+                        <div
+                          style={{
+                            width: "50px",
+                            height: "50px",
+                            borderRadius: "40px",
+                            backgroundColor: "blue",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "white",
+                            fontSize: "12px",
+                            fontWeight: "bold"
+                          }}
+                        >
+                          Guest
+                        </div>
+                      ) : (
+                        <img
+                          src={item.personalInfo?.profileURL || "/default-profile.png"}
+                          alt="profile"
+                          style={{
+                            width: "50px",
+                            height: "50px",
+                            borderRadius: "40px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      )}
+
                     <p>
                       <strong style={{ fontSize: "14px" }}>
                         {item.isGuest === true
@@ -319,16 +339,35 @@ useEffect(() => {
                 <div className="card-details">
                   <h4 style={{fontSize: '15px'}}>{item.itemName}</h4>
                   <div className="own">
-                    <img
-                      src={item.personalInfo?.profileURL || "/default-profile.png"}
-                      alt="profile"
-                      style={{
-                        width: "50px",
-                        height: "50px",
-                        borderRadius: "40px",
-                        objectFit: "cover",
-                      }}
-                    />
+                    {item.isGuest ? (
+                        <div
+                          style={{
+                            width: "50px",
+                            height: "50px",
+                            borderRadius: "40px",
+                            backgroundColor: "blue",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "white",
+                            fontSize: "12px",
+                            fontWeight: "bold"
+                          }}
+                        >
+                          Guest
+                        </div>
+                      ) : (
+                        <img
+                          src={item.personalInfo?.profileURL || "/default-profile.png"}
+                          alt="profile"
+                          style={{
+                            width: "50px",
+                            height: "50px",
+                            borderRadius: "40px",
+                            objectFit: "cover",
+                          }}
+                        />
+                      )}
                     <p>
                       <strong style={{ fontSize: "14px" }}>
                         {item.isGuest === true

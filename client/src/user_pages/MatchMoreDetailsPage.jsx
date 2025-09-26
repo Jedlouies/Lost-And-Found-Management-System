@@ -113,20 +113,19 @@ function MatchMoreDetailsPage() {
           </div>
 
           {/* Matches */}
-          <div style={{display: 'flex', flexDirection: 'column'}}>
-          <h2>Matching Results</h2>
           <div
             style={{
               position: "absolute",
               top: "45%",
               left: "35%",
-              display: "flex",
+              
               gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
               gap: "20px",
               marginTop: "20px",
             }}
           >
-            
+            <h2>Matching Results</h2>
+            <div style={{display: 'flex', flexDirection: 'row', gap: '20px', flexWrap: 'wrap'}}>
             {filteredMatches?.length > 0 ? (
               filteredMatches.map((match, index) => (
                 <div
@@ -202,9 +201,8 @@ function MatchMoreDetailsPage() {
             ) : (
               <p>No matches found for this item.</p>
             )}
+            </div>
           </div>
-          </div>
-          
         </div>
       </div>
     </>

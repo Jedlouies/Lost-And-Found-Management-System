@@ -460,7 +460,7 @@ const [guestSaved, setGuestSaved] = useState(false);
 
         {/* ✅ Show guest info only if saved */}
     {guestSaved && (
-      <div style={{ marginTop: "15px", textAlign: "left", color: "black" , position: 'absolute', left: '60%', top: '30%', color: 'black', backgroundColor: 'white', padding: '10px', borderRadius: '20px', width: '400px'}}>
+      <div style={{ marginTop: "15px", textAlign: "left" , position: 'absolute', left: '60%', top: '30%', color: 'black', backgroundColor: 'white', padding: '10px', borderRadius: '20px', width: '400px'}}>
         <h4>Guest Details</h4>
         <p style={{color: 'black'}}><strong>Name:</strong> {guestName} {guestMiddleName} {guestLastName}</p>
         <p style={{color: 'black'}}><strong>Email:</strong> {guestEmail}</p>

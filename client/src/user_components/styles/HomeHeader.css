@@ -95,6 +95,46 @@
     padding: 10px;
 }
 
+.account-dropdown-floating {
+  position: absolute;
+  top: 60px; /* adjust to align under profile */
+  right: 10px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.15);
+  padding: 10px;
+  z-index: 1000;
+  min-width: 200px;
+}
+
+.account-dropdown-row {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.account-dropdown-row p {
+    color: black;
+}
+
+.account-dropdown-row:hover {
+  background: #f0f0f0;
+}
+
+.profile-fallback {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: navy;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+
 @media (max-width: 1920px) {
     .home-header-body {
         min-width: 100%;

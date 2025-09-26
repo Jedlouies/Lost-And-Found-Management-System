@@ -1,18 +1,18 @@
-.more-details-information p,
-.more-details-information h3 {
+.more-details-information2 p,
+.more-details-information2 h3 {
     color: #475C6F;
     font-size: medium;
 } 
 
-.more-details-information {
+.more-details-information2 {
     background-color: white;
     padding: 20px;
     border-radius: 20px;
     position: absolute;
     margin-top: 20px;
-    left: 5%;
+    left: 50%;
     min-width: 600px;
-    margin-left: 600px;
+    
 }
 
 .manage-item-container p {
@@ -27,8 +27,8 @@
     object-fit: cover;
 }
 @media (max-width: 1920px) {
-    .more-details-information p,
-    .more-details-information h3 {
+    .more-details-information2 p,
+    .more-details-information2 h3 {
         font-size: small;
     } 
 
@@ -36,7 +36,7 @@
         font-size: xx-large;
     }
 
-    .more-details-information {
+    .more-details-information2 {
         margin-top: 20px;
         margin-right: 400px;
         margin-left: 1%;
@@ -51,8 +51,8 @@
 
 
 @media (max-width: 1200px) {
-    .more-details-information p,
-    .more-details-information h3 {
+    .more-details-information2 p,
+    .more-details-information2 h3 {
         font-size: small;
     } 
 
@@ -60,7 +60,7 @@
         font-size: xx-large;
     }
 
-    .more-details-information {
+    .more-details-information2 {
         margin-top: 20px;
         margin-right: 400px;
         margin-left: 500px;
@@ -74,8 +74,8 @@
 }
 
 @media (max-width: 992px) {
-    .more-details-information p,
-    .more-details-information h3 {
+    .more-details-information2 p,
+    .more-details-information2 h3 {
         font-size: small;
     } 
 
@@ -83,8 +83,8 @@
 }
 
 @media (max-width: 768px) {
-    .more-details-information p,
-    .more-details-information h3 {
+    .more-details-information2 p,
+    .more-details-information2 h3 {
         font-size: small;
     } 
 
@@ -99,7 +99,7 @@
         height: 300px;
     }
 
-    .more-details-information {
+    .more-details-information2 {
         position: absolute;
         margin-top: 290px;
         margin-left: 1px;
@@ -113,8 +113,8 @@
 }
 
 @media (max-width: 576px) {
-    .more-details-information p,
-    .more-details-information h3 {
+    .more-details-information2 p,
+    .more-details-information2 h3 {
         font-size: small;
     } 
 
@@ -129,7 +129,7 @@
         height: 300px;
     }
 
-    .more-details-information {
+    .more-details-information2 {
         position: absolute;
         margin-top: 290px;
         margin-left: 1px;

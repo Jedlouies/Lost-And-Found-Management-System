@@ -197,7 +197,7 @@
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                to: match.foundItem?.personalInfo?.email,   // replace with the email variable
+                to: match.foundItem?.personalInfo?.email,   
                 subject: "Best Possible Match for Found Item",
                 html: `
                 <p>Hello,</p>

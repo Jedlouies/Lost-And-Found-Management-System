@@ -57,7 +57,7 @@ export default function GuestFoundMatchResults() {
 
       <div className="p-8">
         {matches.length === 0 && (
-          <p style={{ color: "white", marginTop: "20%", marginLeft: '40%' }}>
+          <p style={{ color: "black", marginTop: "20%", marginLeft: '40%' }}>
             No lost items matched your found report.
           </p>
         )}

@@ -82,7 +82,7 @@ function ItemMoreDetailsPage() {
           </div>
 
           
-          <div className="more-details-information" >
+          <div className="more-details-information2" >
             {type === "lost" && (
               <>
                 <p>{item.itemId}</p>
