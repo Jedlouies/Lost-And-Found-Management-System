@@ -2,7 +2,7 @@
     position: relative;
     top: 7%;
     background-color: #D9D9D9;
-    width: 100%;
+    width: 110%;
     height: 120vh;
     margin-left: 80px;
 }
@@ -362,9 +362,7 @@ td:hover .floating-location {
         width: auto;
         top: 12%;
 }
- .manage-item-container h1{
-        opacity: 0;
-    }
+
 }
 
 @media (max-width: 992px) {

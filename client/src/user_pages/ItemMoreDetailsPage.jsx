@@ -65,17 +65,18 @@ function ItemMoreDetailsPage() {
   return (
     <>
       <UserNavigationBar/>
-      <div className='manage-item-body'>
+      <div className='manage-item-body' >
         <UserBlankHeader/>
         <div className="manage-item-container">
 
-          <h1 style={{left: '50%'}}>{item.itemName}</h1>
+          <h1 style={{left: '50%', opacity: '1'}}>{item.itemName}</h1>
 
-          <div className="item-image">
+          <div className="item-image" style={{position: 'absolute', width: '45%', minHeight: '125%', maxHeight: '145%', borderRadius: '10px', backgroundColor: 'white'}}>
             {item.images?.length > 0 && (
             <img
               src={item.images[0]}
               alt="Item"
+              style={{width: '100%', objectFit: 'cover', height: '150%', maxHeight: '100%'}}
             />
           )}
 
@@ -125,13 +126,14 @@ function ItemMoreDetailsPage() {
             <button 
               onClick={handleClaim} 
               style={{
-                marginTop: "20px",
                 padding: "10px 20px",
                 backgroundColor: "#475C6F",
                 color: "white",
                 border: "none",
                 borderRadius: "5px",
-                cursor: "pointer"
+                cursor: "pointer",
+                marginTop: '200px'
+            
               }}
             >
               {type === "lost" ? "I Found This Item" : "I Own This Item"}

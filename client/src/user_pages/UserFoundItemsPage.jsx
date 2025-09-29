@@ -373,16 +373,37 @@ function UserFoundItemsPage() {
                       <div className="card-details">
                         <h4>{item.itemName}</h4>
                         <div className="own">
-                          <img
-                            src={item.personalInfo?.profileURL || "/default-profile.png"}
-                            alt="profile"
-                            style={{
-                              width: "50px",
-                              height: "50px",
-                              borderRadius: "40px",
-                              objectFit: "cover",
-                            }}
-                          />
+                          {item.personalInfo?.profileURL ? (
+                              <img
+                                src={item.personalInfo.profileURL}
+                                alt="profile"
+                                style={{
+                                  width: "50px",
+                                  height: "50px",
+                                  borderRadius: "50%",
+                                  objectFit: "cover",
+                                }}
+                              />
+                            ) : (
+                              <div
+                                style={{
+                                  width: "50px",
+                                  height: "50px",
+                                  borderRadius: "50%",
+                                  backgroundColor: "#007BFF", // Bootstrap blue
+                                  color: "white",
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  fontSize: "12px",
+                                  fontWeight: "bold",
+                                  textTransform: "uppercase",
+                                }}
+                              >
+                                Guest
+                              </div>
+                            )}
+
                           <p>
                             <strong style={{ fontSize: "14px" }}>
                               {item.isGuest === true

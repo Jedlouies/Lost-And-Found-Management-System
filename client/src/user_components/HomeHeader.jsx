@@ -379,7 +379,7 @@ useEffect(() => {
           onClose={() => setAlert(null)}
         />
       )}
-      <div className="notify-body" style={{ maxWidth: '300px' }}>
+      <div className="notify-body" style={{ maxWidth: '300px', maxHeight: '280px' }}>
         <h4 className="notify-title" style={{ marginTop: "-5px" }}>
           Notifications
         </h4>
