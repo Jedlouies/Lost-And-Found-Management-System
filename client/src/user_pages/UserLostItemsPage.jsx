@@ -233,28 +233,34 @@ function UserLostItemsPage() {
       <UserNavigationBar />
       <div className='lost-item-body'>
         <UserLostHeader />
-        <h1 style={{ fontSize: '30px', fontWeight: '500', marginLeft: '20px', marginTop: '50px', color: '#475C6F' }}>
-          Lost Items
-        </h1>
-        
-        <div className='user-lost-searchBar'>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#475C6F" className="bi bi-search" viewBox="0 0 16 16">
-            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-          </svg>
+        <div className='user-lost-header-space' style={{ position: 'relative', top: '20px', width: '100%', height: '50px', justifyContent: 'center', alignItems: 'center', display: 'flex' }}>
+        <div className="user-lost-searchBar2">
+          <h1
+            style={{
+              position: "absolute",
+              left: "-15%",
+              top: "2%",
+              fontSize: "30px",
+              fontWeight: "500",
+              color: "#475C6F",
+            }}
+          >
+            Lost Items
+          </h1>
           <input
             type="text"
-            placeholder='Search'
+            placeholder="Search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <select
-          className='category'
             name="category"
             id="category"
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             style={{
               position: 'relative',
+              left: '80%',
               width: '150px',
               borderRadius: '5px',
               backgroundColor: 'transparent',
@@ -267,22 +273,23 @@ function UserLostItemsPage() {
             <option value="">Select Category</option>
             <option value="Electronics">Electronics</option>
             <option value="Accessories">Accessories</option>
-            <option value="Clothing & Apparel">Clothing & Apparel</option>
-            <option value="Bags & Luggage">Bags & Luggage</option>
-            <option value="Documents & IDs">Documents & IDs</option>
-            <option value="Books & Stationery">Books & Stationery</option>
-            <option value="Household Items">Household Items</option>
-            <option value="Sports & Fitness">Sports & Fitness</option>
-            <option value="Health & Personal Care">Health & Personal Care</option>
-            <option value="Toys & Games">Toys & Games</option>
-            <option value="Food & Beverages">Food & Beverages</option>
-            <option value="Automotive Items">Automotive Items</option>
-            <option value="Musical Instruments">Musical Instruments</option>
-            <option value="Pet Items">Pet Items</option>
+            <option value="Clothing">Clothing & Apparel</option>
+            <option value="Bags">Bags & Luggage</option>
+            <option value="Documents">Documents & IDs</option>
+            <option value="Stationery">Books & Stationery</option>
+            <option value="Household">Household Items</option>
+            <option value="Sports">Sports & Fitness</option>
+            <option value="Health">Health & Personal Care</option>
+            <option value="Toys">Toys & Games</option>
+            <option value="Food">Food & Beverages</option>
+            <option value="Automotive">Automotive Items</option>
+            <option value="Music">Musical Instruments</option>
+            <option value="Pets">Pet Items</option>
             <option value="Others">Others</option>
           </select>
         </div>
 
+        {/* Saved items icon */}
         <div className="right-upper-panel" style={{ position: "absolute" }}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -296,6 +303,8 @@ function UserLostItemsPage() {
           >
             <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/>
           </svg>
+
+        </div>
 
           {savedItems.length > 0 && (
             <span
@@ -316,13 +325,24 @@ function UserLostItemsPage() {
         </div>
 
 
-        {/* Lost Items Grid */}
+        {loadingLost ? (
+          <div 
+            style={{ 
+              display: "flex", 
+              justifyContent: "center", 
+              alignItems: "center", 
+              marginTop: "280px" 
+            }}
+          >
+            <img 
+              src="/Spin_black.gif" 
+              alt="Loading..." 
+              style={{ width: "60px", height: "60px" }} 
+            />
+          </div>
+        ) : (
         <div className="page-lost-container" ref={lostContainerRef}>
-          {loadingLost ? (
-              <div style={{ display: "flex", justifyContent: "center", alignContent: 'center', marginTop: "30px" }}>
-                <img src="/Spin_black.gif" alt="Loading..." style={{ width: "60px", height: '60px'}} />
-              </div>
-            ) : filteredLostItems.length > 0 ? (
+           {filteredLostItems.length > 0 ? (
               filteredLostItems.map((item, index) => {
               const isSaved = savedItems.some((saved) => saved.id === item.id);
               return (
@@ -428,6 +448,7 @@ function UserLostItemsPage() {
             <p style={{ color: "black" }}>No recent found items found.</p>
           )}
         </div>
+        )}
       </div>
     </>
   );

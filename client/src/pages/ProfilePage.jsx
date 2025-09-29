@@ -7,6 +7,7 @@ import { getAuth } from 'firebase/auth';
 import NavigationBar from '../components/NavigationBar.jsx'
 import BlankHeader from '../components/BlankHeader.jsx'
 import { useNavigate } from 'react-router-dom';
+import TableHeader from '../components/TablesHeader.jsx';
 
 function ProfilePage() {
   const {currentUser} = useAuth();
@@ -101,7 +102,7 @@ function ProfilePage() {
     <>
     <NavigationBar />
     <div className='profile-body'>
-      <BlankHeader />
+      <TableHeader />
       <div className='profile-container'>
         <img src={coverURL} alt="" />
           <div ref={profileRef} className='profile-picture'>

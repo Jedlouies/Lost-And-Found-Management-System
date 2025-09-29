@@ -144,48 +144,51 @@ const filteredItems = items.filter(item => {
       <div className='manage-item-body'>
         <UserBlankHeader />
         <div className='manage-item-container'>
-          <h1 style={{ fontSize: '30px', alignItems: 'center', top: '1%', fontWeight: '500' , marginLeft: '20px', color: '#475C6F'}}>
+          <div className='manage-spacing' style={{ position: 'relative', top: '20px', width: '100%', height: '40px', justifyContent: 'left', alignItems: 'center', display: 'flex', marginBottom: '20px' }}>
+            <h1 >
             Item Manage
-          </h1>
-          <div className='searchBar'>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#475C6F" className="bi bi-search" viewBox="0 0 16 16">
-              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-            </svg>
-            <input
-              type="text"
-              placeholder='Search'
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className='actions-row' style={{width: '500px', marginLeft: '30px'}}>
-            Academic Year:
-            <select
-              name="year"
-              id="year"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-              style={{
-                marginLeft: "10px",
-                width: "120px",
-                borderRadius: "5px",
-                backgroundColor: "transparent",
-                border: "1px solid #475C6F",
-                color: "#475C6F",
-                cursor: "pointer",
-                height: "27px",
-              }}
-            >
-              <option value="">Select Year</option>
-              <option value="2025">2025</option>
-              <option value="2024">2024</option>
-              <option value="2023">2023</option>
-              <option value="2022">2022</option>
-            </select>
+            </h1>
+            <div className='user-lost-searchBar2' style={{ left: '0', position: 'relative', marginLeft: '10%'}}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#475C6F" className="bi bi-search" viewBox="0 0 16 16">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+              </svg>
+              <input
+                type="text"
+                placeholder='Search'
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className='actions-row' style={{width: '20%', marginLeft: '10%', top: '0', fontSize: '1rem'}}>
+              Academic Year:
+              <select
+                name="year"
+                id="year"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                style={{
+                  marginLeft: "10px",
+                  width: "120px",
+                  borderRadius: "5px",
+                  backgroundColor: "transparent",
+                  border: "1px solid #475C6F",
+                  color: "#475C6F",
+                  cursor: "pointer",
+                  height: "27px",
+                }}
+              >
+                <option value="">Select Year</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+              </select>
+            </div>
+
           </div>
 
           <div>
-            <table className='manage-item-table'>
+            <table className='manage-item-table' style={{marginTop: '20px'}}>
               <thead style={{borderRadius: '10px'}}>
                 <tr>
                   <th style={{minWidth: '180px'}}>Item ID No.</th>
@@ -201,18 +204,20 @@ const filteredItems = items.filter(item => {
               </thead>
               <tbody>
                 {loading ? (
-                  
-                    <div colSpan="8" style={{ textAlign: "center", justifyContent: 'center', alignItems: 'center', padding: "20px" }}>
+                  <tr>
+                    <td colSpan="9" style={{ textAlign: "center", padding: "20px" }}>
                       <img src="/Spin_black.gif" alt="Loading..." style={{ width: "50px" }} />
-                    </div>
-                  
+                    </td>
+                  </tr>
                 ) : displayedItems.length > 0 ? (
                   displayedItems.map((item, index) => {
-                    const normalizedStatus = item.status?.toLowerCase() || '';
+                    const normalizedStatus = item.status?.toLowerCase() || "";
 
                     return (
-                      <tr className="body-row" key={index}
-                      onClick={() => {
+                      <tr
+                        className="body-row"
+                        key={index}
+                        onClick={() => {
                           if (bulkMode) {
                             if (selectedItems.includes(item.id)) {
                               setSelectedItems((prev) => prev.filter((id) => id !== item.id));
@@ -225,101 +230,102 @@ const filteredItems = items.filter(item => {
                           cursor: bulkMode ? "pointer" : "default",
                           backgroundColor: selectedItems.includes(item.id) ? "#d6eaf8" : "transparent",
                           transition: "background-color 0.2s ease",
-                        }}>
-                        <td style={{ minWidth: '180px' }}>{item.id}</td>
-                        <td style={{ minWidth: '110px' }}>
+                        }}
+                      >
+                        <td style={{ minWidth: "180px" }}>{item.id}</td>
+                        <td style={{ minWidth: "110px" }}>
                           {item.images && item.images.length > 0 ? (
                             <img
                               src={item.images[0]}
                               alt="item"
                               style={{
-                                width: '50px',
-                                height: '50px',
-                                objectFit: 'cover',
-                                borderRadius: '50px',
+                                width: "50px",
+                                height: "50px",
+                                objectFit: "cover",
+                                borderRadius: "50px",
                               }}
                             />
                           ) : (
-                            'No Image'
+                            "No Image"
                           )}
                         </td>
-                        <td style={{ minWidth: '100px' }}>{item.itemName}</td>
-                        <td>{item.createdAt?.toDate ? item.createdAt.toDate().toLocaleDateString() : 'N/A'}</td>
+                        <td style={{ minWidth: "100px" }}>{item.itemName}</td>
+                        <td>{item.createdAt?.toDate ? item.createdAt.toDate().toLocaleDateString() : "N/A"}</td>
                         <td>{item.type}</td>
-                        <td style={{ position: "relative", maxWidth: "120px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        <span className="location-text">
-                          {item.location && item.location.length > 15
-                            ? item.location.substring(0, 15) + "..."
-                            : item.location || "N/A"}
-                        </span>
+                        <td
+                          style={{
+                            position: "relative",
+                            maxWidth: "120px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          <span className="location-text">
+                            {item.location && item.location.length > 15
+                              ? item.location.substring(0, 15) + "..."
+                              : item.location || "N/A"}
+                          </span>
 
-                       
-                        {item.location && (
-                          <div className="floating-location">
-                            {item.location}
-                          </div>
-                        )}
-                      </td>
-
+                          {item.location && <div className="floating-location">{item.location}</div>}
+                        </td>
                         <td>{item.category}</td>
                         <td>
                           <span
                             className={`status-cell ${
-                              normalizedStatus === 'pending'
-                                ? 'status-pending'
-                                : normalizedStatus === 'cancelled'
-                                ? 'status-cancelled'
-                                : normalizedStatus === 'posted'
-                                ? 'status-posted'
-                                : normalizedStatus === 'claimed'
-                                ? 'status-claimed'
-                                : ''
+                              normalizedStatus === "pending"
+                                ? "status-pending"
+                                : normalizedStatus === "cancelled"
+                                ? "status-cancelled"
+                                : normalizedStatus === "posted"
+                                ? "status-posted"
+                                : normalizedStatus === "claimed"
+                                ? "status-claimed"
+                                : ""
                             }`}
                           >
                             {item.status}
                           </span>
                         </td>
-
-                        <td style={{ position: 'relative', minWidth: '160px' }}>
+                        <td style={{ position: "relative", minWidth: "160px" }}>
                           <div
                             style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              marginRight: '20px',
-                              gap: '5px',
+                              display: "flex",
+                              alignItems: "center",
+                              marginRight: "20px",
+                              gap: "5px",
                             }}
                           >
                             <span>{item.highestMatchingRate}%</span>
                             <div className="highest-matching-rate-full">
                               <div
                                 className="manage-highest-matching-rate"
-                                style={{
-                                  width: `${(item.highestMatchingRate || 0) * 1.0}px`,
-                                }}
+                                style={{ width: `${(item.highestMatchingRate || 0) * 1.0}px` }}
                               />
                             </div>
                           </div>
 
-                          <Dropdown style={{ position: 'absolute', top: 25, right: 10 }}>
+                          {/* Dropdown */}
+                          <Dropdown style={{ position: "absolute", top: 25, right: 10 }}>
                             <Dropdown.Toggle
                               as="div"
                               id={`dropdown-toggle-${index}`}
                               style={{
-                                width: '25px',
-                                height: '25px',
+                                width: "25px",
+                                height: "25px",
                                 opacity: 0,
-                                cursor: 'pointer',
-                                position: 'absolute',
+                                cursor: "pointer",
+                                position: "absolute",
                                 top: 0,
                                 right: 0,
                                 zIndex: 10,
                               }}
                             />
                             <Dropdown.Menu>
-                               <Dropdown.Item
+                              <Dropdown.Item
                                 onClick={() =>
                                   navigate(`/users/item-management/more-details/${user.uid}`, {
-                                    state: { item }
+                                    state: { item },
                                   })
                                 }
                               >
@@ -335,7 +341,7 @@ const filteredItems = items.filter(item => {
                             fill="currentColor"
                             className="bi bi-three-dots-vertical"
                             viewBox="0 0 16 16"
-                            style={{ position: 'absolute', top: 25, right: 10 }}
+                            style={{ position: "absolute", top: 25, right: 10 }}
                           >
                             <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0" />
                           </svg>
@@ -344,9 +350,10 @@ const filteredItems = items.filter(item => {
                     );
                   })
                 ) : (
+                  // ✅ No items state
                   <tr>
-                    <td colSpan="9" style={{ textAlign: 'center' }}>
-                      No found items found.
+                    <td colSpan="9" style={{ textAlign: "center", padding: "20px" }}>
+                      No items found.
                     </td>
                   </tr>
                 )}

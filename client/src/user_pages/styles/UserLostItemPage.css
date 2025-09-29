@@ -119,7 +119,7 @@
     background-color: #cbcbcb;
     text-align: center;
     border-radius: 10px;
-    margin-top: 10px;
+    margin-top: 20px;
     box-shadow: 0px 2px 5px rgb(0, 0, 0, 0.5);
 }
 
@@ -386,7 +386,7 @@
     }
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1400px) {
     .user-lost-searchBar {
         width: 70%;
         top: 9%;
@@ -427,7 +427,7 @@
     }
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1020px) {
     .user-lost-searchBar {
         width: 70%;
         left: 1%;

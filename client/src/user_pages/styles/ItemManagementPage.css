@@ -338,6 +338,10 @@ td:hover .floating-location {
 }
 
 @media (max-width: 1200px) {
+    .manage-spacing {
+        left: -10%;
+    }
+
     .manage-item-body {
         height: 120vh;
     }
@@ -358,9 +362,16 @@ td:hover .floating-location {
         width: auto;
         top: 12%;
 }
+ .manage-item-container h1{
+        opacity: 0;
+    }
 }
 
 @media (max-width: 992px) {
+ .manage-spacing {
+        left: -5%;
+    }
+
     .manage-item-body {
         height: 120vh;
     }
@@ -384,6 +395,9 @@ td:hover .floating-location {
 
     .actions-row {
         left: 60%;
+    }
+     .manage-item-container h1{
+        opacity: 0;
     }
 }
 
@@ -416,6 +430,10 @@ td:hover .floating-location {
     }
     .manage-item-container h1{
         opacity: 0;
+    }
+
+    .manage-spacing {
+        left: -5%;
     }
 }
 

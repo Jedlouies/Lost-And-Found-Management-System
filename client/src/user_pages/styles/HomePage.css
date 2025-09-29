@@ -19,7 +19,7 @@
     position: absolute;
     top: 8%;
     padding: 10px;
-    width: 1455px;
+    width: 100%;
     height: 610px;
 }
 
@@ -140,12 +140,13 @@
     flex-direction: row;
     padding: 15px;
     gap: 20px;
-    width: 100%;
+    max-width: 100%;
     height: 420px;
     top: 20%;
     overflow-x: hidden;
     overflow-y: visible;
     scroll-behavior: smooth;
+    z-index: 0;
 }
 
 .home-found-container {
@@ -154,12 +155,13 @@
     flex-direction: row;
     padding: 15px;
     gap: 20px;
-    width: 100%;
+    max-width: 100%;
     height: 420px;
     top: 29%;
     overflow-x: hidden;
     overflow-y: visible;
     scroll-behavior: smooth;
+    z-index: 0;
 }
 
 .lost-item-card {

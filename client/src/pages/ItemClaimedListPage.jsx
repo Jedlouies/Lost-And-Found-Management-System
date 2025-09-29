@@ -8,6 +8,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import { db } from '../firebase';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+import TableHeader from '../components/TablesHeader';
 
 function ItemClaimedListPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,7 +65,7 @@ function ItemClaimedListPage() {
     <>
       <NavigationBar />
       <div className='found-item-body'>
-        <BlankHeader />
+        <TableHeader />
         <div className='found-item-container' style={{ position: 'absolute', top: '80px' }}>
           <h1>Claimed List</h1>
 
@@ -159,11 +160,48 @@ function ItemClaimedListPage() {
                       </td>
                       <td>
                         <div className='owner-details'>
-                          <img src={item.owner?.profileURL || ""} alt="" style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} />
-                          <div className='personal-info'>
-                            <p style={{ fontWeight: 'bold', color: 'black' }}>{item.owner?.firstName} {item.owner?.lastName}</p>
-                            <p style={{ fontStyle: 'italic', color: 'black' }}>{item.owner?.course.abbr}</p>
-                          </div>
+                          {item.isGuest === true  || item.owner?.profileURL === "" ?(
+                            
+                            <div 
+                              style={{
+                                width: '50px',
+                                height: '50px',
+                                borderRadius: '40px',
+                                backgroundColor: '#007bff', 
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                fontWeight: 'bold',
+                                fontSize: '12px',
+                                textAlign: 'center'
+                              }}
+                            >
+                              Guest
+                            </div>
+                          ) : (
+                            // Regular Owner Display
+                            <>
+                              <img 
+                                src={item.owner?.profileURL || ""} 
+                                alt="profile"
+                                style={{
+                                  width: '50px',
+                                  height: '50px',
+                                  borderRadius: '40px',
+                                  objectFit: 'cover'
+                                }}
+                              />
+                              <div className='personal-info'>
+                                <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>
+                                  {`${item.owner?.firstName || ""} ${item.owner?.lastName || ""}`.trim()}
+                                </p>
+                                <p style={{ fontStyle: 'italic', color: 'black' }}>
+                                  {item.owner?.course?.abbr || "Unknown"}
+                                </p>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>

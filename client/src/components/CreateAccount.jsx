@@ -39,32 +39,40 @@ function CreateAccount() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(e) {
-    e.preventDefault()
+async function handleSubmit(e) {
+  e.preventDefault()
 
-    if (passwordRef.current.value !== passwordConfirmRef.current.value) {
-      return setError('Passwords do not match')
-    }
-
-    try {
-      setError('')
-      setLoading(true)
-      await signup(
-        emailRef.current.value, 
-        passwordRef.current.value, 
-        firstNameRef.current.value, 
-        lastNameRef.current.value,
-        contactNumberRef.current.value,
-        studentIdRef.current.value
-        )
-
-      navigate("/log-in")
-    } catch {
-      setError('Failed to create account')
-    }
-
-    setLoading(false)
+  if (passwordRef.current.value !== passwordConfirmRef.current.value) {
+    return setError('Passwords do not match')
   }
+
+  try {
+    setError('')
+    setLoading(true)
+    await signup(
+      emailRef.current.value, 
+      passwordRef.current.value, 
+      firstNameRef.current.value, 
+      lastNameRef.current.value,
+      contactNumberRef.current.value,
+      studentIdRef.current.value
+    )
+
+    navigate("/log-in")
+  } catch (err) {
+    if (err.code === "auth/email-already-in-use") {
+      setError("This email is already in use. Please use a different one.")
+    } else if (err.code === "auth/invalid-email") {
+      setError("Invalid email format.")
+    } else if (err.code === "auth/weak-password") {
+      setError("Password should be at least 6 characters.")
+    } else {
+      setError(err.message) 
+    }
+  }
+
+  setLoading(false)
+}
 
   return (
     <div className='create-container'>
@@ -79,13 +87,13 @@ function CreateAccount() {
               <input className='create-input' type='text' placeholder='Last Name' ref={lastNameRef} required/>
             </Form.Group>
             <Form.Group id='studentId'>
-              <input className='create-input' type='number' placeholder='Student ID' ref={studentIdRef} required />
+              <input className='create-input' type='text' placeholder='Student ID' ref={studentIdRef} required />
             </Form.Group>
             <Form.Group id='email'>
               <input className='create-input' type='email' placeholder='Email' ref={emailRef} required />
             </Form.Group>
             <Form.Group id='contactNumber'>
-              <input className='create-input' type='number' placeholder='Contact Number' ref={contactNumberRef} required />
+              <input className='create-input' type='text' placeholder='Contact Number' ref={contactNumberRef} required />
             </Form.Group>
             <Form.Group id='password'>
               <input className='create-input' type='password' placeholder='Password' ref={passwordRef} required />

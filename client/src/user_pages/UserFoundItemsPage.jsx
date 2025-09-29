@@ -233,7 +233,7 @@ function UserFoundItemsPage() {
       <div className="found-item-body">
         <UserFoundHeader />
 
-        {/* Search & Category */}
+        <div className='user-lost-header-space' style={{ position: 'relative', top: '20px', width: '100%', height: '50px', justifyContent: 'center', alignItems: 'center', display: 'flex' }}>
         <div className="user-lost-searchBar2">
           <h1
             style={{
@@ -304,6 +304,8 @@ function UserFoundItemsPage() {
             <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/>
           </svg>
 
+        </div>
+
           {savedItems.length > 0 && (
             <span
               style={{
@@ -329,7 +331,7 @@ function UserFoundItemsPage() {
               display: "flex", 
               justifyContent: "center", 
               alignItems: "center", 
-              marginTop: "30px" 
+              marginTop: "280px" 
             }}
           >
             <img 

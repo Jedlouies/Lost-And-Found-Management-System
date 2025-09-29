@@ -1,13 +1,11 @@
 .account-dropdown-body {
-    position: absolute;
-    margin-top: 40px;
-    margin-left: 250px;
+    position: fixed;
+    margin-top: -10px;
+    min-width: 10px;
     padding-left: 10px;
     border-radius: 10px;
     box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.25);
     background-color: #ffffff;
-    width: 140px;
-    height: 200px;
     align-content: center;
 }
 

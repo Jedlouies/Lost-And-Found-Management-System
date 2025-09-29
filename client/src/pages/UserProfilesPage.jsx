@@ -8,6 +8,7 @@ import DropdownButton from 'react-bootstrap/DropdownButton';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { db } from '../firebase';
 import { collection, getDocs, orderBy, query } from 'firebase/firestore';
+import TableHeader from '../components/TablesHeader';
 
 function UserProfilesPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -76,7 +77,7 @@ function UserProfilesPage() {
     <>
       <NavigationBar />
       <div className='found-item-body'>
-        <BlankHeader />
+        <TableHeader />
         <div className='found-item-container'>
           <h1>User Profiles</h1>
 

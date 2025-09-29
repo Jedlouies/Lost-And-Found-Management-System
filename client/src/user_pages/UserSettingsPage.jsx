@@ -406,17 +406,64 @@ const handleUpdate = async () => {
         <UserBlankHeader />
         <div className='settings-container' style={{position: 'absolute', backgroundColor: 'white', width: '92%', borderRadius: '20px', height: '90%', marginLeft: '10px', top: '7%', marginBottom: '20px'}}>
           <div className='upload-section1' style={{display: 'flex', flexDirection: 'column'}}>
-          {coverURL && (
-            <div>
-              
-              <img src={coverURL} alt="Cover" style={{ height: '100px',width: '550px',borderRadius: '10px', objectFit: 'cover' }} />
-            </div>
-          )}
-          {profileURL && (
-            <div>
-              <img src={profileURL} alt="Profile" style={{ width: '70px', height: '70px', borderRadius: '50%', objectFit: 'cover', marginTop: '-20px'}} />
-            </div>
-          )}
+          {/* Cover Photo */}
+            {coverURL ? (
+              <div>
+                <img 
+                  src={coverURL} 
+                  alt="Cover" 
+                  style={{ height: '100px', width: '550px', borderRadius: '10px', objectFit: 'cover' }} 
+                />
+              </div>
+            ) : (
+              <div 
+                style={{ 
+                  height: '100px', 
+                  width: '550px', 
+                  borderRadius: '10px', 
+                  backgroundColor: 'gray', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  color: 'white', 
+                  fontWeight: 'bold', 
+                  border: '2px solid black'
+                }}
+              >
+                No Picture
+              </div>
+            )}
+
+            {/* Profile Photo */}
+            {profileURL ? (
+              <div>
+                <img 
+                  src={profileURL} 
+                  alt="Profile" 
+                  style={{ width: '70px', height: '70px', borderRadius: '50%', objectFit: 'cover', marginTop: '-20px'}} 
+                />
+              </div>
+            ) : (
+              <div 
+                style={{ 
+                  width: '70px', 
+                  height: '70px', 
+                  borderRadius: '50%', 
+                  backgroundColor: 'graystone', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  color: 'white', 
+                  fontSize: '10px', 
+                  fontWeight: 'bold', 
+                  marginTop: '-20px',
+                  border: '2px solid black'
+                }}
+              >
+                No Picture
+              </div>
+            )}
+
           <div >
           <h4>Profile Picture</h4>
           <input type="file" accept="image/*" style={{border: 'solid #475C6F 2px ', borderRadius: '5px', width: '500px'}} onChange={handleProfileChange} />

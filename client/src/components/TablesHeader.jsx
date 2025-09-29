@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react'
-import './styles/TablesHeader.css'
-import { useAuth } from '../context/AuthContext.jsx';
-import { doc, getDoc, collection, getDocs } from 'firebase/firestore';
-  import { db } from '../firebase.jsx';
+import './styles/DashboardHeader.css'
+import { useAuth } from '../context/AuthContext';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase.jsx';
 import HeaderAccountDropdown from './HeaderAccountDropdown.jsx';
 import HeaderNotifyDropdown from './HeaderNotifyDropdown.jsx';
 import { useNavigate } from 'react-router-dom';
@@ -10,17 +10,15 @@ import { getAuth } from 'firebase/auth';
 import { useNotification } from "../context/NotificationContext";
 
 
-function TablesHeader() {
+function TableHeader() {
   const { currentUser } = useAuth();
   const [dropDown, setDropDown] = useState(false);
   const [notifyPanel, setNotifyPanel] = useState(false);
   const [firstName, setFirstName] = useState(localStorage.getItem('firstName') || '');
   const [lastName, setLastName] = useState(localStorage.getItem('lastName') || '');
-  const [profileURL, setProfileURL] = useState(localStorage.getItem('profileURL') || '')
+  const [profileURL, setProfileURL] = useState(localStorage.getItem('profileURL') || '');
   const initials = `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
   const dropdownRef = useRef(null);
-  const [claimedCount, setClaimedCount] = useState(0);      
-  const [unclaimedCount, setUnclaimedCount] = useState(0);  
   const notifyRef = useRef(null);
   const profileRef = useRef(null);
   const bellRef = useRef(null);
@@ -62,32 +60,6 @@ useEffect(() => {
 
   fetchUserDetails();
 }, [currentUser]);
-
-useEffect(() => {
-    const fetchLostItemsCount = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "lostItems"));
-        let claimed = 0;
-        let unclaimed = 0;
-
-        querySnapshot.forEach(doc => {
-          const data = doc.data();
-          if (data.claimStatus === "claimed") {
-            claimed++;
-          } else {
-            unclaimed++;
-          }
-        });
-
-        setClaimedCount(claimed);
-        setUnclaimedCount(unclaimed);
-      } catch (error) {
-        console.error("Error fetching lost items count:", error);
-      }
-    };
-
-    fetchLostItemsCount();
-  }, []);
 
 useEffect(() => {
     const handleImageUpdate = () => {
@@ -132,37 +104,22 @@ useEffect(() => {
 
     <div className='header-body'>
 
-        <div className='count-row'>
-          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="white" className="bi bi-check-circle" viewBox="0 0 16 16">
-            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
-            <path d="m10.97 4.97-.02.022-3.473 4.425-2.093-2.094a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/>
-          </svg>
-          <p>Total Claimed Items: <strong>{claimedCount}</strong></p>
-        </div>
-        <div className='count-row'>
-          <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="white" className="bi bi-x-circle" viewBox="0 0 16 16">
-            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
-            <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
-          </svg>
-          <p>Total Unclaimed Items: <strong>{unclaimedCount}</strong></p>
-        </div>
-        <div className='header-right-table'>
-          <div>
-        {unreadCount > 0 && (
-        <span className="notif-badge2">{unreadCount}</span>
-      )}
-
-          <svg ref={bellRef} xmlns="http://www.w3.org/2000/svg" width="25" height="20" fill="white" class="bi bi-bell" viewBox="0 0 16 16" 
-          onClick={() => {
-          clearNotifications();
-          toggleNotifyPanel();
-        }}>
-            <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6"/>
-          </svg>
+        <div className='header-right'>
+          <div style={{ position: 'relative' }}>
+            <svg ref={bellRef} xmlns="http://www.w3.org/2000/svg" width="25" height="20" fill="white" class="bi bi-bell" viewBox="0 0 16 16" 
+              onClick={() => {
+              clearNotifications();
+              toggleNotifyPanel();
+            }}>
+                <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6"/>
+              </svg>
+                  {unreadCount > 0 && (
+                  <span className="notif-badge4">{unreadCount}</span>
+                )}
 
           </div>
           <div ref={profileRef} className='profile' onClick={toggleDropDown}>
-             {profileURL ? (
+            {profileURL ? (
             <img
               src={profileURL}
               alt='Profile'
@@ -186,18 +143,22 @@ useEffect(() => {
               {initials}
             </div>
           )}
+
           </div>
            <p onClick={toggleDropDown}>{lastName}</p>
         </div>
     </div>
-    <div className={`account-dropdown ${dropDown ? 'dropDown' : ''}`} ref={dropdownRef}>
+    <div className='dropdown-containers2'>
+              <div  className={`account-dropdown2 ${dropDown ? 'dropDown' : ''}`} ref={dropdownRef}>
       <HeaderAccountDropdown />  
      </div>
-    <div className={`notify-panels ${notifyPanel ? 'notifyPanel' : ''}`} ref={notifyRef}>
+    <div className={`notify-panel2 ${notifyPanel ? 'notifyPanel' : ''}`} ref={notifyRef}>
       <HeaderNotifyDropdown />
+    </div>
+
     </div>
     </>
   )
 }
 
-export default TablesHeader
+export default TableHeader

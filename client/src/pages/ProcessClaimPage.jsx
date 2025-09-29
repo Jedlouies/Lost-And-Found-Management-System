@@ -118,32 +118,40 @@ const resizeBase64Img = (base64, maxWidth = 400, maxHeight = 400, quality = 0.7)
     };
   }, [selectedDeviceId]);
 
+// Create scanner once
 useEffect(() => {
-  if (!videoRef.current || !selectedDeviceId) return;
+  if (!videoRef.current) return;
 
-  if (scannerRef.current) {
-    scannerRef.current.stop();
-    scannerRef.current = null;
-  }
-
-  const qrScanner = new QrScanner(
+  scannerRef.current = new QrScanner(
     videoRef.current,
-    (result) => {
-      handleScan(result); // ✅ always pass to handler
-    },
+    (result) => handleScan(result),
     {
       highlightScanRegion: true,
       highlightCodeOutline: true,
     }
   );
 
-  qrScanner.start().catch((err) => console.error("Scanner start error:", err));
-  scannerRef.current = qrScanner;
+  scannerRef.current.start().catch((err) =>
+    console.error("Scanner start error:", err)
+  );
 
   return () => {
-    qrScanner.stop();
+    scannerRef.current?.stop();
+    scannerRef.current = null;
   };
-}, [selectedDeviceId]); 
+}, []); // 👈 only once on mount
+
+// Handle camera switching
+useEffect(() => {
+  const switchCamera = async () => {
+    if (scannerRef.current && selectedDeviceId) {
+      await scannerRef.current.stop();
+      await scannerRef.current.start();
+      await scannerRef.current.setCamera(selectedDeviceId);
+    }
+  };
+  switchCamera().catch((err) => console.error("Camera switch error:", err));
+}, [selectedDeviceId]);
 
   // 🔹 Capture a still image
 const capturePhoto = async () => {
@@ -156,7 +164,7 @@ const capturePhoto = async () => {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     const rawImage = canvas.toDataURL("image/png");
 
-    // 🔹 Compress before saving
+    
     const compressedImage = await resizeBase64Img(rawImage);
     setCapturedImage(compressedImage);
 

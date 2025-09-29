@@ -6,6 +6,7 @@ import NavigationBar from '../components/NavigationBar.jsx'
 import BlankHeader from '../components/BlankHeader.jsx'
 import { useNavigate, useParams } from 'react-router-dom';
 import UserNavigationBar from '../user_components/UserNavigationBar.jsx';
+import TableHeader from '../components/TablesHeader.jsx';
 
 function ViewProfilePage() {
   const { uid } = useParams();  // <-- get UID from route
@@ -40,7 +41,7 @@ function ViewProfilePage() {
     <>
       <NavigationBar />
       <div className='profile-body'>
-        <BlankHeader />
+        <TableHeader />
         <div className='profile-container'>
           <img src={userData.coverURL || ''} alt="cover" />
           <div ref={profileRef} className='profile-picture'>
@@ -76,8 +77,8 @@ function ViewProfilePage() {
             </h4>
           </div>
         </div>
-
-        <div className='profile-other-details'>
+        <div className='all-profile-details'>
+          <div className='profile-other-details'>
           <p><strong>Firstname: </strong>{userData.firstName}</p>
           <p><strong>Lastname: </strong>{userData.lastName}</p>
           <p><strong>Gender: </strong>{userData.gender}</p>
@@ -90,6 +91,8 @@ function ViewProfilePage() {
           <p><strong>Course:</strong> {userData.course?.abbr} - {userData.course?.name}</p>
           <p><strong>Section:</strong> {userData.section}</p>
           <p><strong>Bio: </strong> {userData.bio}</p>
+        </div>
+
         </div>
       </div>
     </>
