@@ -8,6 +8,9 @@ import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp } f
 import Header from '../components/Header'
 
 function GuestReportLostPage() {
+  const API = process.env.REACT_APP_API_URL || "https://server.spotsync.site";
+
+
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -184,7 +187,7 @@ function GuestReportLostPage() {
 
       // ✅ Matching process
       if (currentUser) {
-        const matchResponse = await fetch("https://server.spotsync.site/api/match/lost-to-found", {
+        const matchResponse = await fetch(`${API}/api/match/lost-to-found`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ uidLost: docRef.id }),
@@ -203,7 +206,7 @@ function GuestReportLostPage() {
               `Your found item <b>${match.foundItem.itemName}</b> may possibly match with a newly reported lost item: <b>${itemName}</b>.`
             );
 
-            await fetch("https://server.spotsync.site/api/send-email", {
+            await fetch(`${API}/api/send-email`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -224,7 +227,7 @@ function GuestReportLostPage() {
               );
 
               try {
-                const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
+                const emailResUser = await fetch(`${API}/api/send-email`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({

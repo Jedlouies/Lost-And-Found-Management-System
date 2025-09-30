@@ -8,6 +8,9 @@ import { useNavigate } from 'react-router-dom';
 import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
 
 function UserFoundItemDetailPage() {
+  const API = process.env.REACT_APP_API_URL || "https://server.spotsync.site";
+
+
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -175,7 +178,7 @@ const handleSubmit = async (e) => {
 
     setIsMatching(true);
 
-    const matchResponse = await fetch("https://server.spotsync.site/api/match/found-to-lost", {
+    const matchResponse = await fetch(`${API}/api/match/found-to-lost`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ uidFound: docRef.id }),
@@ -202,7 +205,7 @@ const handleSubmit = async (e) => {
           );
 
           try {
-            const emailRes = await fetch("https://server.spotsync.site/api/send-email", {
+            const emailRes = await fetch(`${API}/api/send-email`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({

@@ -24,6 +24,8 @@ import Modal from 'react-bootstrap/Modal';
 
 
 function FoundItemsPage() {
+  const API = process.env.REACT_APP_API_URL || "https://server.spotsync.site";
+
   const [items, setItems] = useState([]); 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -142,7 +144,7 @@ const handleVerifyItem = async (foundDocId) => {
               Matching rate: <b>${match.scores.overallScore}%</b> Please bring your ID and QR Code for Verification.`
             );
             try {
-              const emailRes = await fetch("https://server.spotsync.site/api/send-email", {
+              const emailRes = await fetch(`${API}/api/send-email`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -182,7 +184,7 @@ const handleVerifyItem = async (foundDocId) => {
           );
 
           try {
-            const emailRes = await fetch("https://server.spotsync.site/api/send-email", {
+            const emailRes = await fetch(`${API}/api/send-email`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({

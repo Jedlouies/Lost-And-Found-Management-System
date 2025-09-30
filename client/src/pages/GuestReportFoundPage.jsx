@@ -8,6 +8,8 @@ import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp } f
 import Header from '../components/Header';
 
 function GuestReportFoundPage() {
+  const API = process.env.REACT_APP_API_URL || "https://server.spotsync.site";
+
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
@@ -180,7 +182,7 @@ function GuestReportFoundPage() {
 
       if (currentUser) {
         setIsMatching(true);
-        const matchResponse = await fetch("https://server.spotsync.site/api/match/found-to-lost", {
+        const matchResponse = await fetch(`${API}/api/match/found-to-lost`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ uidFound: docRef.id }),
@@ -201,7 +203,7 @@ function GuestReportFoundPage() {
          console.log("Current user email:", recipientEmail);
 
          try {
-                  const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
+                  const emailResUser = await fetch(`${API}/api/send-email`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({

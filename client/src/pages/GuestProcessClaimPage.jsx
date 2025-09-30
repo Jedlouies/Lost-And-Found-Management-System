@@ -22,6 +22,8 @@ import { Modal, Button } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";   
 
 function GuestProcessClaimPage() {
+  const API = process.env.REACT_APP_API_URL || "https://server.spotsync.site";
+
   const [capturedImage, setCapturedImage] = useState(null);
   const [guestName, setGuestName] = useState("");
   const [guestContact, setGuestContact] = useState("");
@@ -336,7 +338,7 @@ const capturePhoto = async () => {
       `);
 
       try {
-                  const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
+                  const emailResUser = await fetch(`${API}/api/send-email`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -366,7 +368,7 @@ const capturePhoto = async () => {
 
 
                 try {
-                  const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
+                  const emailResUser = await fetch(`${API}/api/send-email`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -392,7 +394,7 @@ const capturePhoto = async () => {
                 }
 
                 try {
-                  const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
+                  const emailResUser = await fetch(`${API}/api/send-email`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
