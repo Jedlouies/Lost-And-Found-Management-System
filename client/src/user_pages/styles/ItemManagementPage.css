@@ -345,9 +345,7 @@ td:hover .floating-location {
     .manage-item-body {
         height: 120vh;
     }
-    .manage-item-container {
-        height: 400px;
-    }
+    
     .manage-item-table {
         height: 650px;
         overflow-x: auto;
@@ -362,6 +360,9 @@ td:hover .floating-location {
         width: auto;
         top: 12%;
 }
+.manage-item-container h1{
+        opacity: 0;
+    }
 
 }
 
@@ -373,9 +374,7 @@ td:hover .floating-location {
     .manage-item-body {
         height: 120vh;
     }
-    .manage-item-container {
-        height: 400px;
-    }
+    
     .manage-item-table {
         height: 650px;
         overflow-x: auto;
@@ -403,9 +402,7 @@ td:hover .floating-location {
     .manage-item-body {
         height: 120vh;
     }
-    .manage-item-container {
-        height: 400px;
-    }
+    
     .manage-item-table {
         height: 650px;
         overflow-x: auto;
@@ -439,9 +436,7 @@ td:hover .floating-location {
     .manage-item-body {
         height: 120vh;
     }
-    .manage-item-container {
-        height: 400px;
-    }
+    
     .manage-item-table {
         height: 650px;
         overflow-x: auto;

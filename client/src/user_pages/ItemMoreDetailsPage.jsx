@@ -76,7 +76,7 @@ function ItemMoreDetailsPage() {
             <img
               src={item.images[0]}
               alt="Item"
-              style={{width: '100%', objectFit: 'cover', height: '150%', maxHeight: '100%'}}
+              style={{width: '100%', objectFit: 'cover', height: '100%', maxHeight: '150%'}}
             />
           )}
 

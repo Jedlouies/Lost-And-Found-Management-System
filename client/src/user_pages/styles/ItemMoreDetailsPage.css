@@ -15,7 +15,6 @@
     left: 50%;
     min-height: 700px;
     width: 45%;
-    
     height: 115%;
     margin-right: 20px;
     
@@ -33,9 +32,9 @@
     object-fit: cover;
 }
 
-@media (min-width: 1200px) {
+@media (max-width: 1199px) {
     .item-image img {
-        height: 140%;
+        height: 150%;
     }
 }
 
