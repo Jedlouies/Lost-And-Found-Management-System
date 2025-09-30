@@ -60,7 +60,7 @@ useEffect(() => {
             images: data.images || [],
             date: data.dateSubmitted || 'N/A',
             type: data.type || 'Unknown',
-            location: data.location || 'N/A',
+            location: data.locationFound || data.locationLost ||'N/A',
             category: data.category || 'N/A',
             claimStatus: data.claimStatus || 'unclaimed',
             status: data.status || 'N/A',   

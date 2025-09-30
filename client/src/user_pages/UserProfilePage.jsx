@@ -6,6 +6,7 @@ import { db } from '../firebase.jsx';
 import { getAuth } from 'firebase/auth';
 import NavigationBar from '../components/NavigationBar.jsx'
 import BlankHeader from '../components/BlankHeader.jsx'
+import UserBlankHeader from '../user_components/UserBlankHeader.jsx'
 import { useNavigate } from 'react-router-dom';
 import UserNavigationBar from '../user_components/UserNavigationBar.jsx';
 
@@ -112,7 +113,7 @@ function UserProfilePage() {
     <>
     <UserNavigationBar />
     <div className='profile-body'>
-      <BlankHeader />
+      <UserBlankHeader />
       <div className='profile-container'>
         <img src={coverURL} alt="" />
           <div ref={profileRef} className='profile-picture'>

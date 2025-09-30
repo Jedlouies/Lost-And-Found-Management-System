@@ -309,30 +309,16 @@
 
     return (
       <>
-        <div className="user-lost-procedure-body2" >
-          <p style={{ position: 'absolute', fontSize: '15px', left: '82%', top: '5%', width: '200px' }}>
-            <strong>NOTE: </strong>
-            To achieve a more successful matching process, 
-            it is essential to provide accurate and complete 
-            data. Precise information minimizes errors and 
-            ensures that the system can generate the most 
-            relevant and reliable results. 
-            Incomplete or incorrect details can lead to 
-            mismatches, reducing the overall effectiveness 
-            of the process. Therefore, supplying exact data 
-            and information significantly enhances the 
-            accuracy and success of the matching outcome.
-          </p>
+      <div className='background1' style={{position: 'absolute', width: '100%', height: '120vh', backgroundColor: 'white', backgroundColor: '#D9D9D9'}}>
+        <div className="user-found-procedure-body" >
           <h1>Report Lost Form</h1>
           <form className="lost-item-form" onSubmit={handleSubmit}>
-            <label>Item Images:</label>
-            <input className='file' type="file" multiple accept="image/*" onChange={handleImageChange} style={{ width: '1000px', border: '2px solid #475C6F'}} required />
+            <input className='file' type="file" multiple accept="image/*" onChange={handleImageChange} style={{ width: '98%', border: '2px solid #475C6F'}} required />
             <br />
-          <label >Item Name</label>
           <input
             type="text"
             value={itemName}
-            placeholder="e.g. Nike Black Baseball Cap"
+            placeholder="Item Name"
             onChange={(e) => {
               const words = e.target.value.trim().split(/\s+/);
               if (words.length <= 5) {
@@ -341,33 +327,37 @@
                 setItemName(words.slice(0, 5).join(" "));
               }
             }}
-            style={{width: "1000px"}}
+            style={{width: "98%"}}
             required
-          />            <br />
-            <label>Date Lost:</label>
+          />       
+          <div className='three-inputs' style={{width: '100%', height: '35px'}}>
             <input
               type="date"
               value={dateLost}
               onChange={(e) => setDateLost(e.target.value)}
               style={{
-                width: '200px',
+                width: '30%',
                 color: '#475C6F',
-                WebkitAppearance: 'none'
+                WebkitAppearance: 'none',
+                marginRight: '10px'
+                , height: '35px'
               }}
               required
             />          
-          <label>Location Lost:</label>
           <select
             value={locationLost}
             onChange={(e) => setLocationLost(e.target.value)}
             style={{
-              width: "400px",
+              width: "40%",
               height: "35px",
               borderRadius: "8px",
               border: "2px solid #475C6F",
               color: "#475C6F",
               backgroundColor: "transparent",
-              padding: "5px"
+              padding: "5px",
+
+              marginRight: '10px',
+              marginBottom: '10px'
             }}
             required
           >
@@ -432,14 +422,16 @@
                 marginTop: "8px",
                 backgroundColor: "white",
                 border: "none",
-                padding: "5px"
+                padding: "5px",
+                marginLeft: '10px',
+                marginRight: '10px'
+                
               }}
               required
             />
           )}
 
-            <label>Category:</label>
-            <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: '140px', borderRadius: '10px', backgroundColor: 'transparent', border: '2px solid #475C6F', color: '#475C6F' }} required>
+            <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: '26%', height: '35px', borderRadius: '10px', backgroundColor: 'transparent', border: '2px solid #475C6F', color: '#475C6F', marginRight: '10px' }} required>
               <option value="">Select Category</option>
               <option value="Electronics">Electronics</option>
               <option value="Accessories">Accessories</option>
@@ -457,30 +449,36 @@
               <option value="Pet Items">Pet Items</option>
               <option value="Others">Others</option>
             </select>
+
+          </div>
+              
             <br />
-            <label>Item Description:</label>
-            <textarea
+            <div className='describe'>
+                <textarea
               value={itemDescription}
               onChange={(e) => limitWords(e.target.value, setItemDescription)}
-              style={{ color: '#475C6F' }}
+              placeholder='Describe the item'
+              style={{ color: '#475C6F', width: '98%', marginBottom: '30px'}}
               required
             />
-            <div style={{ position: 'absolute', top: '48%', marginLeft: '75%', fontSize: '12px', color: '#475C6F' }}>
+            <div style={{ position: 'absolute', top: '50%', marginLeft: '2%', fontSize: '12px', color: '#475C6F' }}>
               {countWords(itemDescription)}/{WORD_LIMIT} words
             </div>
 
             <br />
 
-            <label>How Item Was Lost:</label>
             <textarea
               value={howItemLost}
               onChange={(e) => limitWords(e.target.value, setHowItemLost)}
-              style={{ color: '#475C6F' }}
+              placeholder='How item lost?'
+              style={{ color: '#475C6F', width: '98%', }}
               required
             />
-            <div style={{ position: 'absolute', top: '76%', marginLeft: '75%', fontSize: '12px', color: '#475C6F' }}>
+            <div style={{ position: 'absolute', top: '79%', marginLeft: '2%', fontSize: '12px', color: '#475C6F' }}>
               {countWords(howItemLost)}/{WORD_LIMIT} words
             </div>
+            </div>
+            
             <button
             type="submit"
             disabled={isSubmitting || isMatching}
@@ -501,12 +499,12 @@
           >
             {isMatching ? (
               <>
-                <img src="/Spin.gif" alt="Loading..." style={{ width: "20px", height: "20px" }} />
+                <img src="/Spin_black.gif" alt="Loading..." style={{ width: "20px", height: "20px" }} />
                 <span>AI Matching...</span>
               </>
             ) : isSubmitting ? (
               <>
-                <img src="/Spin.gif" alt="Loading..." style={{ width: "20px", height: "20px" }} />
+                <img src="/Spin_black.gif" alt="Loading..." style={{ width: "20px", height: "20px" }} />
                 <span>Matching</span>
               </>
             ) : (
@@ -515,6 +513,7 @@
           </button> 
           </form>
         </div>
+      </div>
       </>
     );
   }

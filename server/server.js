@@ -20,11 +20,14 @@ function generateItemId() {
 
 // --- Cosine Similarity ---
 function cosineSimilarity(vecA, vecB) {
+  if (!vecA.length || !vecB.length) return 0; // no similarity if empty
   const dot = vecA.reduce((sum, val, i) => sum + val * vecB[i], 0);
   const normA = Math.sqrt(vecA.reduce((sum, val) => sum + val * val, 0));
   const normB = Math.sqrt(vecB.reduce((sum, val) => sum + val * val, 0));
+  if (normA === 0 || normB === 0) return 0; // avoid division by zero
   return dot / (normA * normB);
 }
+
 
 // --- Text Embeddings ---
 async function getTextEmbedding(text) {
@@ -84,8 +87,6 @@ async function getImageEmbedding(url) {
   }
 }
 
-// --- Object Detection Replacement ---
-// No GPT chat. Just return the URL so we can use embeddings for relevance.
 async function detectObjects(url) {
   return [url]; // placeholder for embedding comparison
 }
@@ -122,18 +123,36 @@ async function compareImagesWithFilter(lostUrls, foundUrls) {
 
 // --- Calculate Match Score ---
 async function calculateMatchScore(lostItem, foundItem) {
-  const nameScore = cosineSimilarity(await getTextEmbedding(lostItem.itemName || ""), await getTextEmbedding(foundItem.itemName || "")) * 100;
-  const descScore = cosineSimilarity(await getTextEmbedding(lostItem.itemDescription || ""), await getTextEmbedding(foundItem.itemDescription || "")) * 100;
-  const locationScore = cosineSimilarity(await getTextEmbedding(lostItem.locationLost || ""), await getTextEmbedding(foundItem.locationFound || "")) * 100;
-  const categoryMatch = (lostItem.category?.toLowerCase() === foundItem.category?.toLowerCase()) ? 100 : 0;
-  const overallTextScore = nameScore * 0.5 + descScore * 0.3 + locationScore * 0.1 + categoryMatch * 0.1;
+  const nameScore = cosineSimilarity(
+    await getTextEmbedding(lostItem.itemName || ""),
+    await getTextEmbedding(foundItem.itemName || "")
+  ) * 100;
 
-  const lostUrls = Array.isArray(lostItem.images) ? lostItem.images : [lostItem.images];
-  const foundUrls = Array.isArray(foundItem.images) ? foundItem.images : [foundItem.images];
+  const descScore = cosineSimilarity(
+    await getTextEmbedding(lostItem.itemDescription || ""),
+    await getTextEmbedding(foundItem.itemDescription || "")
+  ) * 100;
+
+  const locationScore = cosineSimilarity(
+    await getTextEmbedding(lostItem.locationLost || ""),
+    await getTextEmbedding(foundItem.locationFound || "")
+  ) * 100;
+
+  const categoryMatch =
+    lostItem.category?.toLowerCase() === foundItem.category?.toLowerCase()
+      ? 100
+      : 0;
+
+  const overallTextScore =
+    nameScore * 0.5 + descScore * 0.3 + locationScore * 0.1 + categoryMatch * 0.1;
+
+  const lostUrls = Array.isArray(lostItem.images) ? lostItem.images : [lostItem.images].filter(Boolean);
+  const foundUrls = Array.isArray(foundItem.images) ? foundItem.images : [foundItem.images].filter(Boolean);
   const imageScore = await compareImagesWithFilter(lostUrls, foundUrls);
 
   const overallScore = overallTextScore * 0.4 + imageScore * 0.6;
-  const toPct = (v) => parseFloat(v.toFixed(2));
+
+  const toPct = (v) => (isNaN(v) ? 0 : parseFloat(v.toFixed(2)));
 
   return {
     nameScore: toPct(nameScore),
@@ -255,7 +274,7 @@ app.listen(PORT, () => {
 })
 
 app.get("/", (req, res) => {
-  res.send("Welcome to Raven Program");
+  res.send("Welcome to Spotsync Server");
 });
 
 

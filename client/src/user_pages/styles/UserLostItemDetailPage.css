@@ -7,6 +7,7 @@
     height: 650px;
     z-index: 1000;
     border-radius: 20px;
+    justify-content: left;
     padding: 10px;
     box-shadow: 0px 2px 5px rgb(0, 0, 0, 0.7);
 }
@@ -22,20 +23,19 @@
     color: #475C6F;
 }
 
-.lost-item-form input, 
-.lost-item-form label{
-    margin-bottom: 15px;
+.lost-item-form input{
     margin-left: 20px;
-    width: 100px;
+    margin-bottom: 10px;
+    width: 90%;
     color: #475C6F;
 }
 
 .lost-item-form textarea {
     background-color: transparent;
     border-radius: 10px;
-    width: 1000px;
+    margin-left: 10px;
+    width: 100%;
     height: 160px;
-    margin-left: 20px;
     resize: none;
     border: 2px solid #475C6F;
 }
@@ -119,20 +119,18 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     color: #475C6F;
 }
 
-.lost-item-form input, 
-.lost-item-form label{
-    margin-bottom: 15px;
-    margin-left: 20px;
-    width: 100px;
+.lost-item-form input{
+    
+    width: 70%;
     color: #475C6F;
 }
 
 .lost-item-form textarea {
     background-color: transparent;
     border-radius: 10px;
-    width: 1000px;
+    width: 70%;
     height: 160px;
-    margin-left: 20px;
+    
     resize: none;
     border: 2px solid #475C6F;
 }
@@ -177,62 +175,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 
-
-
-@media (max-width: 1200px) {
-    .user-lost-procedure-body, .user-lost-procedure-body2 {
-        width: 90%;
-        height: 700px;
-        left: 5%;
-        top: 5%;
-        padding: 20px;
-    }
-
-    .lost-item-form textarea {
-        width: 100%;
-        height: 120px;
-    }
-
-    .lost-item-form input, 
-    .lost-item-form label{
-        width: auto;
-        margin-left: 0;
-    }
-
-    .user-lost-procedure-body p, .user-lost-procedure-body2 p {
-        font-size: 16px;
-        top: 20%;
-        left: 5%;
-        right: 5%;
-        opacity: 0;
-    }
-
-    .user-lost-procedure-body button, .user-lost-procedure-body2 button {
-        width: 80%;
-        left: 10%;
-        top: auto;
-        margin-top: 20px;
+@media (max-width: 1920px) {
+    .three-inputs {
+        display: flex;
+        flex-direction: row;
     }
 }
 
-@media (max-width: 992px) {
-    .user-lost-procedure-body, .user-lost-procedure-body2 {
-        height: auto;
-        top: 5%;
-        padding: 15px;
-    }
 
-    .lost-item-form textarea {
-        height: 100px;
-    }
 
-    .user-lost-procedure-body p, .user-lost-procedure-body2 p {
-        font-size: 14px;
-        top: 15%;
-        left: 5%;
-        right: 5%;
-    }
-}
 
 @media (max-width: 768px) {
     .user-lost-procedure-body, .user-lost-procedure-body2 {
@@ -259,4 +210,28 @@ input[type="date"]::-webkit-calendar-picker-indicator {
         top: auto;
         margin-top: 15px;
     }
+
+    .three-inputs {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .three-inputs input {
+        min-width: 95%;
+        min-height: 30px;
+    }
+
+    .three-inputs select {
+        min-width: 95%;
+        margin-right: 10px;
+    }
+
+    .describe {
+        margin-top: 80px;
+    }
+
+    .user-found-procedure-body input {
+        margin-left: 0px;
+    }
+
 }

@@ -41,6 +41,9 @@ function UserSettingsPage() {
   const [course, setCourse] = useState('');
   const [section, setSection] = useState('');
 
+  const initials = `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
+
+
 
 
 
@@ -454,13 +457,13 @@ const handleUpdate = async () => {
                   alignItems: 'center', 
                   justifyContent: 'center', 
                   color: 'white', 
-                  fontSize: '10px', 
+                  fontSize: '30px', 
                   fontWeight: 'bold', 
                   marginTop: '-20px',
                   border: '2px solid black'
                 }}
               >
-                No Picture
+                {initials}
               </div>
             )}
 
