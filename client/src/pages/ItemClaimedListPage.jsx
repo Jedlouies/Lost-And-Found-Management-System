@@ -150,7 +150,7 @@ function ItemClaimedListPage() {
                       <td>{item.itemName}</td>
                       <td>{new Date(item.dateClaimed).toLocaleDateString()}</td>
                       <td>
-                        <div className='founder-details'>
+                        <div className='founder-details' >
                           {item.founder?.isGuest ? (
                             // Case 1: Guest
                             <div
@@ -160,8 +160,8 @@ function ItemClaimedListPage() {
                                 borderRadius: "50%",
                                 backgroundColor: "#007bff",
                                 display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
+                                alignItems: "left",
+                                justifyContent: "left",
                                 color: "white",
                                 fontWeight: "bold",
                                 fontSize: "12px",
@@ -180,6 +180,8 @@ function ItemClaimedListPage() {
                                   height: "50px",
                                   borderRadius: "50%",
                                   objectFit: "cover",
+                                  justifyContent: 'left',
+                                  alignItems: 'left',
                                 }}
                               />
                               <div className='personal-info'>

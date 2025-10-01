@@ -8,10 +8,7 @@ import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp } f
 import Header from '../components/Header'
 
 function GuestReportLostPage() {
-const API =
-  window.location.hostname === "localhost"
-    ? "http://localhost:4000"
-    : "https://server.spotsync.site";
+    const API = "http://localhost:4000" || "https://server.spotsync.site";
 
 
   const { currentUser } = useAuth();

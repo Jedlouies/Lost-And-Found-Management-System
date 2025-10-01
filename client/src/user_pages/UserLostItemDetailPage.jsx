@@ -9,10 +9,7 @@
   
 
   function UserLostItemDetailPage() {
-const API =
-  window.location.hostname === "localhost"
-    ? "http://localhost:4000"
-    : "https://server.spotsync.site";
+    const API = "http://localhost:4000" || "https://server.spotsync.site";
 
 
     const { currentUser } = useAuth();

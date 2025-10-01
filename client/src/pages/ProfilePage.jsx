@@ -1,13 +1,14 @@
 import React, { useRef, useState, useEffect, use } from 'react'
-import './styles/ProfilePage.css'
-import { useAuth } from '../context/AuthContext';
+import '../user_pages/styles/UserProfilePage.css'
+import { useAuth } from '../context/AuthContext.jsx';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase.jsx';
 import { getAuth } from 'firebase/auth';
 import NavigationBar from '../components/NavigationBar.jsx'
 import BlankHeader from '../components/BlankHeader.jsx'
+import UserBlankHeader from '../user_components/UserBlankHeader.jsx'
 import { useNavigate } from 'react-router-dom';
-import TableHeader from '../components/TablesHeader.jsx';
+import UserNavigationBar from '../user_components/UserNavigationBar.jsx';
 
 function ProfilePage() {
   const {currentUser} = useAuth();
@@ -27,6 +28,9 @@ function ProfilePage() {
   const [bio, setBio] = useState(localStorage.getItem('bio') || '');
   const [educationalAttainment, setEducationalAttainment] = useState(localStorage.getItem('educationalAttainment') || '');
   const [yearsOfService, setYearsOfService] = useState(localStorage.getItem('yearsOfService') || '');
+  const [yearLevel, setYearLevel] = useState(localStorage.getItem('yearLevel') || '');
+  const [course, setCourse] = useState(localStorage.getItem('course') || '');
+  const [section, setSection] = useState(localStorage.getItem('section') || '')
   const initials = `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
   const profileRef = useRef(null);
   const navigate = useNavigate();
@@ -40,7 +44,8 @@ function ProfilePage() {
       const hasCached = localStorage.getItem('firstName') && localStorage.getItem('lastName') && localStorage.getItem('profileURL')
       && localStorage.getItem('designation') && localStorage.getItem('coverURL') && localStorage.getItem('bio') && localStorage.getItem('role') && 
       localStorage.getItem('middleName') && localStorage.getItem('gender') && localStorage.getItem('email') && localStorage.getItem('contactNumber')
-      && localStorage.getItem('address') && localStorage.getItem('studentId') && localStorage.getItem('educationalAttainment') && localStorage.getItem('yearsOfService');
+      && localStorage.getItem('address') && localStorage.getItem('studentId') && localStorage.getItem('educationalAttainment') && localStorage.getItem('yearsOfService')
+      && localStorage.getItem('section') && localStorage.getItem('course') && localStorage.getItem('yearLevel');
       if (hasCached) return;
   
       try {
@@ -65,6 +70,9 @@ function ProfilePage() {
           setYearsOfService(userData.yearsOfService || '');
           setCoverURL(userData.coverURL || '');
           setProfileURL(userData.profileURL || '');
+          setCourse(userData.course);
+          setYearLevel(userData.yearLevel);
+          setSection(userData.section);
           
           localStorage.setItem('role', userData.role || '');
           localStorage.setItem('designation', userData.designation || '');
@@ -80,6 +88,9 @@ function ProfilePage() {
           localStorage.setItem('bio', userData.bio || '');
           localStorage.setItem('educationalAttainment', userData.educationalAttainment || '');
           localStorage.setItem('yearsOfService', userData.yearsOfService || '');
+          localStorage.setItem('yearLevel', userData.yearLevel || '');
+          localStorage.setItem('course', userData.course || '');
+          localStorage.setItem('section', userData.section || '');
           localStorage.setItem('coverURL', userData.coverURL || '');
           localStorage.setItem('profileURL', userData.profileURL || '');
           if (userData.profileURL) {
@@ -101,8 +112,8 @@ function ProfilePage() {
   return (
     <>
     <NavigationBar />
-    <div className='profile-body'>
-      <TableHeader />
+    <div className='profile-body' style={{height: '120vh'}}>
+      <BlankHeader />
       <div className='profile-container'>
         <img src={coverURL} alt="" />
           <div ref={profileRef} className='profile-picture'>
@@ -134,31 +145,39 @@ function ProfilePage() {
           <div className='container-details'>
             
             <h1>{firstName} {lastName}</h1>
-            <h2>{designation}</h2>
-            <h4 style={{fontStyle: 'italic', fontWeight: '100'}}>{role.charAt(0).toUpperCase() + role.slice(1)}</h4>
+            <h4>{designation}</h4>
             
           </div>
-          <div className={`profile-quick-action ${location.pathname === `/admin/settings/${user?.uid}` ? 'active' : ''}`} onClick={() => handleEdit(`/admin/settings/${user?.uid}`)}>
+          <div className={`profile-quick-action ${location.pathname === `/users/settings/${user?.uid}` ? 'active' : ''}`} onClick={() => handleEdit(`/users/settings/${user?.uid}`)}>
               <button>Change Password</button>
               <button>Edit Profile</button>
           </div>
 
           </div>
-              <div className='profile-other-details'>
+          <div className='all-profile-details' >
+            <div className='profile-other-details' style={{marginTop: '50px'}}>
                 <p><strong>Firstname: </strong>{firstName}</p>
                 <p><strong>Lastname: </strong>{lastName}</p>
                 <p><strong>Gender: </strong>{gender}</p>
                 <p><strong>Email: </strong>{email}</p>
                 <p><strong>Contact Number: </strong>{contactNumber}</p>
                 <p><strong>Address: </strong>{address}</p>
-                <p><strong>Years of Service: </strong>{yearsOfService}</p>
+              
                 </div>
-              <div className='profile-other-details2'>
-                <p><strong>Educational Attainment: </strong>{educationalAttainment}</p>
-                <p><strong>Bio: </strong>{bio}</p>
+              <div className='profile-other-details2' style={{marginTop: '50px'}}>
+                <p>
+                  <strong>Course:</strong>{" "}
+                  {course?.abbr && course?.name
+                    ? `${course.abbr} – ${course.name}`
+                    : course || "N/A"}
+                </p>
+                <p><strong>Section:</strong> {section}</p>
+                <p><strong>Bio: </strong> {bio}</p>
 
               </div>
-            </div>
+          </div>
+              
+        </div>
     </>
   )
 }

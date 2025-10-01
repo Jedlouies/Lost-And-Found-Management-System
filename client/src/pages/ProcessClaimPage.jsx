@@ -26,10 +26,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 
 function ProcessClaimPage() {
-  const API =
-    window.location.hostname === "localhost"
-      ? "http://localhost:4000"
-      : "https://server.spotsync.site";
+    const API = "http://localhost:4000" || "https://server.spotsync.site";
 
   const [capturedImage, setCapturedImage] = useState(null);
   const [qrResult, setQrResult] = useState(null);
