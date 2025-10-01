@@ -26,6 +26,72 @@ function TransactionPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // 🔹 Reusable avatar component
+const ProfileAvatar = ({ personalInfo }) => {
+  const size = 50;
+
+  if (personalInfo?.firstName === "Guest" || personalInfo?.isGuest) {
+    // Case 1: Guest
+    return (
+      <div
+        style={{
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          backgroundColor: "blue",
+          color: "white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontWeight: "bold",
+          fontSize: "12px",
+        }}
+      >
+        Guest
+      </div>
+    );
+  } else if (!personalInfo?.profileURL) {
+    // Case 2: Initials fallback
+    const initials = `${personalInfo?.firstName?.[0] || ""}${
+      personalInfo?.lastName?.[0] || ""
+    }`.toUpperCase();
+
+    return (
+      <div
+        style={{
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          backgroundColor: "navy",
+          color: "white",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontWeight: "bold",
+          fontSize: "19px",
+        }}
+      >
+        {initials || "?"}
+      </div>
+    );
+  } else {
+    // Case 3: Profile Image
+    return (
+      <img
+        src={personalInfo.profileURL}
+        alt="profile"
+        style={{
+          width: size,
+          height: size,
+          borderRadius: "50%",
+          objectFit: "cover",
+        }}
+      />
+    );
+  }
+};
+
+
   useEffect(() => {
     setIsModalOpen(true); // Open modal when page loads
   }, []);
@@ -150,53 +216,27 @@ function TransactionPage() {
                 <p style={{fontSize: '30px', fontWeight: 'bolder'}}> {selectedMatch.lostItem.itemName}</p>
                 <span style={{fontSize: '10px'}}>Item ID Number: {selectedMatch.lostItem.itemId}</span>
                 <div style={{width: '70%', display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#F0F0F0', padding: '10px', borderRadius: '10px'}}> 
-                <div style={{
-                  width: '70%', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px', 
-                  backgroundColor: '#F0F0F0', 
-                  padding: '10px', 
-                  borderRadius: '10px'
-                }}> 
-                  {selectedMatch.lostItem.personalInfo?.firstName === "Guest" ? (
-                    <div
-                      style={{
-                        width: '50px',
-                        height: '50px',
-                        borderRadius: '50%',
-                        backgroundColor: 'blue',
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 'bold',
-                        fontSize: '12px'
-                      }}
-                    >
-                      Guest
-                    </div>
-                  ) : (
-                    <img
-                      src={selectedMatch.lostItem.personalInfo?.profileURL || ""}
-                      alt="profile"
-                      style={{
-                        width: '50px',
-                        height: '50px',
-                        borderRadius: '50%',
-                        objectFit: 'cover'
-                      }}
-                    />
-                  )}
-                  <div style={{display: 'flex', flexDirection: 'column', height: '90%'}}>
-                    <span style={{fontSize: '15px', fontWeight: 'bold'}}>
+                <div
+                  style={{
+                    width: "70%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    backgroundColor: "#F0F0F0",
+                    padding: "10px",
+                    borderRadius: "10px",
+                  }}
+                >
+                  <ProfileAvatar personalInfo={selectedMatch.lostItem.personalInfo} />
+                  <div style={{ display: "flex", flexDirection: "column", height: "90%" }}>
+                    <span style={{ fontSize: "15px", fontWeight: "bold" }}>
                       {selectedMatch.lostItem.personalInfo?.firstName || "Guest"}{" "}
                       {selectedMatch.lostItem.personalInfo?.lastName || ""}
                     </span>
-                    <span style={{fontSize: '15px'}}>
+                    <span style={{ fontSize: "15px" }}>
                       {selectedMatch.lostItem.personalInfo?.course?.abbr || ""}
                     </span>
-                  </div> 
+                  </div>
                 </div>
                 </div>
                 <div className='item-transaction-details'>
@@ -350,53 +390,27 @@ function TransactionPage() {
                 <p style={{fontSize: '30px', fontWeight: 'bolder'}}> {selectedMatch.foundItem.itemName}</p>
                 <span style={{fontSize: '10px'}}>Item ID Number: {selectedMatch.foundItem.itemId}</span>
                 <div style={{width: '70%', display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: '#F0F0F0', padding: '10px', borderRadius: '10px'}}> 
-                <div style={{
-                  width: '70%', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px', 
-                  backgroundColor: '#F0F0F0', 
-                  padding: '10px', 
-                  borderRadius: '10px'
-                }}> 
-                  {selectedMatch.foundItem.personalInfo?.firstName === "Guest" ? (
-                    <div
-                      style={{
-                        width: '50px',
-                        height: '50px',
-                        borderRadius: '50%',
-                        backgroundColor: 'blue',
-                        color: 'white',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 'bold',
-                        fontSize: '12px'
-                      }}
-                    >
-                      Guest
-                    </div>
-                  ) : (
-                    <img
-                      src={selectedMatch.foundItem.personalInfo?.profileURL || ""}
-                      alt="profile"
-                      style={{
-                        width: '50px',
-                        height: '50px',
-                        borderRadius: '50%',
-                        objectFit: 'cover'
-                      }}
-                    />
-                  )}
-                  <div style={{display: 'flex', flexDirection: 'column', height: '90%'}}>
-                    <span style={{fontSize: '15px', fontWeight: 'bold'}}>
+                <div
+                  style={{
+                    width: "70%",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    backgroundColor: "#F0F0F0",
+                    padding: "10px",
+                    borderRadius: "10px",
+                  }}
+                >
+                  <ProfileAvatar personalInfo={selectedMatch.foundItem.personalInfo} />
+                  <div style={{ display: "flex", flexDirection: "column", height: "90%" }}>
+                    <span style={{ fontSize: "15px", fontWeight: "bold" }}>
                       {selectedMatch.foundItem.personalInfo?.firstName || "Guest"}{" "}
                       {selectedMatch.foundItem.personalInfo?.lastName || ""}
                     </span>
-                    <span style={{fontSize: '15px'}}>
+                    <span style={{ fontSize: "15px" }}>
                       {selectedMatch.foundItem.personalInfo?.course?.abbr || ""}
                     </span>
-                  </div> 
+                  </div>
                 </div>
                   
                 </div>

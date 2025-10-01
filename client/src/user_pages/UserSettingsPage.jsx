@@ -452,7 +452,7 @@ const handleUpdate = async () => {
                   width: '70px', 
                   height: '70px', 
                   borderRadius: '50%', 
-                  backgroundColor: 'graystone', 
+                  backgroundColor: 'navyblue', 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center', 
@@ -528,7 +528,8 @@ const handleUpdate = async () => {
 
           <button onClick={handleSaveClick}>Save Changes</button>
 
-          <div className='other-settings' style={{position: 'absolute', marginTop: '20px', top: '-80%', left: '120%'}}>
+          
+            <div className='other-settings' style={{position: 'absolute', marginTop: '20px', top: '-80%', left: '120%'}}>
               <h4>Privacy</h4>
                 <p>Change Password</p>
                 <p>Two-Factor Authentication</p>

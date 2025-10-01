@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import QrScanner from "qr-scanner"; // ✅ new library
+import QrScanner from "qr-scanner";
 import "./styles/ProcessClaimPage.css";
 import NavigationBar from "../components/NavigationBar";
 import BlankHeader from "../components/BlankHeader";
@@ -26,6 +26,11 @@ import {
 import { useAuth } from "../context/AuthContext";
 
 function ProcessClaimPage() {
+  const API =
+    window.location.hostname === "localhost"
+      ? "http://localhost:4000"
+      : "https://server.spotsync.site";
+
   const [capturedImage, setCapturedImage] = useState(null);
   const [qrResult, setQrResult] = useState(null);
   const [userData, setUserData] = useState(null);
@@ -45,56 +50,72 @@ function ProcessClaimPage() {
   const matchData = location.state?.match || null;
   const matchDocId = matchId || matchData?.id;
 
-  const [scanFeedback, setScanFeedback] = useState(null);
-  const [isScanning, setIsScanning] = useState(false);
   const [alert, setAlert] = useState(null);
 
   const notificationsRef = collection(db, "notifications");
   const transactionId = matchDocId || `TXN-${Date.now()}`;
   const dbRealtime = getDatabase();
 
-  const sanitizeData = (obj) => {
-  return Object.fromEntries(
-    Object.entries(obj).map(([k, v]) => [k, v === undefined ? null : v])
-  );
+  const sanitizeData = (obj) =>
+    Object.fromEntries(
+      Object.entries(obj).map(([k, v]) => [k, v === undefined ? null : v])
+    );
+
+  // Stop scanner and video safely
+const stopScanner = async () => {
+  try {
+    if (scannerRef.current) {
+      await scannerRef.current.stop();
+      scannerRef.current.destroy();
+      scannerRef.current = null;
+    }
+
+    if (videoRef.current?.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
+
+    // Wait a tiny bit to ensure the browser releases the camera
+    await new Promise((res) => setTimeout(res, 200));
+  } catch (err) {
+    console.warn("Error stopping scanner:", err);
+  }
 };
 
-// 🔹 Resize/compress base64 before storing in Firestore
-const resizeBase64Img = (base64, maxWidth = 400, maxHeight = 400, quality = 0.7) => {
-  return new Promise((resolve) => {
-    let img = new Image();
-    img.src = base64;
-    img.onload = () => {
-      let canvas = document.createElement("canvas");
-      let ctx = canvas.getContext("2d");
+  // Resize/compress base64 image
+  const resizeBase64Img = (base64, maxWidth = 400, maxHeight = 400, quality = 0.7) => {
+    return new Promise((resolve) => {
+      let img = new Image();
+      img.src = base64;
+      img.onload = () => {
+        let canvas = document.createElement("canvas");
+        let ctx = canvas.getContext("2d");
 
-      let width = img.width;
-      let height = img.height;
+        let width = img.width;
+        let height = img.height;
 
-      if (width > height) {
-        if (width > maxWidth) {
-          height *= maxWidth / width;
-          width = maxWidth;
+        if (width > height) {
+          if (width > maxWidth) {
+            height *= maxWidth / width;
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width *= maxHeight / height;
+            height = maxHeight;
+          }
         }
-      } else {
-        if (height > maxHeight) {
-          width *= maxHeight / height;
-          height = maxHeight;
-        }
-      }
 
-      canvas.width = width;
-      canvas.height = height;
-      ctx.drawImage(img, 0, 0, width, height);
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
 
-      resolve(canvas.toDataURL("image/jpeg", quality)); // use JPEG
-    };
-  });
-};
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+    });
+  };
 
-
-
-  // 🔹 Setup available cameras
+  // Enumerate available cameras
   useEffect(() => {
     const updateDevices = async () => {
       try {
@@ -102,7 +123,10 @@ const resizeBase64Img = (base64, maxWidth = 400, maxHeight = 400, quality = 0.7)
         const videoDevices = allDevices.filter((d) => d.kind === "videoinput");
         setDevices(videoDevices);
 
-        if (!selectedDeviceId && videoDevices.length > 0) {
+        const saved = localStorage.getItem("preferredCamera");
+        if (saved && videoDevices.find((d) => d.deviceId === saved)) {
+          setSelectedDeviceId(saved);
+        } else if (!selectedDeviceId && videoDevices.length > 0) {
           setSelectedDeviceId(videoDevices[0].deviceId);
         }
       } catch (err) {
@@ -112,118 +136,108 @@ const resizeBase64Img = (base64, maxWidth = 400, maxHeight = 400, quality = 0.7)
 
     updateDevices();
     navigator.mediaDevices.ondevicechange = updateDevices;
-
     return () => {
       navigator.mediaDevices.ondevicechange = null;
     };
   }, [selectedDeviceId]);
 
-// Create scanner once
+  // Setup scanner
 useEffect(() => {
-  if (!videoRef.current) return;
+  if (!videoRef.current || !selectedDeviceId) return;
 
-  scannerRef.current = new QrScanner(
-    videoRef.current,
-    (result) => handleScan(result),
-    {
+  const setupScanner = async () => {
+    await stopScanner();
+
+    const scanner = new QrScanner(videoRef.current, handleScan, {
       highlightScanRegion: true,
       highlightCodeOutline: true,
-    }
-  );
+    });
 
-  scannerRef.current.start().catch((err) =>
-    console.error("Scanner start error:", err)
-  );
+    scannerRef.current = scanner;
 
-  return () => {
-    scannerRef.current?.stop();
-    scannerRef.current = null;
-  };
-}, []); // 👈 only once on mount
-
-// Handle camera switching
-useEffect(() => {
-  const switchCamera = async () => {
-    if (scannerRef.current && selectedDeviceId) {
-      await scannerRef.current.stop();
-      await scannerRef.current.start();
-      await scannerRef.current.setCamera(selectedDeviceId);
+    try {
+      // Some browsers need to "open" camera explicitly
+      await scanner.setCamera(selectedDeviceId, { facingMode: "environment" });
+      await scanner.start();
+      console.log("Scanner started for device:", selectedDeviceId);
+    } catch (err) {
+      console.error("Scanner init error:", err);
+      setAlert({ message: "Unable to start camera.", type: "error" });
     }
   };
-  switchCamera().catch((err) => console.error("Camera switch error:", err));
+
+  setupScanner();
+  return () => stopScanner();
 }, [selectedDeviceId]);
 
-  // 🔹 Capture a still image
-const capturePhoto = async () => {
-  const video = videoRef.current;
-  const canvas = canvasRef.current;
-  if (video && canvas) {
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const rawImage = canvas.toDataURL("image/png");
+const handleCameraSwitch = async (newDeviceId) => {
+  const allDevices = await navigator.mediaDevices.enumerateDevices();
+  const videoDevices = allDevices.filter(d => d.kind === "videoinput");
+  setDevices(videoDevices);
 
-    
-    const compressedImage = await resizeBase64Img(rawImage);
-    setCapturedImage(compressedImage);
-
-    setIsScanning(true); // enable scanning mode
-  }
+  await stopScanner();
+  localStorage.setItem("preferredCamera", newDeviceId);
+  setSelectedDeviceId(newDeviceId);
 };
 
-  // 🔹 Handle QR results
-const handleScan = async (result) => {
-  if (!result?.data || qrResult) return; // ✅ ignore new scans if already scanned
-
-  setAlert({ message: "QR Code Scanned!", type: "success" });
-  setScanFeedback(null);
-
-  const text = result.data;
-  const tokens = text.split(/\s+/);
-
-  let fullnameParts = [];
-  let idNumber = "";
-  let courseParts = [];
-  let phase = "name";
-
-  for (let token of tokens) {
-    if (/^\d+$/.test(token)) {
-      idNumber = token;
-      phase = "course";
-    } else {
-      if (phase === "name") fullnameParts.push(token);
-      else if (phase === "course") courseParts.push(token);
+  // Capture still image
+  const capturePhoto = async () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (video && canvas) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const rawImage = canvas.toDataURL("image/png");
+      const compressedImage = await resizeBase64Img(rawImage);
+      setCapturedImage(compressedImage);
     }
-  }
-
-  const parsedResult = {
-    fullname: fullnameParts.join(" "),
-    idNumber,
-    course: courseParts.join(" "),
   };
 
-  setQrResult(parsedResult);
-  // ❌ remove setIsScanning(false) here
+  // Handle QR scan
+  const handleScan = async (result) => {
+    if (!result?.data || qrResult) return;
 
-    // 🔎 Lookup user in Firestore
+    setAlert({ message: "QR Code Scanned!", type: "success" });
+
+    const text = result.data;
+    const tokens = text.split(/\s+/);
+
+    let fullnameParts = [];
+    let idNumber = "";
+    let courseParts = [];
+    let phase = "name";
+
+    for (let token of tokens) {
+      if (/^\d+$/.test(token)) {
+        idNumber = token;
+        phase = "course";
+      } else {
+        if (phase === "name") fullnameParts.push(token);
+        else if (phase === "course") courseParts.push(token);
+      }
+    }
+
+    const parsedResult = {
+      fullname: fullnameParts.join(" "),
+      idNumber,
+      course: courseParts.join(" "),
+    };
+
+    setQrResult(parsedResult);
+
+    // Lookup user in Firestore
     try {
-      const q = query(
-        collection(db, "users"),
-        where("studentId", "==", idNumber)
-      );
+      const q = query(collection(db, "users"), where("studentId", "==", idNumber));
       const querySnapshot = await getDocs(q);
-
       if (!querySnapshot.empty) {
         querySnapshot.forEach((docSnap) => {
           setUserData({ id: docSnap.id, ...docSnap.data() });
         });
       } else {
         setUserData(null);
-        setAlert({
-          message: "No user found with this ID Number.",
-          type: "error",
-        });
+        setAlert({ message: "No user found with this ID Number.", type: "error" });
       }
     } catch (err) {
       console.error("Firestore fetch error:", err);
@@ -231,7 +245,7 @@ const handleScan = async (result) => {
     }
   };
 
-  // 🔹 Notify User via Realtime DB
+  // Notify user via Realtime DB
   const notifyUser = async (uid, message) => {
     if (!uid) return;
     const notifRef = ref(dbRealtime, `notifications/${uid}`);
@@ -244,19 +258,15 @@ const handleScan = async (result) => {
     });
   };
 
-  // 🔹 Finalize Claim (unchanged, trimmed for brevity)
-const finalizeClaim = async () => {
-  if (!matchData || !userData || !capturedImage) {
-    setAlert({
-      message: "Please capture a photo and scan a valid ID first.",
-      type: "warning",
-    });
-    return;
-  }
+  // Finalize Claim (kept your existing logic)
+  const finalizeClaim = async () => {
+    if (!matchData || !userData || !capturedImage) {
+      setAlert({ message: "Please capture a photo and scan a valid ID first.", type: "warning" });
+      return;
+    }
 
-  setLoading(true);
-
-  try {
+    setLoading(true);
+    try {
     // --- Update lost item ---
     if (matchData.lostItem?.itemId) {
       const lostQuery = query(
@@ -377,7 +387,7 @@ const finalizeClaim = async () => {
       `);
 
       try {
-                  const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
+                  const emailResUser = await fetch(`${API}/api/send-email`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -407,7 +417,7 @@ const finalizeClaim = async () => {
 
 
                 try {
-                  const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
+                  const emailResUser = await fetch(`${API}/api/send-email`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -433,7 +443,7 @@ const finalizeClaim = async () => {
                 }
 
                 try {
-                  const emailResUser = await fetch("https://server.spotsync.site/api/send-email", {
+                  const emailResUser = await fetch(`${API}/api/send-email`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -457,57 +467,29 @@ const finalizeClaim = async () => {
                 } catch (emailErrorUser) {
                   console.error("Error sending email to user:", emailErrorUser);
                 }
-
-    setAlert({ message: "Claim finalized and emails sent!", type: "success" });
-    navigate(`/admin/item-claimed-list/${currentUser?.uid || userData.id}`);
-    window.location.reload();
-  } catch (err) {
-    console.error("Error finalizing claim:", err);
-    setAlert({ message: "Error finalizing claim.", type: "error" });
-  } finally {
-    setLoading(false);
-  }
-};
+      setAlert({ message: "Claim finalized and emails sent!", type: "success" });
+      navigate(`/admin/item-claimed-list/${currentUser?.uid || userData.id}`);
+      window.location.reload();
+    } catch (err) {
+      console.error("Error finalizing claim:", err);
+      setAlert({ message: "Error finalizing claim.", type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
       <NavigationBar />
       <div className="process-claim-page">
         <BlankHeader />
-        {alert && (
-          <FloatingAlert
-            message={alert.message}
-            type={alert.type}
-            onClose={() => setAlert(null)}
-          />
-        )}
-
-        <h1
-          style={{
-            position: "absolute",
-            top: "6%",
-            left: "1%",
-            color: "#475C6F",
-          }}
-        >
-          Process Claim
-        </h1>
+        {alert && <FloatingAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
+        <h1 style={{ position: "absolute", top: "6%", left: "1%", color: "#475C6F" }}>Process Claim</h1>
 
         {/* Camera Selector */}
         <div style={{ position: "absolute", top: "7%", left: "25%" }}>
-          <label style={{ color: "black", fontWeight: "bold" }}>
-            Select Camera:
-          </label>
-          <select
-            value={selectedDeviceId || ""}
-            onChange={(e) => setSelectedDeviceId(e.target.value)}
-            style={{
-              marginLeft: "10px",
-              padding: "5px",
-              backgroundColor: "#475C6F",
-              borderRadius: "5px",
-            }}
-          >
+          <label style={{ color: "black", fontWeight: "bold" }}>Select Camera:</label>
+          <select value={selectedDeviceId || ""} onChange={(e) => handleCameraSwitch(e.target.value)}>
             {devices.map((device, idx) => (
               <option key={idx} value={device.deviceId}>
                 {device.label || `Camera ${idx + 1}`}
@@ -521,134 +503,49 @@ const finalizeClaim = async () => {
           <video ref={videoRef} autoPlay playsInline muted />
         </div>
 
-        <button className="capture-btn" onClick={capturePhoto}>
-          Capture Photo
-        </button>
-
+        <button className="capture-btn" onClick={capturePhoto}>Capture Photo</button>
         <canvas ref={canvasRef} style={{ display: "none" }} />
 
-        {/* Captured Image */}
-        {capturedImage && (
-          <div className="captured-section">
-            <img
-              src={capturedImage}
-              alt="Captured"
-              style={{
-                width: "200px",
-                border: "2px solid #475C6F",
-                borderRadius: "8px",
-              }}
-            />
-          </div>
-        )}
+        {capturedImage && <div className="captured-section">
+          <img src={capturedImage} alt="Captured" style={{ width: "200px", border: "2px solid #475C6F", borderRadius: "8px" }} />
+        </div>}
 
-        {/* QR Parsed Result */}
-        {qrResult && (
-          <div
-            className="qr-result"
-            style={{
-              backgroundColor: "white",
-              width: "270px",
-              borderRadius: "20px",
-              padding: "10px",
-            }}
-          >
-            <p>Scanned ID Info:</p>
-            <p style={{ fontWeight: "400" }}>Fullname: {qrResult.fullname}</p>
-            <p style={{ fontWeight: "400" }}>ID Number: {qrResult.idNumber}</p>
-            <p style={{ fontWeight: "400" }}>Course: {qrResult.course}</p>
-          </div>
-        )}
+        {qrResult && <div className="qr-result" style={{ backgroundColor: "white", width: "270px", borderRadius: "20px", padding: "10px" }}>
+          <p>Scanned ID Info:</p>
+          <p>Fullname: {qrResult.fullname}</p>
+          <p>ID Number: {qrResult.idNumber}</p>
+          <p>Course: {qrResult.course}</p>
+        </div>}
 
-        {/* User Data */}
-        {userData && (
-          <div
-            className="qr-results"
-            style={{
-              marginTop: "170px",
-              backgroundColor: "white",
-              width: "500px",
-              borderRadius: "20px",
-              padding: "10px",
-            }}
-          >
-            <p>
-              <b>Matched User Account:</b>
-            </p>
-            {userData.error ? (
-              <p style={{ color: "red" }}>{userData.error}</p>
-            ) : (
-              <>
-                <img
-                  src={userData.profileURL}
-                  alt="Profile"
-                  style={{
-                    width: "60px",
-                    height: "60px",
-                    borderRadius: "100%",
-                    objectFit: "cover",
-                  }}
-                />
-                <p
-                  style={{
-                    position: "absolute",
-                    top: "15%",
-                    left: "15%",
-                    fontSize: "20px",
-                    width: "600px",
-                    marginLeft: "20px",
-                    fontWeight: "600",
-                    color: "#475C6F",
-                  }}
-                >
-                  {userData.firstName} {userData.middleName} {userData.lastName}
-                </p>
-                <p>Email: {userData.email}</p>
-                <p>
-                  Course: {userData.course?.abbr} | Section: {userData.section}
-                </p>
-                <p>Year Level: {userData.yearLevel}</p>
-                <p>Contact: {userData.contactNumber}</p>
-                <p>Address: {userData.address}</p>
-                <p>Gender: {userData.gender}</p>
-                <p>Birthdate: {userData.birthdate}</p>
-              </>
-            )}
-          </div>
-        )}
+        {userData && <div className="qr-results" style={{ marginTop: "170px", backgroundColor: "white", width: "500px", borderRadius: "20px", padding: "10px" }}>
+          <p><b>Matched User Account:</b></p>
+          <img src={userData.profileURL} alt="Profile" style={{ width: "60px", height: "60px", borderRadius: "100%", objectFit: "cover" }} />
+          <p>{userData.firstName} {userData.middleName} {userData.lastName}</p>
+          <p>Email: {userData.email}</p>
+          <p>Course: {userData.course?.abbr} | Section: {userData.section}</p>
+          <p>Year Level: {userData.yearLevel}</p>
+          <p>Contact: {userData.contactNumber}</p>
+          <p>Address: {userData.address}</p>
+          <p>Gender: {userData.gender}</p>
+          <p>Birthdate: {userData.birthdate}</p>
+        </div>}
 
-        {/* Finalize Button */}
-        <button
-          onClick={finalizeClaim}
-          disabled={loading}
-          style={{
-            position: "absolute",
-            bottom: "5%",
-            height: "50px",
-            width: "250px",
-            top: "76%",
-            left: "40%",
-            padding: "12px 25px",
-            fontSize: "18px",
-            backgroundColor: "#475C6F",
-            color: "white",
-            border: "none",
-            borderRadius: "10px",
-            cursor: loading ? "not-allowed" : "pointer",
-          }}
-        >
-          {loading ? (
-            <>
-              <img
-                src="/Spin.gif"
-                alt="Loading..."
-                style={{ width: "25px", height: "25px" }}
-              />
-              <span>Storing data...</span>
-            </>
-          ) : (
-            "Complete"
-          )}
+        <button onClick={finalizeClaim} disabled={loading} style={{
+          position: "absolute",
+          bottom: "5%",
+          height: "50px",
+          width: "250px",
+          top: "76%",
+          left: "40%",
+          padding: "12px 25px",
+          fontSize: "18px",
+          backgroundColor: "#475C6F",
+          color: "white",
+          border: "none",
+          borderRadius: "10px",
+          cursor: loading ? "not-allowed" : "pointer",
+        }}>
+          {loading ? <>Storing data...</> : "Complete"}
         </button>
       </div>
     </>

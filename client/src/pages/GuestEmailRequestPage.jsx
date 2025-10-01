@@ -74,7 +74,7 @@ async function handleSave(e) {
   return (
     <>
       <Header />
-      <div className="background2">
+      <div className="background2" style={{width: '105%'}}>
         <div className="d-flex justify-content-center align-items-center vh-100">
           <Card style={{ width: "25rem" }}>
             <Card.Body>

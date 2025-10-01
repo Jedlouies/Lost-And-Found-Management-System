@@ -8,7 +8,10 @@ import { useNavigate } from 'react-router-dom';
 import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
 
 function UserFoundItemDetailPage() {
-  const API = process.env.REACT_APP_API_URL || "https://server.spotsync.site";
+const API =
+  window.location.hostname === "localhost"
+    ? "http://localhost:4000"
+    : "https://server.spotsync.site";
 
 
   const { currentUser } = useAuth();

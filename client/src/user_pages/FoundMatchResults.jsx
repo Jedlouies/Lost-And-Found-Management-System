@@ -53,23 +53,19 @@ export default function FoundMatchResults() {
       )}
 
       <div className='background1'>
-                  <button className='more-match'>
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-cpu" viewBox="0 0 16 16" style={{marginRight: '10px'}}>
-          <path d="M5 0a.5.5 0 0 1 .5.5V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2h1V.5a.5.5 0 0 1 1 0V2A2.5 2.5 0 0 1 14 4.5h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14v1h1.5a.5.5 0 0 1 0 1H14a2.5 2.5 0 0 1-2.5 2.5v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14h-1v1.5a.5.5 0 0 1-1 0V14A2.5 2.5 0 0 1 2 11.5H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2v-1H.5a.5.5 0 0 1 0-1H2A2.5 2.5 0 0 1 4.5 2V.5A.5.5 0 0 1 5 0m-.5 3A1.5 1.5 0 0 0 3 4.5v7A1.5 1.5 0 0 0 4.5 13h7a1.5 1.5 0 0 0 1.5-1.5v-7A1.5 1.5 0 0 0 11.5 3zM5 6.5A1.5 1.5 0 0 1 6.5 5h3A1.5 1.5 0 0 1 11 6.5v3A1.5 1.5 0 0 1 9.5 11h-3A1.5 1.5 0 0 1 5 9.5zM6.5 6a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 0-.5-.5z"/>
-        </svg>
-        Match More
-        </button>
-    <div className="p-6">
+       
+    <div className="p-6" style={{position: 'absolute',  padding: '20px', backgroundColor: '#D9D9D9', width: '100%', height: '130vh'}}>
       {matches.length === 0 && <p style={{color: 'black', marginTop: '20px'}}>No matches found.</p>}
-      <h1 style={{position: 'absolute', fontWeight: 'bold', fontSize: '20px'}}>Matching Found Items</h1>
+      <h1 style={{position: 'absolute', fontWeight: 'bold', fontSize: '20px'}}>Matching Found Item</h1>
 
 
       {matches.map((matches, index) => {
         const lostItem = matches.lostItem || {};
         const posterInfo = lostItem.personalInfo || {};
         const scores = matches.scores || {};
-
+        
         return (
+          
           <div key={index} className='matching-card'>
             
             <p className="text-lg font-bold text-blue-600 mb-2" style={{position: 'relative', color: 'black', marginLeft: '45%', fontSize: '50px', fontWeight: 'bold'}}>
@@ -140,7 +136,7 @@ export default function FoundMatchResults() {
                   
             </div>
 
-            <div className='results-more'>
+            <div className='results-more' style={{marginTop: '-80px'}}>
               <p className="text-sm text-gray-600 mb-2" style={{ color: 'black', fontSize: '12px'}}>
                 <strong>Transaction ID:</strong> {matches.transactionId}
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-copy" viewBox="0 0 16 16" style={{marginLeft: '5px', cursor: 'pointer'}}>
@@ -169,19 +165,22 @@ export default function FoundMatchResults() {
 
 
                   </div>
+                  
               </div>
-              <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-quote" viewBox="0 0 16 16">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-quote" viewBox="0 0 16 16">
                 <path d="M12 12a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1h-1.388q0-.527.062-1.054.093-.558.31-.992t.559-.683q.34-.279.868-.279V3q-.868 0-1.52.372a3.3 3.3 0 0 0-1.085.992 4.9 4.9 0 0 0-.62 1.458A7.7 7.7 0 0 0 9 7.558V11a1 1 0 0 0 1 1zm-6 0a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1H4.612q0-.527.062-1.054.094-.558.31-.992.217-.434.559-.683.34-.279.868-.279V3q-.868 0-1.52.372a3.3 3.3 0 0 0-1.085.992 4.9 4.9 0 0 0-.62 1.458A7.7 7.7 0 0 0 3 7.558V11a1 1 0 0 0 1 1z"/>
               </svg>
                 <div className='howItemLost'>
                     <p style={{color: 'black', fontSize: '12px', position: 'absolute',  width: '300px', height: '100px'}}>{lostItem.howItemLost}</p>
-                  </div>
-              </div>
-              <div className="matching-card-actions">
+                </div>
+                <div className="matching-card-actions" style={{marginTop: '20%'}}>
                 <button onClick={() => setSelectedItem(lostItem)}>
                   Details
                 </button>
               </div>
+      
+              </div>
+              
               
           </div>
            
@@ -189,10 +188,10 @@ export default function FoundMatchResults() {
       })}
       </div>
       <div className='matching-buttons-footer'>
-        <button style={{left: '72%', top: '92%'}} className={`${location.pathname === `/users/item-management/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/users/item-management/${user?.uid}`)}>
+        <button style={{top: '92%', marginLeft: '5%', marginRight: '10%'}} className={`${location.pathname === `/users/item-management/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/users/item-management/${user?.uid}`)}>
           Continue
         </button>
-        <button style={{left: '85%', top: '92%'}} className={`${location.pathname === `/users/found-items/procedure/item-details/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/users/found-items/procedure/item-details/${user?.uid}`)}>
+        <button style={{top: '92%', marginLeft: '80%'}} className={`${location.pathname === `/users/found-items/procedure/item-details/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/users/found-items/procedure/item-details/${user?.uid}`)}>
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16" style={{marginRight: '10px'}}>
             <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
             <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
@@ -200,7 +199,7 @@ export default function FoundMatchResults() {
           Match Another
         </button>
       
-    </div>
+      </div>
 
       </div>
 

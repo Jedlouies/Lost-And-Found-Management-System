@@ -6,9 +6,13 @@
   import { useAuth } from '../context/AuthContext'; 
   import { useNavigate } from 'react-router-dom';
   import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp} from "firebase/database";
+  
 
   function UserLostItemDetailPage() {
-    const API = process.env.REACT_APP_API_URL || "https://server.spotsync.site";
+const API =
+  window.location.hostname === "localhost"
+    ? "http://localhost:4000"
+    : "https://server.spotsync.site";
 
 
     const { currentUser } = useAuth();
@@ -312,7 +316,7 @@
 
     return (
       <>
-      <div className='background1' style={{position: 'absolute', width: '100%', height: '120vh', backgroundColor: 'white', backgroundColor: '#D9D9D9'}}>
+      <div className='background1' style={{position: 'absolute', width: '100%', height: '120vh', backgroundColor: '#D9D9D9'}}>
         <div className="user-found-procedure-body" >
           <h1>Report Lost Form</h1>
           <form className="lost-item-form" onSubmit={handleSubmit}>

@@ -1,23 +1,17 @@
 import React, { useEffect, useState } from "react";
-import NavigationBar from "../components/NavigationBar";
-import BlankHeader from "../components/BlankHeader";
-import "./styles/NotificationPage.css";
-
+import UserNavigationBar from "../user_components/UserNavigationBar";
+import UserBlankHeader from "../user_components/UserBlankHeader";
+import "../user_pages/styles/UserNotificationPage.css";
+import "../pages/styles/NotificationPage.css";
+import FloatingAlert from "../components/FloatingAlert";
 import { getDatabase, ref, onValue, remove } from "firebase/database";
 import { getAuth } from "firebase/auth";
-import FloatingAlert from "../components/FloatingAlert";
+import BlankHeader from "../components/BlankHeader";
+import NavigationBar from "../components/NavigationBar";
 
-function NotificationPage() {
-  const [groupedNotifications, setGroupedNotifications] = useState({});
-  const [alert, setAlert] = useState(null);
-
-  const typeConfig = {
-    "user-message": {
-      title: "User Ticket",
-      icon: "bi-person-circle",
-      color: "#475C6F",
-    },
-    "transaction": {
+// Define notification type icons
+const typeConfig = {
+  "transaction": {
       title: "Transaction Processed",
       icon: "bi-cash-stack",
       color: "green",
@@ -32,7 +26,16 @@ function NotificationPage() {
       icon: "bi-bell-fill",
       color: "orange",
     },
-  };
+    "item": {
+      title: "Item Update",
+      icon: "bi-info-circle",
+      color: "#062949ff",
+    },
+};
+
+function NotificationPage() {
+  const [groupedNotifications, setGroupedNotifications] = useState({});
+  const [alert, setAlert] = useState(null);
 
   useEffect(() => {
     const auth = getAuth();
@@ -43,8 +46,6 @@ function NotificationPage() {
     const db = getDatabase();
     const notificationsRef = ref(db, `notifications/${user.uid}`);
 
-    
-
     const unsubscribe = onValue(notificationsRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
@@ -53,10 +54,8 @@ function NotificationPage() {
           ...data[key],
         }));
 
-        
         parsed.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-       
         const limited = parsed.slice(0, 20);
 
         const grouped = groupByDate(limited);
@@ -117,19 +116,20 @@ function NotificationPage() {
         setAlert({ message: "Notification Deleted", type: "success" });
       })
       .catch((err) => console.error("Error deleting notification:", err));
-      };
+  };
 
   return (
     <>
+      {alert && (
+        <FloatingAlert
+          message={alert.message}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
+
       <NavigationBar />
       <div className="notification-body">
-        {alert && (
-          <FloatingAlert
-            message={alert.message}
-            type={alert.type}
-            onClose={() => setAlert(null)}
-          />
-        )}
         <BlankHeader />
         <div className="notification-container">
           <h2 style={{ fontSize: "40px", fontWeight: "bold" }}>
@@ -149,13 +149,13 @@ function NotificationPage() {
                       style={{
                         fontSize: "18px",
                         marginTop: "20px",
-                        marginLeft: "600px",
+                        marginLeft: "50px",
                       }}
                     >
                       {section}
                     </h3>
                       {items.map((n) => {
-                        const config = typeConfig[n.type] || { title: "Notification", icon: "bi-info-circle", color: "#6c757d" };
+                        const config = typeConfig[n.type] || { title: "Notification", icon: "bi-info-circle", color: "#062949ff" };
 
                         return (
                           <div className="notification-card" key={n.id}>
@@ -194,7 +194,6 @@ function NotificationPage() {
                           </div>
                         );
                       })}
-
                   </div>
                 )
             )

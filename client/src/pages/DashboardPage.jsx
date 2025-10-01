@@ -74,6 +74,12 @@ function DashboardPage() {
     <>
       <NavigationBar />
     <div className='dashboard-body'>
+      <div className='banner1' style={{width: '75%'}}>
+            <img src="/landing-page-img.png" alt="img" />
+            <h1>Welcome to SpotSync!</h1>
+            <h5>{formattedDate}</h5>
+            <strong>{formattedTime}</strong>
+        </div>
        <div className='nav'>
         <DashboardHeader />
        </div>
@@ -86,7 +92,7 @@ function DashboardPage() {
 
       </div>
 
-        <div className='dashboard-container'>
+         <div className='dashboard-container' >
             <h1>Dashboard</h1>
             <div className='report-view'>
               <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="#475C6F" class="bi bi-bar-chart" viewBox="0 0 16 16" >
@@ -94,13 +100,8 @@ function DashboardPage() {
               </svg>
               <h4>Report Overview</h4>
             </div>
-        </div>
-        <div className='banner1'>
-            <img src="/landing-page-img.png" alt="img" />
-            <h1>Welcome to SpotSync!</h1>
-            <h5>{formattedDate}</h5>
-            <strong>{formattedTime}</strong>
-        </div>
+         </div>
+        
         <div className='graph1'>
             <ClaimedLostFoundChart />
         </div>
@@ -114,7 +115,7 @@ function DashboardPage() {
         </div>
         
     </div>
-
+    
     </>
   )
 }

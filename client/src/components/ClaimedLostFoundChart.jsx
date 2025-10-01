@@ -126,7 +126,7 @@ function ClaimedLostFoundChart() {
   };
 
   return (
-    <div className="body" style={{ position: "relative", height: "400px" }}>
+    <div className="body" style={{ position: "relative", height: "300px" }}>
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
           <img src="/Spin_black.gif" alt="Loading..." style={{ width: "40px", height: "40px" }} />

@@ -20,11 +20,12 @@ import { getAuth } from "firebase/auth";
 import FloatingAlert from '../components/FloatingAlert';
 import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
 import Modal from 'react-bootstrap/Modal';
+import BlankHeader from '../components/BlankHeader';
 
 
 
 function FoundItemsPage() {
-  const API = process.env.REACT_APP_API_URL || "https://server.spotsync.site";
+    const API = "https://localhost:4000" || "https://server.spotsync.site";
 
   const [items, setItems] = useState([]); 
   const [currentPage, setCurrentPage] = useState(1);
@@ -337,22 +338,22 @@ const archiveItem = async (item) => {
 
       <NavigationBar />
       <div className='found-item-body'>
-        <TablesHeader />
-        <div className='found-item-container' style={{position: 'absolute', top: '80px'}}>
-          <h1>Found Items</h1>
-          <div className='searchBar'>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#475C6F" className="bi bi-search" viewBox="0 0 16 16">
-              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
-            </svg>
-            <input
-              type="text"
-              placeholder='Search'
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <button className={`processClaimBtn  ${location.pathname === `/admin/transactions/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/admin/transactions/${user?.uid}`)}>Process Claim</button>
-          <div className='actions-row2' style={{width: '500px'}}>
+        <BlankHeader />
+        <div className='lost-item-container1' style={{position: 'absolute', top: '80px'}}>
+        <h1 style={{marginTop: '20px', marginRight: '20px'}}>Found Items</h1>
+          <div className='user-lost-header-space' style={{ position: 'relative', top: '20px', width: '100%', height: '50px', justifyContent: 'center', alignItems: 'center', display: 'flex' }}>
+            <div className='user-lost-searchBar2'>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="#475C6F" className="bi bi-search" viewBox="0 0 16 16">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+              </svg>
+              <input
+                type="text"
+                placeholder='Search'
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          <div className='actions-row1' style={{width: '100%'}}>
                 <button onClick={() => handleNavigate(`/admin/found-items/archive/${user?.uid}`)}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-archive" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
                   <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
@@ -373,13 +374,16 @@ const archiveItem = async (item) => {
                   <Dropdown.Item onClick={() => setSelectedYear("2024")}>2024</Dropdown.Item>
                   <Dropdown.Item onClick={() => setSelectedYear("2025")}>2025</Dropdown.Item>
                 </DropdownButton>
+                <button className={`processClaimBtn  ${location.pathname === `/admin/transactions/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/admin/transactions/${user?.uid}`)} style={{backgroundColor: 'navyblue'}}>Process Claim</button>
 
 
             </div>
 
+          </div>
+
 
           <div>
-            <table className='found-item-table1' style={{marginTop: '30px'}}>
+            <table className='lost-item-table1' style={{marginTop: '30px'}}>
               <thead>
                 <tr>
                   <th style={{minWidth: '180px'}}>Item ID No.</th>
@@ -412,90 +416,179 @@ const archiveItem = async (item) => {
                       </td>
                       <td>{item.itemName}</td>
                       <td>{item.dateFound}</td>
-                      <td>{item.locationFound}</td>
-                      <td>
-                        <div className='founder-details'>
-                          {item.isGuest === true ? (
-                            // Guest Display
-                            <div 
-                              style={{
-                                width: '50px',
-                                height: '50px',
-                                borderRadius: '40px',
-                                backgroundColor: '#007bff', // Bootstrap Blue
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'white',
-                                fontWeight: 'bold',
-                                fontSize: '12px',
-                                textAlign: 'center'
-                              }}
-                            >
-                              Guest
-                            </div>
-                          ) : (
-                            <>
-                              <img 
-                                src={item.personalInfo?.profileURL || "/default-profile.png"} 
-                                alt="profile"
-                                style={{width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover'}}
-                              />
-                              <div className='personal-info'>
-                                <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>
-                                  {`${item.personalInfo?.firstName || ""} ${item.personalInfo?.lastName || ""}`.trim()}
-                                </p>
-                                <p style={{ fontStyle: 'italic', color: 'black' }}>
-                                  {item.personalInfo?.course?.abbr || "Unknown"}
-                                </p>
-                              </div>
-                            </>
-                          )}
-                        </div>
+                      <td>{item.locationFound?.length > 20 
+                            ? item.locationFound.slice(0, 20) + "..." 
+                            : item.locationFound}
                       </td>
-                    <td>
-                      <div className='owner-details'>
-                        {item.claimedBy ? (
-                          <>
-                            {item.claimedBy.profileURL ? (
-                              <img 
-                                src={item.claimedBy.profileURL} 
-                                alt="Owner" 
-                                style={{width: '50px', height: '50px', borderRadius: '40px', objectFit: 'cover'}} 
-                              />
-                            ) : (
-                              <div className='profile' style={{width: '50px', height: '50px', alignItems: 'center', justifyContent: 'center'}}> 
-                                <svg xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" className="bi bi-person" viewBox="0 0 16 16">
-                                  <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
-                                  <path fillRule="evenodd" d="M14 14s-1-1.5-6-1.5S2 14 2 14s1-4 6-4 6 4 6 4z"/>
-                                </svg>
-                              </div>
-                            )}
 
-                            <div className='personal-info'>
-                              <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>
-                                {item.claimedBy.firstName} {item.claimedBy.lastName}
-                              </p>
-                              <p style={{ fontStyle: 'italic', color: 'black' }}>
-                                {item.claimedBy.course?.abbr || 'Unknown'}
-                              </p>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className='profile' style={{width: '50px', height: '50px', alignItems: 'center', justifyContent: 'center'}}> 
-                              <svg xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" className="bi bi-person-slash" viewBox="0 0 16 16">
-                                <path d="M13.879 10.414a2.501 2.501 0 0 0-3.465 3.465zm.707.707-3.465 3.465a2.501 2.501 0 0 0 3.465-3.465m-4.56-1.096a3.5 3.5 0 1 1 4.949 4.95 3.5 3.5 0 0 1-4.95-4.95ZM11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m.256 7a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1z"/>
-                              </svg>
-                            </div>
-                            <div className='personal-info'>
-                              <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>Unknown</p>
-                              
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </td>
+<td>
+  <div className='founder-details'>
+    {item.isGuest ? (
+      // Case 1: Guest
+      <div
+        style={{
+          width: "50px",
+          height: "50px",
+          borderRadius: "40px",
+          backgroundColor: "#007bff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "white",
+          fontWeight: "bold",
+          fontSize: "12px",
+        }}
+      >
+        Guest
+      </div>
+    ) : item.personalInfo?.profileURL ? (
+      // Case 2: Profile Image
+      <>
+        <img
+          src={item.personalInfo.profileURL}
+          alt="profile"
+          style={{
+            width: "50px",
+            height: "50px",
+            borderRadius: "40px",
+            objectFit: "cover",
+          }}
+        />
+        <div className='personal-info'>
+          <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>
+            {`${item.personalInfo?.firstName || ""} ${item.personalInfo?.lastName || ""}`.trim()}
+          </p>
+          <p style={{ fontStyle: 'italic', color: 'black' }}>
+            {item.personalInfo?.course?.abbr || "Unknown"}
+          </p>
+        </div>
+      </>
+    ) : (
+      // Case 3: Initials
+      <>
+        <div
+          style={{
+            width: "50px",
+            height: "50px",
+            borderRadius: "40px",
+            backgroundColor: "navy",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "white",
+            fontWeight: "bold",
+            fontSize: "14px",
+          }}
+        >
+          {`${item.personalInfo?.firstName?.[0] || ""}${
+            item.personalInfo?.lastName?.[0] || ""
+          }`.toUpperCase()}
+        </div>
+        <div className='personal-info'>
+          <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>
+            {`${item.personalInfo?.firstName || ""} ${item.personalInfo?.lastName || ""}`.trim()}
+          </p>
+          <p style={{ fontStyle: 'italic', color: 'black' }}>
+            {item.personalInfo?.course?.abbr || "Unknown"}
+          </p>
+        </div>
+      </>
+    )}
+  </div>
+</td>
+
+      <td>
+        <div className='owner-details'>
+          {item.claimedBy ? (
+            <>
+              {item.claimedBy?.isGuest ? (
+                // Case 1: Guest
+                <div
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "40px",
+                    backgroundColor: "#007bff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "white",
+                    fontWeight: "bold",
+                    fontSize: "12px",
+                  }}
+                >
+                  Guest
+                </div>
+              ) : item.claimedBy?.profileURL ? (
+                // Case 2: Profile Image
+                <img
+                  src={item.claimedBy.profileURL}
+                  alt="Owner"
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "40px",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                // Case 3: Initials
+                <div
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    borderRadius: "40px",
+                    backgroundColor: "navy",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "white",
+                    fontWeight: "bold",
+                    fontSize: "14px",
+                  }}
+                >
+                  {`${item.claimedBy?.firstName?.[0] || ""}${
+                    item.claimedBy?.lastName?.[0] || ""
+                  }`.toUpperCase()}
+                </div>
+              )}
+
+              {/* Personal Info */}
+              {!item.claimedBy?.isGuest && (
+                <div className='personal-info'>
+                  <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>
+                    {`${item.claimedBy?.firstName || ""} ${item.claimedBy?.lastName || ""}`.trim()}
+                  </p>
+                  <p style={{ fontStyle: 'italic', color: 'black' }}>
+                    {item.claimedBy?.course?.abbr || "Unknown"}
+                  </p>
+                </div>
+              )}
+            </>
+          ) : (
+            // No ClaimedBy (Unknown user)
+            <>
+              <div
+                className='profile'
+                style={{
+                  width: "50px",
+                  height: "50px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="45" height="45" fill="currentColor" className="bi bi-person-slash" viewBox="0 0 16 16">
+                  <path d="M13.879 10.414a2.501 2.501 0 0 0-3.465 3.465zm.707.707-3.465 3.465a2.501 2.501 0 0 0 3.465-3.465m-4.56-1.096a3.5 3.5 0 1 1 4.949 4.95 3.5 3.5 0 0 1-4.95-4.95ZM11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m.256 7a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1z"/>
+                </svg>
+              </div>
+              <div className='personal-info'>
+                <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>Unknown</p>
+              </div>
+            </>
+          )}
+        </div>
+      </td>
                   
                       <td style={{ position: 'relative' }}>
                         

@@ -146,7 +146,7 @@ function UserNotificationPage() {
                       style={{
                         fontSize: "18px",
                         marginTop: "20px",
-                        marginLeft: "600px",
+                        marginLeft: "50px",
                       }}
                     >
                       {section}

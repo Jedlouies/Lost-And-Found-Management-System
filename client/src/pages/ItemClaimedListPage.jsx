@@ -65,7 +65,7 @@ function ItemClaimedListPage() {
     <>
       <NavigationBar />
       <div className='found-item-body'>
-        <TableHeader />
+        <BlankHeader />
         <div className='found-item-container' style={{ position: 'absolute', top: '80px' }}>
           <h1>Claimed List</h1>
 
@@ -118,7 +118,7 @@ function ItemClaimedListPage() {
                     <tr className='body-row' key={index}>
                       <td>{item.itemId}</td>
                       <td>
-                        <div className='item-image'>
+                        <div >
                           {item.images && item.images.length > 0 ? (
                             <img 
                               src={item.images[0]} 
@@ -133,7 +133,7 @@ function ItemClaimedListPage() {
                         </div>
                       </td>
                       <td>
-                        <div className='item-image'>
+                        <div>
                           {item.ownerActualFace ? (
                             <img 
                               src={item.ownerActualFace} 
@@ -151,52 +151,144 @@ function ItemClaimedListPage() {
                       <td>{new Date(item.dateClaimed).toLocaleDateString()}</td>
                       <td>
                         <div className='founder-details'>
-                          <img src={item.founder?.profileURL || ""} alt="" style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} />
-                          <div className='personal-info'>
-                            <p style={{ fontWeight: 'bold' , color: 'black'}}>{item.founder?.firstName} {item.founder?.lastName}</p>
-                            <p style={{ fontStyle: 'italic' , color: 'black' }}>{item.founder?.course.abbr}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className='owner-details'>
-                          {item.isGuest === true  || item.owner?.profileURL === "" ?(
-                            
-                            <div 
+                          {item.founder?.isGuest ? (
+                            // Case 1: Guest
+                            <div
                               style={{
-                                width: '50px',
-                                height: '50px',
-                                borderRadius: '40px',
-                                backgroundColor: '#007bff', 
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'white',
-                                fontWeight: 'bold',
-                                fontSize: '12px',
-                                textAlign: 'center'
+                                width: "50px",
+                                height: "50px",
+                                borderRadius: "50%",
+                                backgroundColor: "#007bff",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "white",
+                                fontWeight: "bold",
+                                fontSize: "12px",
                               }}
                             >
                               Guest
                             </div>
-                          ) : (
-                            // Regular Owner Display
+                          ) : item.founder?.profileURL ? (
+                            // Case 2: Profile Image
                             <>
-                              <img 
-                                src={item.owner?.profileURL || ""} 
-                                alt="profile"
+                              <img
+                                src={item.founder.profileURL}
+                                alt="Founder"
                                 style={{
-                                  width: '50px',
-                                  height: '50px',
-                                  borderRadius: '40px',
-                                  objectFit: 'cover'
+                                  width: "50px",
+                                  height: "50px",
+                                  borderRadius: "50%",
+                                  objectFit: "cover",
                                 }}
                               />
                               <div className='personal-info'>
-                                <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>
+                                <p style={{ fontWeight: "bold", color: "black" }}>
+                                  {`${item.founder?.firstName || ""} ${item.founder?.lastName || ""}`.trim()}
+                                </p>
+                                <p style={{ fontStyle: "italic", color: "black" }}>
+                                  {item.founder?.course?.abbr || "Unknown"}
+                                </p>
+                              </div>
+                            </>
+                          ) : (
+                            // Case 3: Initials
+                            <>
+                              <div
+                                style={{
+                                  width: "50px",
+                                  height: "50px",
+                                  borderRadius: "50%",
+                                  backgroundColor: "navy",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  color: "white",
+                                  fontWeight: "bold",
+                                  fontSize: "14px",
+                                }}
+                              >
+                                {`${item.founder?.firstName?.[0] || ""}${item.founder?.lastName?.[0] || ""}`.toUpperCase()}
+                              </div>
+                              <div className='personal-info'>
+                                <p style={{ fontWeight: "bold", color: "black" }}>
+                                  {`${item.founder?.firstName || ""} ${item.founder?.lastName || ""}`.trim()}
+                                </p>
+                                <p style={{ fontStyle: "italic", color: "black" }}>
+                                  {item.founder?.course?.abbr || "Unknown"}
+                                </p>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </td>
+
+                      <td>
+                        <div className='owner-details'>
+                          {item.isGuest ? (
+                            // Case 1: Guest
+                            <div
+                              style={{
+                                width: "50px",
+                                height: "50px",
+                                borderRadius: "40px",
+                                backgroundColor: "#007bff",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "white",
+                                fontWeight: "bold",
+                                fontSize: "12px",
+                              }}
+                            >
+                              Guest
+                            </div>
+                          ) : item.owner?.profileURL ? (
+                            // Case 2: Profile Image
+                            <>
+                              <img
+                                src={item.owner.profileURL}
+                                alt="Owner"
+                                style={{
+                                  width: "50px",
+                                  height: "50px",
+                                  borderRadius: "40px",
+                                  objectFit: "cover",
+                                }}
+                              />
+                              <div className='personal-info'>
+                                <p style={{ fontSize: "13px", fontWeight: "bold", color: "black" }}>
                                   {`${item.owner?.firstName || ""} ${item.owner?.lastName || ""}`.trim()}
                                 </p>
-                                <p style={{ fontStyle: 'italic', color: 'black' }}>
+                                <p style={{ fontStyle: "italic", color: "black" }}>
+                                  {item.owner?.course?.abbr || "Unknown"}
+                                </p>
+                              </div>
+                            </>
+                          ) : (
+                            // Case 3: Initials
+                            <>
+                              <div
+                                style={{
+                                  width: "50px",
+                                  height: "50px",
+                                  borderRadius: "40px",
+                                  backgroundColor: "navy",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  color: "white",
+                                  fontWeight: "bold",
+                                  fontSize: "14px",
+                                }}
+                              >
+                                {`${item.owner?.firstName?.[0] || ""}${item.owner?.lastName?.[0] || ""}`.toUpperCase()}
+                              </div>
+                              <div className='personal-info'>
+                                <p style={{ fontSize: "13px", fontWeight: "bold", color: "black" }}>
+                                  {`${item.owner?.firstName || ""} ${item.owner?.lastName || ""}`.trim()}
+                                </p>
+                                <p style={{ fontStyle: "italic", color: "black" }}>
                                   {item.owner?.course?.abbr || "Unknown"}
                                 </p>
                               </div>

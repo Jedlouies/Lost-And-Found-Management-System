@@ -1,8 +1,6 @@
 .chart {
   background-color: white;
   position: absolute;
-  min-width: 60%;
-  max-height: auto;
   margin-top: 50px;
   top: 100%;
   left: 1%;

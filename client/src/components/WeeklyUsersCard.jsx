@@ -82,7 +82,7 @@ const WeeklyUsersCard = () => {
   };
 
   return (
-    <div id="chart" className='chart'>
+    <div id="chart" className='chart' style={{width: '60%'}}>
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
           <img src="/Spin_black.gif" alt="Loading..." style={{ width: '40px', height: '40px' }} />

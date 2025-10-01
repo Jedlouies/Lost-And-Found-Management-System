@@ -28,6 +28,8 @@ function HomePage() {
   const [loadingLost, setLoadingLost] = useState(true);
   const [loadingFound, setLoadingFound] = useState(true);
 
+
+
   const handleNavigate = (path) => {
     
     navigate(path);
@@ -245,34 +247,53 @@ useEffect(() => {
                   <h4 style={{fontSize: '15px'}}>{item.itemName}</h4>
                   <div className="own">
                     {item.isGuest ? (
-                        <div
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            borderRadius: "40px",
-                            backgroundColor: "blue",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "white",
-                            fontSize: "12px",
-                            fontWeight: "bold"
-                          }}
-                        >
-                          Guest
-                        </div>
-                      ) : (
-                        <img
-                          src={item.personalInfo?.profileURL || "/default-profile.png"}
-                          alt="profile"
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            borderRadius: "40px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      )}
+                      <div
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          backgroundColor: "blue",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "white",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Guest
+                      </div>
+                    ) : item.personalInfo?.profileURL ? (
+                      <img
+                        src={item.personalInfo.profileURL}
+                        alt="profile"
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          backgroundColor: "navy",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "white",
+                          fontSize: "14px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {`${item.personalInfo?.firstName?.[0] || ""}${
+                          item.personalInfo?.lastName?.[0] || ""
+                        }`.toUpperCase()}
+                      </div>
+                    )}
 
                     <p>
                       <strong style={{ fontSize: "14px" }}>
@@ -340,34 +361,53 @@ useEffect(() => {
                   <h4 style={{fontSize: '15px'}}>{item.itemName}</h4>
                   <div className="own">
                     {item.isGuest ? (
-                        <div
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            borderRadius: "40px",
-                            backgroundColor: "blue",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "white",
-                            fontSize: "12px",
-                            fontWeight: "bold"
-                          }}
-                        >
-                          Guest
-                        </div>
-                      ) : (
-                        <img
-                          src={item.personalInfo?.profileURL || "/default-profile.png"}
-                          alt="profile"
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            borderRadius: "40px",
-                            objectFit: "cover",
-                          }}
-                        />
-                      )}
+                      <div
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          backgroundColor: "blue",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "white",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Guest
+                      </div>
+                    ) : item.personalInfo?.profileURL ? (
+                      <img
+                        src={item.personalInfo.profileURL}
+                        alt="profile"
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          backgroundColor: "navy",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "white",
+                          fontSize: "14px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {`${item.personalInfo?.firstName?.[0] || ""}${
+                          item.personalInfo?.lastName?.[0] || ""
+                        }`.toUpperCase()}
+                      </div>
+                    )}
                     <p>
                       <strong style={{ fontSize: "14px" }}>
                         {item.isGuest === true

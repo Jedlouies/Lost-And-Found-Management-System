@@ -25,7 +25,7 @@ export default function GuestReportPage() {
   return (
     <>
         <Header className="header"></Header>
-        <div className="guest-container" >
+        <div className="guest-container" style={{width: '105%', height: '120vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
           
           <h1 style={{color: 'white'}}>When losing something <br /> doesn’t mean it’s gone forever </h1>
           <p style={{color: 'white'}}>Please choose what you want to report:</p>

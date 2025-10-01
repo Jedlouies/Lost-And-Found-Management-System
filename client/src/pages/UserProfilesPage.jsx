@@ -77,7 +77,7 @@ function UserProfilesPage() {
     <>
       <NavigationBar />
       <div className='found-item-body'>
-        <TableHeader />
+        <BlankHeader />
         <div className='found-item-container'>
           <h1>User Profiles</h1>
 
@@ -129,7 +129,22 @@ function UserProfilesPage() {
                             onMouseLeave={() => setPreviewImage(null)}
                           />
                         ) : (
-                          <div className="no-image">No Profile</div>
+                          <div
+                                style={{
+                                  width: "50px",
+                                  height: "50px",
+                                  borderRadius: "50%",
+                                  backgroundColor: "navy",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  color: "white",
+                                  fontWeight: "bold",
+                                  fontSize: "14px",
+                                }}
+                              >
+                                {`${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase()}
+                              </div>
                         )}
                       </td>
                       <td>{user.firstName}</td>
