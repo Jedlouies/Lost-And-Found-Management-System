@@ -51,8 +51,8 @@ function CreateAccount() {
           <h2>Email Verification</h2>
           <p>Your verification code is:</p>
           <h1 style="letter-spacing: 5px;">${code}</h1>
-          <p>This code will expire shortly.</p>
-        `,
+          <p>This code will expire in 2 minutes.</p> 
+          `,
       }),
     });
   }
@@ -78,16 +78,9 @@ function CreateAccount() {
         studentId: studentIdRef.current.value,
       };
 
-      // Generate and store verification code
       const code = await createVerificationCode({ uid: userData.email, email: userData.email });
-
-      // Send email
       await sendVerificationEmail(userData, code);
-
-      // Save form data for later signup
       setPendingUserData(userData);
-
-      // Show modal
       setShowVerifyModal(true);
     } catch (err) {
       setError(err.message);

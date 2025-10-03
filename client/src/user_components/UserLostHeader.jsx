@@ -39,27 +39,39 @@ function UserLostHeader() {
   const toggleDropDown = () => setDropDown(prev => !prev);
   const toggleNotifyPanel = () => setNotifyPanel(prev => !prev);
 
+  const requiredFields = [
+  "firstName",
+  "lastName",
+  "email",
+  "contactNumber",
+  "address",
+  "course",
+  "gender",
+  "section"
+];
+
+const [userData, setUserData] = useState(null);
+
 useEffect(() => {
   const fetchUserDetails = async () => {
     if (!currentUser) return;
-
-    const hasCached = localStorage.getItem('firstName') && localStorage.getItem('lastName') && localStorage.getItem('profileURL');
-    if (hasCached) return;
 
     try {
       const userDocRef = doc(db, "users", currentUser.uid);
       const userDocSnap = await getDoc(userDocRef);
 
       if (userDocSnap.exists()) {
-        const userData = userDocSnap.data();
-        setFirstName(userData.firstName);
-        setLastName(userData.lastName);
-        setProfileURL(userData.profileURL || '');
+        const data = userDocSnap.data();
+        setUserData(data);
 
-        localStorage.setItem('firstName', userData.firstName);
-        localStorage.setItem('lastName', userData.lastName);
-        if (userData.profileURL) {
-          localStorage.setItem('profileURL', userData.profileURL);
+        setFirstName(data.firstName || "");
+        setLastName(data.lastName || "");
+        setProfileURL(data.profileURL || "");
+
+        localStorage.setItem("firstName", data.firstName || "");
+        localStorage.setItem("lastName", data.lastName || "");
+        if (data.profileURL) {
+          localStorage.setItem("profileURL", data.profileURL);
         }
       }
     } catch (err) {
@@ -83,6 +95,13 @@ useEffect(() => {
       window.removeEventListener('profileImageUpdated', handleImageUpdate);
     };
   }, []);
+
+  const hasEmptyFields = userData
+  ? requiredFields.some(
+      (field) => !userData[field] || userData[field].trim() === ""
+    )
+  : true;
+
 
 
   useEffect(() => {

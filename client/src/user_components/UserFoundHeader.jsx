@@ -35,6 +35,8 @@ function UserFoundHeader() {
   const auth = getAuth();
   const user = auth.currentUser; 
   const { unreadCount, clearNotifications } = useNotification();
+  const [userData, setUserData] = useState(null);
+
 
   const toggleDropDown = () => setDropDown(prev => !prev);
   const toggleNotifyPanel = () => setNotifyPanel(prev => !prev);
@@ -43,24 +45,25 @@ useEffect(() => {
   const fetchUserDetails = async () => {
     if (!currentUser) return;
 
-    const hasCached = localStorage.getItem('firstName') && localStorage.getItem('lastName') && localStorage.getItem('profileURL');
-    if (hasCached) return;
-
     try {
       const userDocRef = doc(db, "users", currentUser.uid);
       const userDocSnap = await getDoc(userDocRef);
 
       if (userDocSnap.exists()) {
-        const userData = userDocSnap.data();
-        setFirstName(userData.firstName);
-        setLastName(userData.lastName);
-        setProfileURL(userData.profileURL || '');
+        const data = userDocSnap.data();
+        setUserData(data); 
 
-        localStorage.setItem('firstName', userData.firstName);
-        localStorage.setItem('lastName', userData.lastName);
-        if (userData.profileURL) {
-          localStorage.setItem('profileURL', userData.profileURL);
+        setFirstName(data.firstName || "");
+        setLastName(data.lastName || "");
+        setProfileURL(data.profileURL || "");
+
+        localStorage.setItem("firstName", data.firstName || "");
+        localStorage.setItem("lastName", data.lastName || "");
+        if (data.profileURL) {
+          localStorage.setItem("profileURL", data.profileURL);
         }
+
+        console.log("Fetched userData:", data);
       }
     } catch (err) {
       console.error("Error fetching user info:", err);
@@ -83,6 +86,19 @@ useEffect(() => {
       window.removeEventListener('profileImageUpdated', handleImageUpdate);
     };
   }, []);
+
+const requiredFields = ["firstName", "lastName", "email", "contactNumber", "address", "course", "gender", "section"];
+const hasEmptyFields = userData
+  ? requiredFields.some(
+      (field) => !userData[field] || userData[field].trim() === ""
+    )
+  : true;
+
+useEffect(() => {
+  if (userData) {
+    console.log("userData state:", userData);
+  }
+}, [userData]);
 
 
   useEffect(() => {
@@ -513,11 +529,26 @@ useEffect(() => {
   )}
 </div>
     <div className='home-header-body'>
-        <button onClick={() => navigate(`/users/found-items/procedure/${user?.uid}`)}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
-                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
-              </svg>
-          <p>Post</p>
+        <button
+          onClick={() => navigate(`/users/found-items/procedure/${user?.uid}`)}
+          disabled={hasEmptyFields}
+          style={{
+            backgroundColor: hasEmptyFields ? "#ccc" : "#475C6F",
+            cursor: hasEmptyFields ? "not-allowed" : "pointer",
+            border: "none",
+            borderRadius: "5px",
+            border: 'solid 2px white',
+            padding: "6px 12px",
+            display: "flex",
+            alignItems: "center",
+            gap: "5px"
+          }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+              className="bi bi-plus" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+          </svg>
+          <p style={{ margin: 0 }}>Post</p>
         </button>
 
         <div className='home-header-right'>
