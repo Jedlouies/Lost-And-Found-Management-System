@@ -11,6 +11,7 @@ import { getAuth, reauthenticateWithCredential, EmailAuthProvider } from "fireba
 import { set } from 'firebase/database';
 import { Modal, Button, Form, Spinner } from 'react-bootstrap';
 import '../user_pages/styles/UserSettingsPage.css'
+import CropperModal from "../components/CropperModal";
 
 
 function UserSettingsPage() {
@@ -41,6 +42,12 @@ function UserSettingsPage() {
   const [checkingPassword, setCheckingPassword] = useState(false);
   const [course, setCourse] = useState('');
   const [section, setSection] = useState('');
+
+   const [cropperOpen, setCropperOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+  const [cropAspect, setCropAspect] = useState(1); // default square for profile
+
+  const [pendingField, setPendingField] = useState(null); // profile or cover
 
   const initials = `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
 
@@ -136,6 +143,32 @@ function UserSettingsPage() {
   { abbr: "MPS-SD", name: "Master in Public Sector Innovation Major in Sustainable Development" },
   { abbr: "MPS-PPS", name: "Master in Public Sector Innovation Major in Public Policy Studies" },
 ];
+
+const handleFileSelect = (e, field) => {
+    if (e.target.files && e.target.files[0]) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setCropImageSrc(reader.result);
+        setCropAspect(field === "profile" ? 1 : 16 / 9); // profile = square, cover = wide
+        setPendingField(field);
+        setCropperOpen(true);
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    }
+  };
+
+  const handleCropSave = async (croppedBase64) => {
+    // Convert base64 -> File for upload
+    const res = await fetch(croppedBase64);
+    const blob = await res.blob();
+    const file = new File([blob], "cropped.jpg", { type: "image/jpeg" });
+
+    if (pendingField === "profile") {
+      setProfileImage(file);
+    } else if (pendingField === "cover") {
+      setCoverImage(file);
+    }
+  };
 
 
 
@@ -470,8 +503,11 @@ const handleUpdate = async () => {
 
           <div >
           <h4>Profile Picture</h4>
-          <input type="file" accept="image/*" style={{border: 'solid #475C6F 2px ', borderRadius: '5px', width: '500px'}} onChange={handleProfileChange} />
-          
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => handleFileSelect(e, "profile")}
+      />          
           </div>     
         </div>
         
@@ -480,8 +516,11 @@ const handleUpdate = async () => {
 
         <div style={{marginTop: '20px'}}>
           <h4>Cover Photo</h4>
-          <input type="file" accept="image/*" style={{border: 'solid #475C6F 2px ', borderRadius: '5px', width: '500px'}} onChange={handleCoverChange} />
-        
+<input
+        type="file"
+        accept="image/*"
+        onChange={(e) => handleFileSelect(e, "cover")}
+      />        
 
         </div>
         </div>
@@ -542,6 +581,14 @@ const handleUpdate = async () => {
           </div>
       </div>
         </div>
+
+    <CropperModal
+        show={cropperOpen}
+        imageSrc={cropImageSrc}
+        aspect={cropAspect}
+        onClose={() => setCropperOpen(false)}
+        onCropComplete={handleCropSave}
+      />
     </>
   );
 }

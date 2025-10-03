@@ -89,10 +89,12 @@ useEffect(() => {
 
 const requiredFields = ["firstName", "lastName", "email", "contactNumber", "address", "course", "gender", "section"];
 const hasEmptyFields = userData
-  ? requiredFields.some(
-      (field) => !userData[field] || userData[field].trim() === ""
-    )
+  ? requiredFields.some((field) => {
+      const value = userData[field];
+      return value === undefined || value === null || String(value).trim() === "";
+    })
   : true;
+
 
 useEffect(() => {
   if (userData) {
@@ -529,28 +531,38 @@ useEffect(() => {
   )}
 </div>
     <div className='home-header-body'>
-        <button
-          onClick={() => navigate(`/users/found-items/procedure/${user?.uid}`)}
-          disabled={hasEmptyFields}
-          style={{
-            backgroundColor: hasEmptyFields ? "#ccc" : "#475C6F",
-            cursor: hasEmptyFields ? "not-allowed" : "pointer",
-            border: "none",
-            borderRadius: "5px",
-            border: 'solid 2px white',
-            padding: "6px 12px",
-            display: "flex",
-            alignItems: "center",
-            gap: "5px"
-          }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
-              className="bi bi-plus" viewBox="0 0 16 16">
-            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
-          </svg>
-          <p style={{ margin: 0 }}>Post</p>
-        </button>
+<div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+  <button
+    onClick={() => {
+      if (!hasEmptyFields) {
+        navigate(`/users/found-items/procedure/${user?.uid}`);
+      }
+    }}
+    disabled={hasEmptyFields}
+    style={{
+      backgroundColor: hasEmptyFields ? "#ccc" : "#475C6F",
+      cursor: hasEmptyFields ? "not-allowed" : "pointer",
+      borderRadius: "5px",
+      border: "solid 2px white",
+      padding: "6px 12px",
+      display: "flex",
+      alignItems: "center",
+      gap: "5px"
+    }}
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor"
+      className="bi bi-plus" viewBox="0 0 16 16">
+      <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+    </svg>
+    <p style={{ margin: 0 }}>Post</p>
+  </button>
 
+  {hasEmptyFields && (
+    <span style={{ color: "white", fontSize: "14px" }}>
+      ⚠ Please complete your personal information before posting.
+    </span>
+  )}
+</div>
         <div className='home-header-right'>
           <div style={{ position: 'relative' }}>
             <svg ref={bellRef} xmlns="http://www.w3.org/2000/svg" width="25" height="20" fill="white" class="bi bi-bell" viewBox="0 0 16 16"
