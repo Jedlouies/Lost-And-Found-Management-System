@@ -3,7 +3,7 @@ import './styles/FoundMatchResults.css';
 import UserFoundItemsPage from './UserFoundItemsPage';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from "firebase/auth";
-
+import RatingModal from "../components/RatingModal";
 
 
 export default function LostMatchResults() {
@@ -17,10 +17,20 @@ export default function LostMatchResults() {
   const user = auth.currentUser; 
 
   const [selectedItem, setSelectedItem] = React.useState(null);
+  const [showRatingModal, setShowRatingModal] = React.useState(false);
+  const [copiedMessage, setCopiedMessage] = React.useState(false);
+
+  const handleCopy = (text) => {
+      navigator.clipboard.writeText(text).then(() => {
+        setCopiedMessage("Transaction ID Copied!");
+        setTimeout(() => setCopiedMessage(""), 2000);
+      });
+  };
   
   
-  const handleNavigate = (path) => {
-    navigate(path)
+  
+  const handleNavigate = () => {
+    setShowRatingModal(true)
   }
 
   return (
@@ -137,13 +147,22 @@ export default function LostMatchResults() {
             </div>
 
             <div className='results-more' style={{marginTop: '-80px'}}>
-              <p className="text-sm text-gray-600 mb-2" style={{ color: 'black', fontSize: '12px'}}>
-                <strong>Transaction ID:</strong> {matches.transactionId}
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-copy" viewBox="0 0 16 16" style={{marginLeft: '5px', cursor: 'pointer'}}>
-                  <path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/>
-                </svg>
-
-              </p>
+                <p className="text-sm text-gray-600 mb-2" style={{ color: 'black', fontSize: '12px'}}>
+                  <strong>Transaction ID:</strong> {matches.transactionId}
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="12" 
+                    height="12" 
+                    fill="currentColor" 
+                    className="bi bi-copy" 
+                    viewBox="0 0 16 16" 
+                    style={{marginLeft: '5px', cursor: 'pointer'}}
+                    onClick={() => handleCopy(matches.transactionId)}
+                  >
+                    <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/>
+                  </svg>
+                  </p>
+              
 
             
 
@@ -188,7 +207,7 @@ export default function LostMatchResults() {
       })}
       </div>
       <div className='matching-buttons-footer'>
-        <button style={{top: '92%', marginLeft: '5%', marginRight: '10%'}} className={`${location.pathname === `/users/item-management/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/users/item-management/${user?.uid}`)}>
+        <button style={{top: '92%', marginLeft: '5%', marginRight: '10%'}} onClick={handleNavigate}>
           Continue
         </button>
         <button style={{top: '92%', marginLeft: '80%'}} className={`${location.pathname === `/users/lost-items/procedure/item-details/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/users/lost-items/procedure/item-details/${user?.uid}`)}>
@@ -202,6 +221,22 @@ export default function LostMatchResults() {
       </div>
 
       </div>
+        {showRatingModal && <RatingModal onClose={() => setShowRatingModal(false)} />}
+      {copiedMessage && (
+  <div style={{
+    position: 'fixed',
+    bottom: '20px',
+    right: '20px',
+    background: '#4caf50',
+    color: 'white',
+    padding: '10px 20px',
+    borderRadius: '8px',
+    boxShadow: '0px 2px 8px rgba(0,0,0,0.2)',
+    zIndex: 1000
+  }}>
+    {copiedMessage}
+  </div>
+)}
 
     </>
   );

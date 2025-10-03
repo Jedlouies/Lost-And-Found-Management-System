@@ -112,7 +112,7 @@ function UserProfilePage() {
   return (
     <>
     <UserNavigationBar />
-    <div className='profile-body'>
+    <div className='profile-body' style={{height: '120vh'}}>
       <UserBlankHeader />
       <div className='profile-container'>
         <img src={coverURL} alt="" />
@@ -145,7 +145,7 @@ function UserProfilePage() {
           <div className='container-details'>
             
             <h1>{firstName} {lastName}</h1>
-            <h4>{designation}</h4>
+            <h4 style={{marginLeft: '60px'}}>{designation}</h4>
             
           </div>
           <div className={`profile-quick-action ${location.pathname === `/users/settings/${user?.uid}` ? 'active' : ''}`} onClick={() => handleEdit(`/users/settings/${user?.uid}`)}>
@@ -154,8 +154,8 @@ function UserProfilePage() {
           </div>
 
           </div>
-          <div className='all-profile-details'>
-            <div className='profile-other-details'>
+          <div className='all-profile-details' style={{marginTop: '50px'}}>
+            <div className='profile-other-details' style={{marginTop: '50px'}}>
                 <p><strong>Firstname: </strong>{firstName}</p>
                 <p><strong>Lastname: </strong>{lastName}</p>
                 <p><strong>Gender: </strong>{gender}</p>
@@ -164,7 +164,7 @@ function UserProfilePage() {
                 <p><strong>Address: </strong>{address}</p>
               
                 </div>
-              <div className='profile-other-details2'>
+              <div className='profile-other-details2'  style={{marginTop: '50px'}}>
                 <p>
                   <strong>Course:</strong>{" "}
                   {course?.abbr && course?.name

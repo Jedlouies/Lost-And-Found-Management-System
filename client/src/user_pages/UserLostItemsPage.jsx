@@ -303,15 +303,12 @@ function UserLostItemsPage() {
           >
             <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/>
           </svg>
-
-        </div>
-
-          {savedItems.length > 0 && (
+                        {savedItems.length > 0 && (
             <span
               style={{
-                position: "absolute",
-                top: "-5px",
-                right: "-5px",
+                position: "relative",
+                top: "-10px",
+                left: "-20%",
                 background: "red",
                 color: "white",
                 borderRadius: "50%",
@@ -322,6 +319,9 @@ function UserLostItemsPage() {
               {savedItems.length}
             </span>
           )}
+
+        </div>
+
         </div>
 
 
@@ -370,51 +370,69 @@ function UserLostItemsPage() {
                   <div className="card-details">
                     <h4>{item.itemName}</h4>
                     <div className="own">
-                      {item.personalInfo?.profileURL ? (
-                        <img
-                          src={item.personalInfo.profileURL}
-                          alt="profile"
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            borderRadius: "50%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
-                        <div
-                          style={{
-                            width: "50px",
-                            height: "50px",
-                            borderRadius: "50%",
-                            backgroundColor: "#007BFF", // Bootstrap blue
-                            color: "white",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            fontSize: "12px",
-                            fontWeight: "bold",
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          Guest
-                        </div>
-                      )}
+                    {item.isGuest ? (
+                      <div
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          backgroundColor: "blue",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "white",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Guest
+                      </div>
+                    ) : item.personalInfo?.profileURL ? (
+                      <img
+                        src={item.personalInfo.profileURL}
+                        alt="profile"
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          backgroundColor: "navy",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "white",
+                          fontSize: "14px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {`${item.personalInfo?.firstName?.[0] || ""}${
+                          item.personalInfo?.lastName?.[0] || ""
+                        }`.toUpperCase()}
+                      </div>
+                    )}
 
-                      <p>
-                        <strong style={{ fontSize: "14px" }}>
-                          {item.isGuest === true
-                            ? item.personalInfo?.firstName || "Guest"
-                            : `${item.personalInfo?.firstName || ""} ${item.personalInfo?.lastName || ""}`.trim()}
-                        </strong>
-                        <br />
-                        {item.isGuest !== true && (
-                          <span>
-                            {item.personalInfo?.course?.abbr
-                              ? `${item.personalInfo.course.abbr} Student`
-                              : "Unknown"}
-                          </span>
-                        )}
+                    <p>
+                      <strong style={{ fontSize: "14px" }}>
+                        {item.isGuest === true
+                          ? item.personalInfo?.firstName || "Guest"
+                          : `${item.personalInfo?.firstName || ""} ${item.personalInfo?.lastName || ""}`.trim()}
+                      </strong>
+                      <br />
+                      {item.isGuest !== true && (
+                        <span>
+                          {item.personalInfo?.course?.abbr
+                            ? `${item.personalInfo.course.abbr} Student`
+                            : "Unknown"}
+                        </span>
+                      )}
                       </p>
                     </div>
 

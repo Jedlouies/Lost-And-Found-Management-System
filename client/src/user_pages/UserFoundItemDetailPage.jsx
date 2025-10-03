@@ -289,7 +289,7 @@ const handleSubmit = async (e) => {
   
   return (
       <>
-      <div className='background1' style={{position: 'absolute', width: '100%', height: '120vh', backgroundColor: 'white', backgroundColor: '#D9D9D9'}}>
+      <div className='background1' style={{position: 'absolute', width: '100%', height: '120vh', backgroundColor: '#D9D9D9'}}>
         <div className="user-found-procedure-body" >
           <h1>Report Found Form</h1>
           <form className="lost-item-form" onSubmit={handleSubmit}>

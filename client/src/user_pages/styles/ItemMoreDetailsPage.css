@@ -26,15 +26,46 @@
     color: #475C6F;
 }
 
+
+.more-matches-results {
+    position: absolute;
+    top: 45%;
+    left: 35%;
+}
+
 .item-image img {
     position: absolute;
     border-radius: 10px;
     object-fit: cover;
 }
 
-@media (max-width: 1199px) {
-    .item-image img {
-        height: 150%;
+.match-describe {
+    position: absolute;
+    top: 10%;
+    left: 35%;
+    width: 50%;
+    height: 150px;
+}
+
+@media (max-width: 1200px) {
+    .match-descriptions-results {
+        height: 400px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .match-describe {
+        top: 52%;
+        left: 2%;
+        width: 100%;
+    }
+
+    .more-matches-results {
+        top: 75%;
+    }
+
+    .manage-item-body {
+        height: 150vh;
     }
 }
 

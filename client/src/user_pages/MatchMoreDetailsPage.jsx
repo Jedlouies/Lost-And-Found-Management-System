@@ -48,8 +48,8 @@ function MatchMoreDetailsPage() {
                 src={item.images[0]}
                 alt="Main Item"
                 style={{
-                  width: "500px",
-                  height: "500px",
+                  width: "30%",
+                  height: "700px",
                   borderRadius: "10px",
                   objectFit: "cover",
                 }}
@@ -59,7 +59,7 @@ function MatchMoreDetailsPage() {
                 style={{
                   position: "absolute",
                   top: "10px",
-                  left: "530px",
+                  left: "35%",
                   width: "200px",
                   textAlign: "center",
                   display: "inline-block",
@@ -71,7 +71,7 @@ function MatchMoreDetailsPage() {
               >
                 {item.status.toUpperCase()}
               </div>
-            <div
+            <div className="match-descriptions-results"
               style={{
                 position: "absolute",
                 top: "10%",
@@ -81,6 +81,7 @@ function MatchMoreDetailsPage() {
                 padding: "10px",
                 borderRadius: "10px",
                 boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+                
               }}
             >
               
@@ -96,15 +97,7 @@ function MatchMoreDetailsPage() {
                 }) : "N/A"}
               </p>
               <p><b>Location:</b> {item.location}</p>
-              <p 
-                style={{
-                  position: 'absolute',
-                  top: '10%',
-                  left: '35%',
-                  width: '500px',
-                  height: '150px'
-                }}
-              >
+              <p className="match-describe">
                 <b>Description:</b> {item.itemDescription || "No description provided"}
               </p>
 
@@ -114,10 +107,8 @@ function MatchMoreDetailsPage() {
 
           {/* Matches */}
           <div
+            className="more-matches-results"
             style={{
-              position: "absolute",
-              top: "45%",
-              left: "35%",
               
               gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
               gap: "20px",

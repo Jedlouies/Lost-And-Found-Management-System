@@ -154,7 +154,7 @@ function ProfilePage() {
           </div>
 
           </div>
-          <div className='all-profile-details' >
+          <div className='all-profile-details'>
             <div className='profile-other-details' style={{marginTop: '50px'}}>
                 <p><strong>Firstname: </strong>{firstName}</p>
                 <p><strong>Lastname: </strong>{lastName}</p>

@@ -31,7 +31,7 @@
 }
 
 .delete-btn {
- position: absolute;
+ position: relative;
   background: transparent;
   border: none;
   cursor: pointer;

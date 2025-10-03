@@ -223,7 +223,7 @@ function GuestReportLostPage() {
             if (i === 0) {
               await notifyUser(
                 currentUser.uid,
-                `This is the most possible match for your lost item <b>${itemName}</b>: Found item <b>${match.foundItem?.itemName}</b>.`
+                `This is the most possible match for your lost item <b>${itemName}</b>: Found item <b>${match.foundItem?.itemName} : Transaction ID: ${match.transactionId}</b>.`
               );
 
               try {
@@ -231,11 +231,11 @@ function GuestReportLostPage() {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
-                    to: email,  // 👈 fixed (ensure it's a string)
+                    to: email,  
                     subject: "Best Match Found for Your Lost Item",
                     html: `
                       <p>Hello ${firstName},</p>
-                      <p>This is the most possible match for your lost item <b>${itemName}</b>: Found item <b>${match.foundItem?.itemName}</b>.</p>
+                      <p>This is the most possible match for your lost item <b>${itemName}</b>: Found item <b>${match.foundItem?.itemName} : Transaction ID: ${match.transactionId}</b>.</p>
                       <p>Please log in to view more details.</p>
                     `
                   })

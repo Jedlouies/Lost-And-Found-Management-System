@@ -18,6 +18,7 @@ export default function GuestFoundMatchResults(foundItem) {
  
 
   const [selectedItem, setSelectedItem] = React.useState(null);
+  const [showRatingModal, setShowRatingModal] = React.useState(false);
   
   
   const handleNavigate = (path) => {
@@ -207,6 +208,7 @@ export default function GuestFoundMatchResults(foundItem) {
       </div>
 
       </div>
+        {showRatingModal && <RatingModal onClose={() => setShowRatingModal(false)} />}
 
     </>
   );

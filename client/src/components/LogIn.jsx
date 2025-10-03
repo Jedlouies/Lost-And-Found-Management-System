@@ -8,7 +8,9 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from '../firebase.jsx'
 
 function LogIn() {
-  const navigate = useNavigate()
+  
+
+  const navigate = useNavigate();
   const handleSignIn = () => navigate('/sign-in')
 
   const studentIdRef = useRef()

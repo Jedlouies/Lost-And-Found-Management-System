@@ -2,6 +2,7 @@ import React from 'react';
 import '../user_pages/styles/FoundMatchResults.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from "firebase/auth";
+import RatingModal from '../components/RatingModal';
 
 
 
@@ -17,6 +18,7 @@ export default function GuestLostMatchResults(lostItem) {
   const currentUser = auth.currentUser;
 
   const [selectedItem, setSelectedItem] = React.useState(null);
+  const [showRatingModal, setShowRatingModal] = React.useState(null);
   
   
   const handleNavigate = (path) => {
@@ -202,7 +204,7 @@ export default function GuestLostMatchResults(lostItem) {
       </div>
 
       </div>
-
+        {showRatingModal && <RatingModal onClose={() => setShowRatingModal(false)}/>}
     </>
   );
 }

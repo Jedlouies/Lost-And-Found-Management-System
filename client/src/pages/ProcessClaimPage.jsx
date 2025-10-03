@@ -24,6 +24,7 @@ import {
   serverTimestamp as rtdbServerTimestamp,
 } from "firebase/database";
 import { useAuth } from "../context/AuthContext";
+import { Modal, Button, Form, Spinner } from "react-bootstrap";
 
 function ProcessClaimPage() {
     const API = "http://localhost:4000" || "https://server.spotsync.site";
@@ -542,7 +543,7 @@ const handleCameraSwitch = async (newDeviceId) => {
           borderRadius: "10px",
           cursor: loading ? "not-allowed" : "pointer",
         }}>
-          {loading ? <>Storing data...</> : "Complete"}
+          {loading ? <Spinner animation="border" size="sm" /> : "Complete"}
         </button>
       </div>
     </>

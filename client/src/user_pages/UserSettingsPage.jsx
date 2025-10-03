@@ -10,6 +10,7 @@ import FloatingAlert from '../components/FloatingAlert';
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { set } from 'firebase/database';
 import { Modal, Button, Form, Spinner } from 'react-bootstrap';
+import '../user_pages/styles/UserSettingsPage.css'
 
 
 function UserSettingsPage() {
@@ -407,7 +408,7 @@ const handleUpdate = async () => {
       <UserNavigationBar />
       <div className='found-item-body'>
         <UserBlankHeader />
-        <div className='settings-container' style={{position: 'absolute', backgroundColor: 'white', width: '92%', borderRadius: '20px', height: '90%', marginLeft: '10px', top: '7%', marginBottom: '20px'}}>
+        <div className='settings-container' >
           <div className='upload-section1' style={{display: 'flex', flexDirection: 'column'}}>
           {/* Cover Photo */}
             {coverURL ? (
@@ -529,7 +530,7 @@ const handleUpdate = async () => {
           <button onClick={handleSaveClick}>Save Changes</button>
 
           
-            <div className='other-settings' style={{position: 'absolute', marginTop: '20px', top: '-80%', left: '120%'}}>
+            <div className='other-settings'>
               <h4>Privacy</h4>
                 <p>Change Password</p>
                 <p>Two-Factor Authentication</p>

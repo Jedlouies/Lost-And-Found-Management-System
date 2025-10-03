@@ -36,6 +36,7 @@ function FoundItemsPage() {
   const [alert, setAlert] = useState(null);
   const [selectedYear, setSelectedYear] = useState("All");
      const [loading, setLoading] = useState(true);
+    const [verifying, setVerifying] = useState(false);
   
 
   const dbRealtime = getDatabase();
@@ -92,6 +93,7 @@ useEffect(() => {
 
 const handleVerifyItem = async (foundDocId) => {
   try {
+    setVerifying(true);
     const foundDocRef = doc(db, "foundItems", foundDocId);
     const foundDocSnap = await getDoc(foundDocRef);
 
@@ -142,6 +144,7 @@ const handleVerifyItem = async (foundDocId) => {
               match.lostItem.uid,
               `Your lost item <b>${match.lostItem.itemId}</b> - ${match.lostItem.itemName} 
               may possibly match with a verified found item: <b>${itemName}</b>.
+              <p> With transastion Id of <b>${match.transactionId}</b>.
               Matching rate: <b>${match.scores.overallScore}%</b> Please bring your ID and QR Code for Verification.`
             );
             try {
@@ -153,6 +156,7 @@ const handleVerifyItem = async (foundDocId) => {
                   subject: "Possible Lost Match ",
                   html: `<p>Your lost item <b>${match.lostItem.itemId}</b> - ${match.lostItem.itemName} </p>
                   <p> may possibly match with a verified found item: <b>${itemName}</b>.</p>
+                   <p> With transastion Id of <b>${match.transactionId}</b>.</p>
                    <p>Matching rate: <b>${match.scores.overallScore}%</b> Please bring your ID and QR Code for Verification.</p>
                   `,
                 }),
@@ -223,6 +227,8 @@ const handleVerifyItem = async (foundDocId) => {
   } catch (error) {
     console.error("Error verifying item:", error);
     setAlert({ message: "Error verifying item. Try again.", type: "error" });
+  } finally {
+    setVerifying(false)
   }
 };
 
@@ -295,6 +301,27 @@ const archiveItem = async (item) => {
 
   return (
     <>
+        {verifying && (
+        <div style={{
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.6)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 9999,
+          flexDirection: "column",
+          color: "white",
+          fontSize: "20px",
+          fontWeight: "bold"
+        }}>
+          <div className="spinner-border text-light" role="status" style={{ width: "4rem", height: "4rem" }}>
+            <span className="visually-hidden">Loading...</span>
+          </div>
+          <p style={{ marginTop: "15px" }}>Verifying item, please wait...</p>
+        </div>
+      )}
+
         <Modal
             show={showConfirm}
             onHide={() => setShowConfirm(false)}

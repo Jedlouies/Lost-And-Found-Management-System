@@ -3,6 +3,7 @@ import './styles/FoundMatchResults.css';
 import UserFoundItemsPage from './UserFoundItemsPage';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from "firebase/auth";
+import RatingModal from "../components/RatingModal";
 
 
 
@@ -17,10 +18,11 @@ export default function FoundMatchResults() {
   const user = auth.currentUser; 
 
   const [selectedItem, setSelectedItem] = React.useState(null);
+  const [showRatingModal, setShowRatingModal] = React.useState(false);
   
   
-  const handleNavigate = (path) => {
-    navigate(path)
+  const handleNavigate = () => {
+    setShowRatingModal(true)
   }
 
   return (
@@ -188,7 +190,7 @@ export default function FoundMatchResults() {
       })}
       </div>
       <div className='matching-buttons-footer'>
-        <button style={{top: '92%', marginLeft: '5%', marginRight: '10%'}} className={`${location.pathname === `/users/item-management/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/users/item-management/${user?.uid}`)}>
+        <button style={{top: '92%', marginLeft: '5%', marginRight: '10%'}} onClick={handleNavigate}>
           Continue
         </button>
         <button style={{top: '92%', marginLeft: '80%'}} className={`${location.pathname === `/users/found-items/procedure/item-details/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/users/found-items/procedure/item-details/${user?.uid}`)}>
@@ -202,7 +204,7 @@ export default function FoundMatchResults() {
       </div>
 
       </div>
-
+        {showRatingModal && <RatingModal onClose={() => setShowRatingModal(false)} />}
     </>
   );
 }

@@ -113,13 +113,72 @@ function ItemMoreDetailsPage() {
             )}
 
             <h3>Reported By</h3>
-            <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
-              <img src={item.personalInfo?.profileURL} alt="" style={{width: '50px', height: '50px', objectFit: 'cover', borderRadius: '50px'}}/>
-              <p>
-                {item.personalInfo?.firstName} {item.personalInfo?.lastName} –{" "}
-                {item.personalInfo?.course.abbr}
-              </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {/* Profile Picture / Guest / Initials */}
+                    {item.isGuest ? (
+                      <div
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          backgroundColor: "blue",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "white",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Guest
+                      </div>
+                    ) : item.personalInfo?.profileURL ? (
+                      <img
+                        src={item.personalInfo.profileURL}
+                        alt="profile"
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          backgroundColor: "navy",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "white",
+                          fontSize: "14px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {`${item.personalInfo?.firstName?.[0] || ""}${
+                          item.personalInfo?.lastName?.[0] || ""
+                        }`.toUpperCase()}
+                      </div>
+                    )}
 
+                    <p>
+                      <strong style={{ fontSize: "14px" }}>
+                        {item.isGuest === true
+                          ? item.personalInfo?.firstName || "Guest"
+                          : `${item.personalInfo?.firstName || ""} ${item.personalInfo?.lastName || ""}`.trim()}
+                      </strong>
+                      <br />
+                      {item.isGuest !== true && (
+                        <span>
+                          {item.personalInfo?.course?.abbr
+                            ? `${item.personalInfo.course.abbr} Student`
+                            : "Unknown"}
+                        </span>
+                      )}
+              </p>
             </div>
 
       
