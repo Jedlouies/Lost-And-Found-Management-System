@@ -94,35 +94,6 @@ const resizeBase64Img = (base64, maxWidth = 400, maxHeight = 400, quality = 0.7)
 
 
   // 🔹 Camera handling
-const stopCamera = async () => {
-    try {
-      if (videoRef.current?.srcObject) {
-        videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
-        videoRef.current.srcObject = null;
-      }
-      await new Promise((res) => setTimeout(res, 200));
-    } catch (err) {
-      console.warn("Error stopping camera:", err);
-    }
-  };
-
-  // --- Start camera with device ---
-  const startCamera = async (deviceId) => {
-    try {
-      await stopCamera();
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: deviceId } },
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    } catch (err) {
-      console.error("Camera start error:", err);
-      setAlert({ message: "Unable to start camera.", type: "error" });
-    }
-  };
-
-  // --- Enumerate available cameras ---
   useEffect(() => {
     const updateDevices = async () => {
       try {
@@ -130,11 +101,9 @@ const stopCamera = async () => {
         const videoDevices = allDevices.filter((d) => d.kind === "videoinput");
         setDevices(videoDevices);
 
-        const saved = localStorage.getItem("preferredCamera");
-        if (saved && videoDevices.find((d) => d.deviceId === saved)) {
-          setSelectedDeviceId(saved);
-        } else if (!selectedDeviceId && videoDevices.length > 0) {
+        if (!selectedDeviceId && videoDevices.length > 0) {
           setSelectedDeviceId(videoDevices[0].deviceId);
+          startCamera(videoDevices[0].deviceId);
         }
       } catch (err) {
         console.error("Device enumeration error:", err);
@@ -143,41 +112,58 @@ const stopCamera = async () => {
 
     updateDevices();
     navigator.mediaDevices.ondevicechange = updateDevices;
+
     return () => {
       navigator.mediaDevices.ondevicechange = null;
     };
   }, [selectedDeviceId]);
 
-  // --- Start camera when selectedDeviceId changes ---
-  useEffect(() => {
-    if (selectedDeviceId) startCamera(selectedDeviceId);
-    return () => stopCamera();
-  }, [selectedDeviceId]);
-
-  // --- Handle camera switch ---
-  const handleCameraSwitch = async (newDeviceId) => {
-    await stopCamera();
-    localStorage.setItem("preferredCamera", newDeviceId);
-    setSelectedDeviceId(newDeviceId);
-  };
-
-  // --- Capture photo ---
-  const capturePhoto = async () => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (video && canvas) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const rawImage = canvas.toDataURL("image/png");
-      const compressedImage = await resizeBase64Img(rawImage);
-      setCapturedImage(compressedImage);
-      setShowGuestModal(true);
+  const startCamera = async (deviceId = selectedDeviceId) => {
+    try {
+      if (!deviceId) return;
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { deviceId: { exact: deviceId } },
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      console.error("Camera access error:", err);
     }
   };
 
-  // --- Notify user (Realtime DB) ---
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+    }
+  };
+
+  useEffect(() => {
+    startCamera();
+    return () => stopCamera();
+  }, [selectedDeviceId]);
+
+  // 🔹 Capture photo
+const capturePhoto = async () => {
+  const video = videoRef.current;
+  const canvas = canvasRef.current;
+  if (video && canvas) {
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const rawImage = canvas.toDataURL("image/png");
+
+    // 🔹 Compress before saving
+    const compressedImage = await resizeBase64Img(rawImage);
+    setCapturedImage(compressedImage);
+
+    setShowGuestModal(true);
+  }
+};
+
+  // 🔹 Notify user (Realtime DB)
   const notifyUser = async (uid, message) => {
     if (!uid) return;
     const notifRef = ref(dbRealtime, `notifications/${uid}`);
@@ -189,6 +175,7 @@ const stopCamera = async () => {
       read: false,
     });
   };
+
   // 🔹 Finalize claim
   const finalizeClaim = async () => {
     if (!matchData || !capturedImage || !guestName || !guestContact) {
@@ -343,10 +330,11 @@ const stopCamera = async () => {
       and an Overall Match Rate of ${matchData.scores?.overallScore}%. 
       Please review the transaction details for further verification.`);
     await notifyUser(matchData.lostItem?.uid, ` Hello <b>"${matchData.lostItem?.personalInfo?.firstName}"!</b>  Your lost item <b>"${matchData.lostItem?.itemName}"</b> has been successfully claimed.  
+      Please take a moment to rate your experience and help us improve the matching process.
       `);
     await notifyUser(matchData.foundItem?.uid, `Thank you <b>"${matchData.foundItem?.personalInfo?.firstName}"!</b>  The item you reported found <b>"${matchData.foundItem?.itemName}"</b> 
       has been successfully claimed by its rightful owner.  
-      We appreciate your honesty and contribution.
+      We appreciate your honesty and contribution. Kindly rate your experience with the process.
       `);
 
       try {
