@@ -2,6 +2,7 @@ import React from 'react';
 import '../user_pages/styles/FoundMatchResults.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from "firebase/auth";
+import RatingModal from "../components/RatingModal"
 
 
 

@@ -35,7 +35,7 @@ function GuestReportLostPage() {
   const [firstName, setFirstName] = useState('Guest');
   const [lastName, setLastName] = useState('Guest');
   const [middleName, setMiddleName] = useState('Guest');
-  const [email, setEmail] = useState('');   // 👈 guest email fetched from Firestore
+  const [email, setEmail] = useState('');   
   const [contactNumber, setContactNumber] = useState('Guest');
   const [address, setAddress] = useState('Guest');
   const [isSubmitting, setIsSubmitting] = useState(false);
