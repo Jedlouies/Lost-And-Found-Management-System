@@ -7,14 +7,20 @@ import DashboardHeader from '../components/DashboardHeader';
 import UserBlankHeader from '../user_components/UserBlankHeader';
 import '../pages/styles/SettingsPage.css';
 import FloatingAlert from '../components/FloatingAlert';
-import { getAuth, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
+import { getAuth, reauthenticateWithCredential, EmailAuthProvider, updatePassword  } from "firebase/auth";
 import { set } from 'firebase/database';
 import { Modal, Button, Form, Spinner } from 'react-bootstrap';
 import '../user_pages/styles/UserSettingsPage.css'
 import CropperModal from "../components/CropperModal";
+import VerificationModal from "../components/VerificationModal";
+import createVerificationCode from "../components/createVerificationCode.jsx"; // make sure path is correct
+
 
 
 function UserSettingsPage() {
+  const API = "http://localhost:4000" || "https://server.spotsync.site";
+
+
   const { currentUser } = useAuth();
 
   const [profileImage, setProfileImage] = useState(null);
@@ -51,6 +57,14 @@ function UserSettingsPage() {
 
   const initials = `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
 
+  // Change Password Modal
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+const [pendingPassword, setPendingPassword] = useState(null);
 
 
 
@@ -143,6 +157,66 @@ function UserSettingsPage() {
   { abbr: "MPS-SD", name: "Master in Public Sector Innovation Major in Sustainable Development" },
   { abbr: "MPS-PPS", name: "Master in Public Sector Innovation Major in Public Policy Studies" },
 ];
+
+const handleChangePassword = async () => {
+  if (!password || !newPassword || !confirmNewPassword) {
+    setAlert({ message: "Please fill all fields.", type: "error" });
+    return;
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    setAlert({ message: "Passwords do not match!", type: "error" });
+    return;
+  }
+
+  setChangingPassword(true);
+
+  try {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user) throw new Error("No user logged in");
+
+    // Step 1: Reauthenticate with current password
+    const credential = EmailAuthProvider.credential(user.email, password);
+    await reauthenticateWithCredential(user, credential);
+
+    // Step 2: Save new password temporarily
+    setPendingPassword(newPassword);
+
+    // Step 3: Send verification email
+    const code = await createVerificationCode(user);
+    await sendVerificationEmail(user, code);
+
+    // Step 4: Open verification modal
+    setShowChangePasswordModal(false);
+    setShowVerificationModal(true);
+
+  } catch (err) {
+    console.error("Error during password change:", err);
+    setAlert({ message: err.message || "Error reauthenticating user.", type: "error" });
+  }
+
+  setChangingPassword(false);
+};
+
+async function sendVerificationEmail(userData, code) {
+  await fetch(`${API}/api/send-email`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      to: userData.email,
+      subject: "Verify your Spotsync Account",
+      html: `
+        <h2>Email Verification</h2>
+        <p>Your verification code is:</p>
+        <h1 style="letter-spacing: 5px;">${code}</h1>
+        <p>This code will expire in 2 minutes.</p>
+      `,
+    }),
+  });
+}
+
 
 const handleFileSelect = (e, field) => {
     if (e.target.files && e.target.files[0]) {
@@ -322,6 +396,8 @@ const handleUpdate = async () => {
     if (e.target.files[0]) setProfileImage(e.target.files[0]);
   };
 
+  
+
   const handleCoverChange = (e) => {
     if (e.target.files[0]) setCoverImage(e.target.files[0]);
   };
@@ -379,7 +455,98 @@ const handleUpdate = async () => {
 
   return (
     <>
+    
       <UserNavigationBar />
+<VerificationModal
+  show={showVerificationModal}
+  onClose={() => setShowVerificationModal(false)}
+  user={currentUser}
+  sendVerificationEmail={sendVerificationEmail}
+  onVerified={async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+
+      await updatePassword(user, pendingPassword);
+
+      setAlert({ message: "Password updated successfully!", type: "success" });
+      setPendingPassword(null);
+      setShowVerificationModal(false);
+
+      setPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+
+    } catch (err) {
+      console.error("Error updating password:", err);
+      setAlert({
+        message: "Failed to update password. Please try again.",
+        type: "error",
+      });
+    }
+  }}
+/>
+
+<Modal
+  show={showChangePasswordModal}
+  onHide={() => setShowChangePasswordModal(false)}
+  centered
+>
+  <Modal.Header closeButton>
+    <Modal.Title>Change Password</Modal.Title>
+  </Modal.Header>
+
+  <Modal.Body>
+    <Form.Group className="mb-3">
+      <Form.Label>Current Password</Form.Label>
+      <Form.Control
+        type="password"
+        placeholder="Enter current password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+    </Form.Group>
+
+    <Form.Group className="mb-3">
+      <Form.Label>New Password</Form.Label>
+      <Form.Control
+        type="password"
+        placeholder="Enter new password"
+        value={newPassword}
+        onChange={(e) => setNewPassword(e.target.value)}
+      />
+    </Form.Group>
+
+    <Form.Group>
+      <Form.Label>Confirm New Password</Form.Label>
+      <Form.Control
+        type="password"
+        placeholder="Confirm new password"
+        value={confirmNewPassword}
+        onChange={(e) => setConfirmNewPassword(e.target.value)}
+      />
+    </Form.Group>
+  </Modal.Body>
+
+  <Modal.Footer>
+    <Button variant="secondary" onClick={() => setShowChangePasswordModal(false)}>
+      Cancel
+    </Button>
+    <Button variant="primary" onClick={handleChangePassword} disabled={changingPassword}>
+      {changingPassword ? (
+        <>
+          <Spinner as="span" animation="border" size="sm" /> Changing...
+        </>
+      ) : (
+        "Change Password"
+      )}
+    </Button>
+  </Modal.Footer>
+</Modal>
+
       <Modal
         show={showPasswordModal}
         onHide={() => setShowPasswordModal(false)}
@@ -430,6 +597,8 @@ const handleUpdate = async () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+
 
         {alert && (
           <FloatingAlert
@@ -486,7 +655,7 @@ const handleUpdate = async () => {
                   width: '70px', 
                   height: '70px', 
                   borderRadius: '50%', 
-                  backgroundColor: 'navyblue', 
+                  backgroundColor: 'navy', 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center', 
@@ -571,7 +740,9 @@ const handleUpdate = async () => {
           
             <div className='other-settings'>
               <h4>Privacy</h4>
-                <p>Change Password</p>
+              <p style={{cursor:"pointer", color:"black"}} onClick={() => setShowChangePasswordModal(true)}>
+                  Change Password
+                </p>                
                 <p>Two-Factor Authentication</p>
               <h4>Database Management</h4>
                 <p>Back up and Restore</p>

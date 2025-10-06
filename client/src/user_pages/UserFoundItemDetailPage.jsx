@@ -152,6 +152,7 @@ const handleSubmit = async (e) => {
       dateFound,
       locationFound: locationFound === "Others" ? customLocation : locationFound,
       archivedStatus: false,
+      remindersSent: [],
       founder,
       owner,
       claimStatus,
@@ -189,56 +190,48 @@ const handleSubmit = async (e) => {
 
     const top4Matches = matches.slice(0, 4);
 
-    for (let i = 0; i < top4Matches.length; i++) {
-    const match = top4Matches[i];
+// Loop is only for matches (if needed later)
+for (let i = 0; i < top4Matches.length; i++) {
+  const match = top4Matches[i];
+  // (maybe process matches here if needed)
+}
 
-    
+await notifyUser(
+  currentUser.uid,
+  `Hello <b>${firstName}</b> Your found item <b>${itemName}</b> has been submitted. 
+  Please surrender it to the OSA for verification. The item is currently on a pending status for 24 hours and once verified, 
+  the system will notify possible owners and post the item.`,
+  "info"
+);
 
-        
-        
-          await notifyUser(
-            currentUser.uid,
-            `Hello <b>${firstName}</b> Your found item <b>${itemName}</b> has been submitted. 
-            Please surrender it to the OSA for verification. The item is currently on a pending status  for 24 hours and Once verified, 
-            the system will notify possible owners and post the item.`, 
-            "info"
-          );
+try {
+  const emailRes = await fetch(`${API}/api/send-email`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      to: email,
+      subject: "Instructions for Found Items",
+      html: `
+        <p>Hello ${firstName},</p>
+        <p>Your found item <b>${itemName}</b> has been submitted.</p>
+        <p>Please surrender it to the OSA for verification.</p>
+        <p>The item is currently on pending status for 24 hours and once verified, 
+        the system will notify possible owners and post the item.</p>
+      `,
+    }),
+  });
 
-          try {
-            const emailRes = await fetch(`${API}/api/send-email`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                to: email,   
-                subject: "Instructions for Found Items",
-                html: `
-                        <p>Hello ${firstName},</p>
-                        <p>Your found item <b>${itemName}</b> has been submitted.</b>.</p>
-                        <p>Please surrender it to the OSA for verification. 
-                        <p>The item is currently on a pending status  for 24 hours and Once verified,</p> 
-                        <p>the system will notify possible owners and post the item.</p>
-                      `,
-              }),
-            });
+  const emailData = await emailRes.json();
+  console.log("📧 Email API response:", emailData);
 
-            const emailData = await emailRes.json();
-            console.log("📧 Email API response:", emailData);
-
-            if (!emailRes.ok) {
-              console.error(`❌ Failed to send email to ${email}:`, emailData);
-            } else {
-              console.log(`✅ Email successfully sent to ${email}`);
-            }
-          } catch (err) {
-            console.error(`⚠️ Error sending email to ${email}:`, err);
-          }
-
-          
-
-          
-        
-      
-    }
+  if (!emailRes.ok) {
+    console.error(`❌ Failed to send email to ${email}:`, emailData);
+  } else {
+    console.log(`✅ Email successfully sent to ${email}`);
+  }
+} catch (err) {
+  console.error(`⚠️ Error sending email to ${email}:`, err);
+}
 
 
     await addDoc(collection(db, 'itemManagement'), {

@@ -9,6 +9,8 @@ import createVerificationCode from "../components/createVerificationCode.jsx";
 import VerificationModal from "../components/VerificationModal";
 
 function CreateAccount() {
+
+  
   const navigate = useNavigate();
 
   const API = "http://localhost:4000" || "https://server.spotsync.site";

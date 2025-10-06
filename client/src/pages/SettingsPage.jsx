@@ -9,6 +9,10 @@ import FloatingAlert from '../components/FloatingAlert';
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 import { Modal, Button, Spinner, Form } from "react-bootstrap";
 import CropperModal from "../components/CropperModal";
+import VerificationModal from "../components/VerificationModal";
+import createVerificationCode from "../components/createVerificationCode.jsx";
+import { updatePassword } from "firebase/auth";
+
 
 
 
@@ -43,6 +47,18 @@ function SettingsPage() {
   const [cropImageSrc, setCropImageSrc] = useState(null);
   const [cropAspect, setCropAspect] = useState(1);
   const [pendingField, setPendingField] = useState(null); // "profile" or "cover"
+
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+const [newPassword, setNewPassword] = useState("");
+const [confirmNewPassword, setConfirmNewPassword] = useState("");
+const [changingPassword, setChangingPassword] = useState(false);
+
+const [showVerificationModal, setShowVerificationModal] = useState(false);
+const [pendingPassword, setPendingPassword] = useState(null);
+
+  const initials = `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
+
+
 
 
    const courseList = [
@@ -132,6 +148,64 @@ function SettingsPage() {
   { abbr: "MPS-SD", name: "Master in Public Sector Innovation Major in Sustainable Development" },
   { abbr: "MPS-PPS", name: "Master in Public Sector Innovation Major in Public Policy Studies" },
 ];
+
+  const handleChangePassword = async () => {
+  if (!password || !newPassword || !confirmNewPassword) {
+    setAlert({ message: "Please fill all fields.", type: "error" });
+    return;
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    setAlert({ message: "Passwords do not match!", type: "error" });
+    return;
+  }
+
+  setChangingPassword(true);
+
+  try {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) throw new Error("No user logged in");
+
+    // Reauthenticate with current password
+    const credential = EmailAuthProvider.credential(user.email, password);
+    await reauthenticateWithCredential(user, credential);
+
+    // Save new password temporarily
+    setPendingPassword(newPassword);
+
+    // Send verification email
+    const code = await createVerificationCode(user);
+    await sendVerificationEmail(user, code);
+
+    // Close change password modal, open verification modal
+    setShowChangePasswordModal(false);
+    setShowVerificationModal(true);
+
+  } catch (err) {
+    setAlert({ message: err.message || "Error reauthenticating.", type: "error" });
+  }
+
+  setChangingPassword(false);
+};
+
+async function sendVerificationEmail(userData, code) {
+  await fetch("http://localhost:4000/api/send-email", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      to: userData.email,
+      subject: "Verify your Spotsync Account",
+      html: `
+        <h2>Email Verification</h2>
+        <p>Your verification code is:</p>
+        <h1 style="letter-spacing: 5px;">${code}</h1>
+        <p>This code will expire in 2 minutes.</p>
+      `,
+    }),
+  });
+}
+
 
 
   const handleFileSelect = (e, field) => {
@@ -362,6 +436,63 @@ const handleUpdate = async () => {
   return (
     <>
 
+      <VerificationModal
+  show={showVerificationModal}
+  onClose={() => setShowVerificationModal(false)}
+  user={currentUser}
+  sendVerificationEmail={sendVerificationEmail}
+  onVerified={async () => {
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+
+      await updatePassword(user, pendingPassword);
+
+      setAlert({ message: "Password updated successfully!", type: "success" });
+      setPendingPassword(null);
+      setShowVerificationModal(false);
+
+      setPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
+
+    } catch (err) {
+      setAlert({ message: "Failed to update password.", type: "error" });
+    }
+  }}
+/>
+
+      <Modal show={showChangePasswordModal} onHide={() => setShowChangePasswordModal(false)} centered>
+  <Modal.Header closeButton>
+    <Modal.Title>Change Password</Modal.Title>
+  </Modal.Header>
+  <Modal.Body>
+    <Form.Group>
+      <Form.Label>Current Password</Form.Label>
+      <Form.Control type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+    </Form.Group>
+    <Form.Group>
+      <Form.Label>New Password</Form.Label>
+      <Form.Control type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+    </Form.Group>
+    <Form.Group>
+      <Form.Label>Confirm New Password</Form.Label>
+      <Form.Control type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} />
+    </Form.Group>
+  </Modal.Body>
+  <Modal.Footer>
+    <Button variant="secondary" onClick={() => setShowChangePasswordModal(false)}>Cancel</Button>
+    <Button variant="primary" onClick={handleChangePassword} disabled={changingPassword}>
+      {changingPassword ? <Spinner animation="border" size="sm" /> : "Change Password"}
+    </Button>
+  </Modal.Footer>
+</Modal>
+
+
+
       <Modal
         show={showPasswordModal}
         onHide={() => setShowPasswordModal(false)}
@@ -424,19 +555,66 @@ const handleUpdate = async () => {
       <div className='found-item-body'>
         <BlankHeader />
 
-        <div className='upload-section1' style={{display: 'flex', flexDirection: 'column'}}>
-          {coverURL && (
-            <div>
-              
-              <img src={coverURL} alt="Cover" style={{ height: '100px',width: '550px',borderRadius: '10px', objectFit: 'cover' }} />
-            </div>
-          )}
-          {profileURL && (
-            <div>
-              <img src={profileURL} alt="Profile" style={{ width: '70px', height: '70px', borderRadius: '50%', objectFit: 'cover', marginTop: '-20px'}} />
-            </div>
-          )}
-          <div>
+          <div className='upload-section1' style={{display: 'flex', flexDirection: 'column'}}>
+          {/* Cover Photo */}
+            {coverURL ? (
+              <div>
+                <img 
+                  src={coverURL} 
+                  alt="Cover" 
+                  style={{ height: '100px', width: '550px', borderRadius: '10px', objectFit: 'cover' }} 
+                />
+              </div>
+            ) : (
+              <div 
+                style={{ 
+                  height: '100px', 
+                  width: '550px', 
+                  borderRadius: '10px', 
+                  backgroundColor: 'gray', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  color: 'white', 
+                  fontWeight: 'bold', 
+                  border: '2px solid black'
+                }}
+              >
+                No Picture
+              </div>
+            )}
+
+            {/* Profile Photo */}
+            {profileURL ? (
+              <div>
+                <img 
+                  src={profileURL} 
+                  alt="Profile" 
+                  style={{ width: '70px', height: '70px', borderRadius: '50%', objectFit: 'cover', marginTop: '-20px'}} 
+                />
+              </div>
+            ) : (
+              <div 
+                style={{ 
+                  width: '70px', 
+                  height: '70px', 
+                  borderRadius: '50%', 
+                  backgroundColor: 'navy', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  color: 'white', 
+                  fontSize: '30px', 
+                  fontWeight: 'bold', 
+                  marginTop: '-20px',
+                  border: '2px solid black'
+                }}
+              >
+                {initials}
+              </div>
+            )}
+
+          <div >
         <h4>Profile Picture</h4>
         <input
         type="file"
@@ -514,16 +692,23 @@ const handleUpdate = async () => {
 
           <button onClick={handleSaveClick}>Save Changes</button>
 
-          <div className='other-settings' style={{position: 'absolute', marginTop: '20px', top: '-80%', left: '120%'}}>
-              <h4>Privacy</h4>
-                <p>Change Password</p>
-                <p>Two-Factor Authentication</p>
-              <h4>Database Management</h4>
-                <p>Back up and Restore</p>
-                <p>Data Export</p>
-              <h4>Notification</h4>
-                <p>Allow User Messages</p>
-          </div>
+<div className='other-settings' style={{marginTop: '30px'}}>
+  <h4>Privacy</h4>
+  <p 
+    style={{cursor: "pointer", color: "black"}} 
+    onClick={() => setShowChangePasswordModal(true)}
+  >
+    Change Password
+  </p>
+  <p style={{color: "gray"}}>Two-Factor Authentication (coming soon)</p>
+
+  <h4>Database Management</h4>
+  <p style={{color: "gray"}}>Back up and Restore (coming soon)</p>
+  <p style={{color: "gray"}}>Data Export (coming soon)</p>
+
+  <h4>Notification</h4>
+  <p style={{color: "gray"}}>Allow User Messages (coming soon)</p>
+</div>
 
         </div>
               <CropperModal

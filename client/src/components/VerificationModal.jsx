@@ -13,12 +13,27 @@ function VerificationModal({ show, onClose, user, sendVerificationEmail, onVerif
   const [verifying, setVerifying] = useState(false);
   const [verified, setVerified] = useState(false);
 
-  // countdown timer for expiry
   useEffect(() => {
-    if (expiryCountdown <= 0) return;
-    const timer = setInterval(() => setExpiryCountdown((prev) => prev - 1), 1000);
-    return () => clearInterval(timer);
-  }, [expiryCountdown]);
+    if (show) {
+      setExpiryCountdown(120);
+      setCode("");
+      setError("");
+      setMessage("");
+      setVerified(false);
+
+      const timer = setInterval(() => {
+        setExpiryCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [show]);
 
   const handleVerify = async () => {
     setVerifying(true);
@@ -44,7 +59,7 @@ function VerificationModal({ show, onClose, user, sendVerificationEmail, onVerif
 
         // success
         setVerified(true);
-        onVerified();
+        await onVerified();
 
         // auto-close after 3s
         setTimeout(() => {
@@ -87,7 +102,7 @@ function VerificationModal({ show, onClose, user, sendVerificationEmail, onVerif
     <Modal show={show} onHide={onClose} centered backdrop="static" keyboard={false}>
       {!verified ? (
         <>
-          <Modal.Header closeButton={false}>
+          <Modal.Header>
             <Modal.Title>Email Verification</Modal.Title>
           </Modal.Header>
           <Modal.Body>
@@ -99,9 +114,15 @@ function VerificationModal({ show, onClose, user, sendVerificationEmail, onVerif
               placeholder="Enter code"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              disabled={verifying}
+              disabled={verifying || expiryCountdown <= 0}
             />
-            <p style={{ marginTop: "10px", color: expiryCountdown > 0 ? "black" : "red", fontSize: '10px' }}>
+            <p
+              style={{
+                marginTop: "10px",
+                color: expiryCountdown > 0 ? "black" : "red",
+                fontSize: "12px",
+              }}
+            >
               {expiryCountdown > 0
                 ? `Code will expire in ${formatTime(expiryCountdown)}`
                 : "Code expired. Please request a new one."}
@@ -113,11 +134,7 @@ function VerificationModal({ show, onClose, user, sendVerificationEmail, onVerif
             <Button variant="secondary" onClick={onClose} disabled={verifying}>
               Cancel
             </Button>
-            <Button
-              variant="outline-primary"
-              onClick={handleResend}
-              disabled={verifying}
-            >
+            <Button variant="outline-primary" onClick={handleResend} disabled={verifying}>
               Resend Code
             </Button>
             <Button
@@ -136,18 +153,16 @@ function VerificationModal({ show, onClose, user, sendVerificationEmail, onVerif
           </Modal.Footer>
         </>
       ) : (
-        <>
-          <Modal.Body
-            style={{
-              textAlign: "center",
-              padding: "40px",
-              fontSize: "18px",
-              fontWeight: "bold",
-            }}
-          >
-            ✅ Email Verified Successfully! <br />
-          </Modal.Body>
-        </>
+        <Modal.Body
+          style={{
+            textAlign: "center",
+            padding: "40px",
+            fontSize: "18px",
+            fontWeight: "bold",
+          }}
+        >
+          ✅ Email Verified Successfully!
+        </Modal.Body>
       )}
     </Modal>
   );
