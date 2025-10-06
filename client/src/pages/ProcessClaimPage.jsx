@@ -515,7 +515,7 @@ const handleCameraSwitch = async (newDeviceId) => {
           <p>Course: {qrResult.course}</p>
         </div>}
 
-        {userData && <div className="qr-results" style={{ marginTop: "170px", backgroundColor: "white", width: "500px", borderRadius: "20px", padding: "10px" }}>
+        {userData && <div className="qr-results" style={{ marginTop: "180px", backgroundColor: "white", width: "500px", borderRadius: "20px", padding: "10px" }}>
           <p><b>Matched User Account:</b></p>
           <img src={userData.profileURL} alt="Profile" style={{ width: "60px", height: "60px", borderRadius: "100%", objectFit: "cover" }} />
           <p>{userData.firstName} {userData.middleName} {userData.lastName}</p>
