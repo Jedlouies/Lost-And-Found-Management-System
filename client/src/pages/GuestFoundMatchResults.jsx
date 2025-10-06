@@ -2,7 +2,7 @@ import React from 'react';
 import '../user_pages/styles/FoundMatchResults.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from "firebase/auth";
-import RatingModal from "../components/RatingModal"
+import GuestRatingModal from "../components/GuestatingModal"
 
 
 
@@ -213,7 +213,7 @@ export default function GuestFoundMatchResults(foundItem) {
       </div>
 
       </div>
-        {showRatingModal && <RatingModal onClose={() => setShowRatingModal(false)} />}
+        {showRatingModal && <GuestRatingModal onClose={() => setShowRatingModal(false)} />}
 
     </>
   );

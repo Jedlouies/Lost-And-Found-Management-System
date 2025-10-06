@@ -57,11 +57,11 @@ function VerificationModal({ show, onClose, user, sendVerificationEmail, onVerif
           return;
         }
 
-        // success
+        // ✅ Success
         setVerified(true);
         await onVerified();
 
-        // auto-close after 3s
+        // Auto-close after 3s
         setTimeout(() => {
           onClose();
         }, 3000);
@@ -98,6 +98,14 @@ function VerificationModal({ show, onClose, user, sendVerificationEmail, onVerif
     return `${m}:${s}`;
   };
 
+  // ✅ Handle Enter key press
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !verifying && expiryCountdown > 0) {
+      e.preventDefault(); // prevent accidental form submission
+      handleVerify();
+    }
+  };
+
   return (
     <Modal show={show} onHide={onClose} centered backdrop="static" keyboard={false}>
       {!verified ? (
@@ -114,6 +122,7 @@ function VerificationModal({ show, onClose, user, sendVerificationEmail, onVerif
               placeholder="Enter code"
               value={code}
               onChange={(e) => setCode(e.target.value)}
+              onKeyDown={handleKeyPress} // 👈 Enable Enter key to verify
               disabled={verifying || expiryCountdown <= 0}
             />
             <p

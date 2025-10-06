@@ -343,11 +343,10 @@ const stopCamera = async () => {
       and an Overall Match Rate of ${matchData.scores?.overallScore}%. 
       Please review the transaction details for further verification.`);
     await notifyUser(matchData.lostItem?.uid, ` Hello <b>"${matchData.lostItem?.personalInfo?.firstName}"!</b>  Your lost item <b>"${matchData.lostItem?.itemName}"</b> has been successfully claimed.  
-      Please take a moment to rate your experience and help us improve the matching process.
       `);
     await notifyUser(matchData.foundItem?.uid, `Thank you <b>"${matchData.foundItem?.personalInfo?.firstName}"!</b>  The item you reported found <b>"${matchData.foundItem?.itemName}"</b> 
       has been successfully claimed by its rightful owner.  
-      We appreciate your honesty and contribution. Kindly rate your experience with the process.
+      We appreciate your honesty and contribution.
       `);
 
       try {
