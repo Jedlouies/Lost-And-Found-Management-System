@@ -11,6 +11,8 @@ import { auth } from "./firebaseAdmin.js"; // make sure firebaseAdmin.js exports
 // --- Server Setup ---
 const app = express();
 app.use(express.json());
+app.use(express.static("public"));
+
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: "*" }));
 
