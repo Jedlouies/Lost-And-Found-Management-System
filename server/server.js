@@ -251,7 +251,7 @@ app.post("/api/send-email", async (req, res) => {
       <div style="font-family: Arial, sans-serif; text-align: center; background-color: #f9f9f9; padding: 20px;">
         <!-- Header -->
         <img 
-          src="https://server.spotsync.site/public/Email-Header.png" 
+          src="https://server.spotsync.site/Email-Header.png" 
           alt="SpotSync Header" 
           style="max-width: 100%; height: auto; margin-bottom: 20px;" 
         />
