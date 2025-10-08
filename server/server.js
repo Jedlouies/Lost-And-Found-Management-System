@@ -247,12 +247,33 @@ app.post("/api/send-email", async (req, res) => {
   try {
     const { to, subject, html } = req.body;
 
+    const wrappedHtml = `
+      <div style="font-family: Arial, sans-serif; text-align: center; background-color: #f9f9f9; padding: 20px;">
+        <!-- Header -->
+        <img 
+          src="https://server.spotsync.site/Email-Header.png" 
+          alt="SpotSync Header" 
+          style="max-width: 100%; height: auto; margin-bottom: 20px;" 
+        />
+
+        <!-- Dynamic Content -->
+        <div style="background: white; padding: 25px; border-radius: 10px; margin: 0 auto; max-width: 600px;">
+          ${html}
+        </div>
+
+        <p style="font-size: 12px; color: #888; margin-top: 10px;">
+          &copy; ${new Date().getFullYear()} SpotSync. All rights reserved.
+        </p>
+      </div>
+    `;
+
     const { data, error } = await resend.emails.send({
-      from: "Spotsync <Onboarding@spotsync.site>",
+      from: "SpotSync <Onboarding@spotsync.site>",
       to,
       subject,
-      html,
+      html: wrappedHtml, 
     });
+
     if (error) return res.status(500).json({ error });
     res.json({ success: true, data });
   } catch (err) {

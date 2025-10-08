@@ -183,7 +183,7 @@ function UserProfilesPage() {
 
               <tfoot>
                 <tr className='footer'>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '10px 0' }}>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '10px 0', minWidth: '100px'}}>
                     <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>{'<'}</button>
                     {
                       [...Array(totalPages)].map((_, i) => i + 1).map((pageNum) => (

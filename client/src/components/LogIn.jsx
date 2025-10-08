@@ -91,7 +91,7 @@ function LogIn() {
             <p
               style={{
                 cursor: 'pointer',
-                color: '#6a95d4ff',
+                color: '#a0c6ffff',
                 marginBottom: '10px'
               }}
               onClick={() => setShowForgotModal(true)}
@@ -149,7 +149,7 @@ function LogIn() {
         </p>
         <Form.Control
           type='text'
-          placeholder='Enter your Student ID'
+          placeholder='Student ID'
           value={forgotId}
           onChange={(e) => setForgotId(e.target.value.trim())}
         />

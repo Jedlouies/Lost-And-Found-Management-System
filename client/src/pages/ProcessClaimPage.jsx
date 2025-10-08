@@ -517,8 +517,72 @@ const handleCameraSwitch = async (newDeviceId) => {
 
         {userData && <div className="qr-results" style={{ marginTop: "180px", backgroundColor: "white", width: "500px", borderRadius: "20px", padding: "10px" }}>
           <p><b>Matched User Account:</b></p>
-          <img src={userData.profileURL} alt="Profile" style={{ width: "60px", height: "60px", borderRadius: "100%", objectFit: "cover" }} />
-          <p>{userData.firstName} {userData.middleName} {userData.lastName}</p>
+                  <div style={{display: 'flex'}}>
+                    {userData.isGuest ? (
+                      <div
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          backgroundColor: "blue",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "white",
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Guest
+                      </div>
+                    ) : userData.profileURL ? (
+                      <img
+                        src={userData.profileURL}
+                        alt="profile"
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        style={{
+                          width: "50px",
+                          height: "50px",
+                          borderRadius: "40px",
+                          backgroundColor: "navy",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "white",
+                          fontSize: "14px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {`${userData.firstName?.[0] || ""}${
+                          userData.lastName?.[0] || ""
+                        }`.toUpperCase()}
+                      </div>
+                    )}
+
+                    <p style={{marginLeft: '10px'}}>
+                      <strong style={{ fontSize: "14px" }}>
+                        {userData.isGuest === true
+                          ? userData.firstName || "Guest"
+                          : `${userData.firstName || ""} ${userData.lastName || ""}`.trim()}
+                      </strong>
+                      <br />
+                      {userData.isGuest !== true && (
+                        <span>
+                          {userData.personalInfo?.course?.abbr
+                            ? `${userData.personalInfo.course.abbr} Student`
+                            : "Unknown"}
+                        </span>
+                      )}
+                    </p>
+                  </div>
           <p>Email: {userData.email}</p>
           <p>Course: {userData.course?.abbr} | Section: {userData.section}</p>
           <p>Year Level: {userData.yearLevel}</p>
