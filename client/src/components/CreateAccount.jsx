@@ -9,26 +9,14 @@ import createVerificationCode from "../components/createVerificationCode.jsx";
 import VerificationModal from "../components/VerificationModal";
 
 function CreateAccount() {
-
-  
   const navigate = useNavigate();
-
-  const API = "http://localhost:4000" || "https://server.spotsync.site";
+  const API = "https://server.spotsync.site";
 
   const handleLogin = () => {
     navigate("/log-in");
   };
 
-  const handleGuest = async () => {
-    try {
-      await signInAnonymously(auth);
-      console.log("Guest signed in:", auth.currentUser?.uid);
-      navigate(`/guest/email/${auth.currentUser?.uid}`);
-    } catch (error) {
-      console.error("Guest sign-in failed:", error.message);
-    }
-  };
-
+  const [guestLoading, setGuestLoading] = useState(false); // Loading overlay
   const firstNameRef = useRef();
   const lastNameRef = useRef();
   const studentIdRef = useRef();
@@ -41,6 +29,7 @@ function CreateAccount() {
   const [loading, setLoading] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [pendingUserData, setPendingUserData] = useState(null);
+  const [capsLock, setCapsLock] = useState(false);
 
   async function sendVerificationEmail(userData, code) {
     await fetch(`${API}/api/send-email`, {
@@ -54,14 +43,13 @@ function CreateAccount() {
           <p>Your verification code is:</p>
           <h1 style="letter-spacing: 5px;">${code}</h1>
           <p>This code will expire in 2 minutes.</p> 
-          `,
+        `,
       }),
     });
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
-
     if (passwordRef.current.value !== passwordConfirmRef.current.value) {
       return setError("Passwords do not match");
     }
@@ -70,7 +58,6 @@ function CreateAccount() {
       setError("");
       setLoading(true);
 
-      // Collect user data but DO NOT create the account yet
       const userData = {
         email: emailRef.current.value,
         password: passwordRef.current.value,
@@ -91,7 +78,6 @@ function CreateAccount() {
     setLoading(false);
   }
 
-  // Function called AFTER verification succeeds
   async function finalizeSignup() {
     try {
       const userCredential = await signup(
@@ -110,6 +96,25 @@ function CreateAccount() {
     }
   }
 
+  const handleCapsLockCheck = (e) => {
+    setCapsLock(e.getModifierState && e.getModifierState('CapsLock'));
+  };
+
+  const handleGuest = async () => {
+    try {
+      setGuestLoading(true);
+      await signInAnonymously(auth);
+      console.log("Guest signed in:", auth.currentUser?.uid);
+      // Wait a short time to show loading
+      setTimeout(() => {
+        navigate(`/guest/email/${auth.currentUser?.uid}`);
+      }, 500);
+    } catch (error) {
+      console.error("Guest sign-in failed:", error.message);
+      setGuestLoading(false);
+    }
+  };
+
   return (
     <>
       {showVerifyModal && (
@@ -118,8 +123,31 @@ function CreateAccount() {
           onClose={() => setShowVerifyModal(false)}
           user={pendingUserData}
           sendVerificationEmail={sendVerificationEmail}
-          onVerified={finalizeSignup} // call signup only after code is valid
+          onVerified={finalizeSignup}
         />
+      )}
+
+      {guestLoading && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0,0,0,0.8)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 9999,
+            color: "white",
+            fontSize: "24px",
+          }}
+        >
+          <img src="/Spin.gif" alt="Loading..." style={{ width: "50px", height: "50px", marginBottom: "20px" }} />
+          Creating Guest ID...
+        </div>
       )}
 
       <div className="create-container">
@@ -143,10 +171,19 @@ function CreateAccount() {
                 <input className="create-input" type="text" placeholder="Contact Number" ref={contactNumberRef} required />
               </Form.Group>
               <Form.Group id="password">
-                <input className="create-input" type="password" placeholder="Password" ref={passwordRef} required />
+                <input className="create-input" type="password" placeholder="Password" ref={passwordRef} required
+                  onKeyUp={handleCapsLockCheck} onKeyDown={handleCapsLockCheck} 
+                />
+                {capsLock && (
+                  <p style={{ color: '#ffffffff', marginTop: '5px' }}>
+                    ⚠️ CAPS LOCK
+                  </p>
+                )}
               </Form.Group>
               <Form.Group id="confirm-password">
-                <input className="create-input" type="password" placeholder="Confirm Password" ref={passwordConfirmRef} required />
+                <input className="create-input" type="password" placeholder="Confirm Password" ref={passwordConfirmRef} required
+                  onKeyUp={handleCapsLockCheck} onKeyDown={handleCapsLockCheck} 
+                />
               </Form.Group>
               <p>
                 Already have an account?<strong onClick={handleLogin}> Login </strong>

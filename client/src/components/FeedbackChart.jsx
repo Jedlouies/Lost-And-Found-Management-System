@@ -1,89 +1,147 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import './styles/FeedBackChart.css';
+import { db } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
 
 function FeedBackChart() {
-  const [percentages] = useState([20.34, 34.45, 13.34, 23.56, 23.21]);
+  const [ratings, setRatings] = useState({1:[],2:[],3:[],4:[],5:[]}); // only actual feedback
+  const [allRatingsCount, setAllRatingsCount] = useState({1:0,2:0,3:0,4:0,5:0}); // include null for percentage
+  const [hoveredRating, setHoveredRating] = useState(null);
+  const [hoverPos, setHoverPos] = useState({ top: 0, left: 0 });
+  const [currentFeedbackIndex, setCurrentFeedbackIndex] = useState(0);
+  const [countdown, setCountdown] = useState(5);
+  const containerRef = useRef(null);
+  const intervalRef = useRef(null);
+  const countdownRef = useRef(null);
 
-  const getStars = (index) => {
-    const maxStars = 5;
-    const fullStars = maxStars - index;
-    const emptyStars = maxStars - fullStars;
+  useEffect(() => {
+    const fetchRatings = async () => {
+      const ratingsSnapshot = await getDocs(collection(db, 'ratings'));
+      const tempRatings = {1:[],2:[],3:[],4:[],5:[]};
+      const tempCounts = {1:0,2:0,3:0,4:0,5:0};
 
+      ratingsSnapshot.forEach(doc => {
+        const data = doc.data();
+        if(data.rating >= 1 && data.rating <= 5) {
+          tempCounts[data.rating]++; // count all for percentage
+          if(data.feedback && data.feedback.trim() !== ''){
+            tempRatings[data.rating].push(data.feedback); // only actual feedback
+          }
+        }
+      });
+
+      setRatings(tempRatings);
+      setAllRatingsCount(tempCounts);
+    };
+    fetchRatings();
+  }, []);
+
+  const getStars = (rating) => {
     const stars = [];
-    for (let i = 0; i < fullStars; i++) {
+    for(let i=1;i<=5;i++){
       stars.push(
-        <svg
-          key={`filled-${i}`}
-          xmlns="http://www.w3.org/2000/svg"
-          width="30"
-          height="30"
-          fill="#475C6F"
-          className="bi bi-star-fill"
-          viewBox="0 0 16 16"
-          style={{ flexShrink: 0 }}
-        >
+        <svg key={i} xmlns="http://www.w3.org/2000/svg" width="30" height="30"
+          fill={i<=rating ? '#FFD700' : '#ccc'} viewBox="0 0 16 16">
           <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 
           6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 
           0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 
-          3.356.83 4.73c.078.443-.36.79-.746.592L8 
-          13.187l-4.389 2.256z"/>
+          3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
         </svg>
       );
     }
-
-    for (let i = 0; i < emptyStars; i++) {
-      stars.push(
-        <svg
-          key={`empty-${i}`}
-          xmlns="http://www.w3.org/2000/svg"
-          width="30"
-          height="30"
-          fill="#475C6F"
-          className="bi bi-star"
-          viewBox="0 0 16 16"
-          style={{ flexShrink: 0 }}
-        >
-          <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 
-          4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 
-          3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 
-          0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 
-          3.356-.83 4.73zm4.905-2.767-3.686 
-          1.894.694-3.957a.56.56 0 0 
-          0-.163-.505L1.71 6.745l4.052-.576a.53.53 
-          0 0 0 .393-.288L8 2.223l1.847 
-          3.658a.53.53 0 0 0 .393.288l4.052.575-2.906 
-          2.77a.56.56 0 0 0-.163.506l.694 
-          3.957-3.686-1.894a.5.5 0 0 0-.461 0z"/>
-        </svg>
-      );
-    }
-
     return stars;
   };
 
+  const getPercentage = (rating) => {
+    const total = Object.values(allRatingsCount).reduce((sum, count) => sum + count, 0);
+    if(total === 0) return 0;
+    return (allRatingsCount[rating] / total) * 100;
+  };
+
+  const startSlideshow = (rating) => {
+    const feedbacks = ratings[rating] || [];
+    if(feedbacks.length === 0) return; // only start slideshow if feedback exists
+
+    setCurrentFeedbackIndex(0);
+    setCountdown(5);
+
+    if(intervalRef.current) clearInterval(intervalRef.current);
+    if(countdownRef.current) clearInterval(countdownRef.current);
+
+    // Slideshow interval
+    intervalRef.current = setInterval(() => {
+      setCurrentFeedbackIndex(prev => (prev + 1) % feedbacks.length);
+      setCountdown(5);
+    }, 5000);
+
+    // Countdown interval
+    countdownRef.current = setInterval(() => {
+      setCountdown(prev => (prev > 0 ? prev - 1 : 5));
+    }, 1000);
+  };
+
+  const handleMouseEnter = (e, rating) => {
+    const rect = containerRef.current.getBoundingClientRect();
+    setHoverPos({ top: e.clientY - rect.top + 10, left: e.clientX - rect.left });
+    setHoveredRating(rating);
+    startSlideshow(rating);
+  };
+
+  const handleMouseMove = (e) => {
+    const rect = containerRef.current.getBoundingClientRect();
+    setHoverPos({ top: e.clientY - rect.top + 10, left: e.clientX - rect.left });
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredRating(null);
+    setCurrentFeedbackIndex(0);
+    setCountdown(5);
+    if(intervalRef.current) clearInterval(intervalRef.current);
+    if(countdownRef.current) clearInterval(countdownRef.current);
+  };
+
   return (
-    <div className="feedback-body" style={{ width: '100%', padding: '20px' }}>
-      {percentages.map((percent, index) => (
-        <div
-          key={index}
-          className="feedback-rows"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between', // ✅ keeps stars left, percentage right
-          }}
+    <div className="feedback-body" ref={containerRef} style={{ width:'100%', padding:'10px', position:'relative' }}>
+      {[5,4,3,2,1].map(rating => (
+        <div key={rating} className="feedback-rows" style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'10px' }}
+          onMouseEnter={(e)=>handleMouseEnter(e, rating)}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
         >
-          <div className="stars-group" style={{ display: 'flex', gap: '5px' }}>
-            {getStars(index)}
+          <div className="stars-group" style={{ display:'flex', gap:'5px' }}>
+            {getStars(rating)}
           </div>
-          <span
-            className="percentage-text"
-            style={{ fontWeight: '500', color: '#475C6F', whiteSpace: 'nowrap' }}
-          >
-            {percent.toFixed(2)}%
+          <span style={{ fontWeight:'500', color:'#475C6F', whiteSpace:'nowrap' }}>
+            {getPercentage(rating).toFixed(2)}%
           </span>
         </div>
       ))}
+
+      {hoveredRating && ratings[hoveredRating]?.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: hoverPos.top,
+          left: hoverPos.left,
+          backgroundColor: '#fff',
+          color: '#000',
+          border: '1px solid #ccc',
+          borderRadius: '8px',
+          padding: '10px',
+          zIndex: 9999,
+          maxHeight: '150px',
+          overflowY: 'auto',
+          width: '300px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+          wordWrap: 'break-word',
+        }}>
+          <p style={{margin:'5px 0', color: 'black'}}>
+            {ratings[hoveredRating][currentFeedbackIndex]}
+          </p>
+          <p style={{margin:'5px 0', fontSize:'12px', color:'#555', textAlign:'right'}}>
+            {countdown}s
+          </p>
+        </div>
+      )}
     </div>
   );
 }

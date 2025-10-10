@@ -18,6 +18,32 @@ function DashboardPage() {
   const { currentUser } = useAuth();
   const [userData, setUserData] = useState(null);
 
+useEffect(() => {
+  const loadUserData = async () => {
+    if (!currentUser) return;
+
+    try {
+      const userDocRef = doc(db, "users", currentUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const data = userDocSnap.data();
+        setUserData(data);
+
+        // Optional: cache locally for SPA navigations
+        Object.entries(data).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) localStorage.setItem(key, value);
+        });
+      }
+    } catch (err) {
+      console.error("Error fetching user info:", err);
+    }
+  };
+
+  loadUserData();
+}, [currentUser]);
+
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentDateTime(new Date());

@@ -13,7 +13,8 @@ import {
   doc, 
   updateDoc, 
   query, 
-  where 
+  where,
+  orderBy 
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { Modal } from 'react-bootstrap';
@@ -47,7 +48,8 @@ function LostItemsPage() {
         try {
           const q = query(
             collection(db, "lostItems"),
-            where("archivedStatus", "==", false)
+            where("archivedStatus", "==", false),
+            orderBy("createdAt", "desc")
           );
     
           const querySnapshot = await getDocs(q);

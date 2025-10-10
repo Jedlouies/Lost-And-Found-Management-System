@@ -8,8 +8,7 @@ import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp } f
 import Header from '../components/Header'
 
 function GuestReportLostPage() {
-    const API = "http://localhost:4000" || "https://server.spotsync.site";
-
+ const API = "https://server.spotsync.site";
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -42,6 +41,77 @@ function GuestReportLostPage() {
   const [isMatching, setIsMatching] = useState(false);
 
   const dbRealtime = getDatabase();
+
+      const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+    const [filteredLocations, setFilteredLocations] = useState([]);
+  
+    const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+    const [filteredCategories, setFilteredCategories] = useState([]);
+  
+    // Lists
+    const LOCATIONS = [
+      "Arts and Culture Building",
+      "Guidance and Testing Center",
+      "College of Medicine",
+      "Old Engineering Building",
+      "ICT Building",
+      "Administration Building",
+      "Finance and Accounting Building / SHS Building",
+      "Gymnasium Lobby",
+      "Gymnasium",
+      "Culinary Building",
+      "NSTP Building",
+      "Cafeteria",
+      "Guardhouse",
+      "LRC",
+      "Girl’s Trade Building",
+      "Food Innovation Center",
+      "University Health Center (with OSA)",
+      "Old Science Building",
+      "Old Education Building",
+      "Old Student Center",
+      "Science Complex",
+      "Engineering Complex (Right Wing)",
+      "Engineering Complex (Left Wing)",
+      "Student Center & Education Complex",
+      "Fabrication Laboratory Shop",
+      "Technology Building",
+      "Faculty Resource Center",
+      "Campus Residences / Dorm (new)",
+      "Fab Lab Building",
+      "Child Minding Center",
+      "BGMS",
+      "Supply and Property Management Section",
+      "Waiting Shed (Building 24)",
+      "Movable Classroom 1",
+      "Movable Classroom 2",
+      "Movable Classroom 3",
+      "Movable Classroom 4",
+      "Movable Classroom 5",
+      "Movable Classroom 6",
+      "Movable Classroom 7",
+      "Movable Classroom 8",
+      "Others",
+    ];
+  
+    const CATEGORIES = [
+      "Electronics",
+      "Accessories",
+      "Clothing & Apparel",
+      "Bags & Luggage",
+      "Documents & IDs",
+      "Books & Stationery",
+      "Household Items",
+      "Sports & Fitness",
+      "Health & Personal Care",
+      "Toys & Games",
+      "Food & Beverages",
+      "Automotive Items",
+      "Musical Instruments",
+      "Pet Items",
+      "Others",
+    ];
+  
     
   const WORD_LIMIT = 150;
 
@@ -322,111 +392,148 @@ function GuestReportLostPage() {
               }}
               required
             />          
-          <select
-            value={locationLost}
-            onChange={(e) => setLocationLost(e.target.value)}
-            style={{
-              width: "40%",
-              height: "35px",
-              borderRadius: "8px",
-              border: "2px solid #475C6F",
-              color: "#475C6F",
-              backgroundColor: "transparent",
-              padding: "5px",
+{/* LOCATION INPUT WITH TYPE + DROPDOWN */}
+              <div style={{ position: "relative", marginRight: "40px" }}>
+                <input
+                  type="text"
+                  value={locationLost}
+                  onChange={(e) => {
+                    const inputValue = e.target.value;
+                    setLocationLost(inputValue);
+                    setFilteredLocations(
+                      LOCATIONS.filter((loc) => loc.toLowerCase().includes(inputValue.toLowerCase()))
+                    );
+                  }}
+                  onFocus={() => {
+                    setFilteredLocations(LOCATIONS);
+                    setShowLocationDropdown(true);
+                  }}
+                  onBlur={() => setTimeout(() => setShowLocationDropdown(false), 150)}
+                  placeholder="Type or select location"
+                  style={{
+                    width: "100%",
+                    height: "35px",
+                    borderRadius: "8px",
+                    border: "2px solid #475C6F",
+                    color: "#475C6F",
+                    backgroundColor: "white",
+                    padding: "5px",
+                  }}
+                  required
+                />
+                {showLocationDropdown && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "38px",
+                      left: 0,
+                      width: "100%",
+                      backgroundColor: "white",
+                      border: "1px solid #ccc",
+                      borderRadius: "8px",
+                      maxHeight: "150px",
+                      overflowY: "auto",
+                      zIndex: 9999,
+                    }}
+                  >
+                    {filteredLocations.length > 0 ? (
+                      filteredLocations.map((loc) => (
+                        <div
+                          key={loc}
+                          onClick={() => {
+                            setLocationLost(loc);
+                            setShowLocationDropdown(false);
+                          }}
+                          style={{
+                            padding: "8px",
+                            cursor: "pointer",
+                            borderBottom: "1px solid #eee",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "#f0f0f0")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "white")}
+                        >
+                          {loc}
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ padding: "8px", color: "#888" }}>No match found</div>
+                    )}
+                  </div>
+                )}
+              </div>
 
-              marginRight: '10px',
-              marginBottom: '10px'
-            }}
-            required
-          >
-            <option value="">Select Location</option>
-            <option value="Arts and Culture Building">Arts and Culture Building</option>
-            <option value="Guidance and Testing Center">Guidance and Testing Center</option>
-            <option value="College of Medicine">College of Medicine</option>
-            <option value="Old Engineering Building">Old Engineering Building</option>
-            <option value="ICT Building">ICT Building</option>
-            <option value="Administration Building">Administration Building</option>
-            <option value="Finance and Accounting Building / SHS Building">Finance and Accounting Building / SHS Building</option>
-            <option value="Gymnasium Lobby">Gymnasium Lobby</option>
-            <option value="Gymnasium">Gymnasium</option>
-            <option value="Culinary Building">Culinary Building</option>
-            <option value="NSTP Building">NSTP Building</option>
-            <option value="Cafeteria">Cafeteria</option>
-            <option value="Guardhouse">Guardhouse</option>
-            <option value="LRC">LRC</option>
-            <option value="Girl’s Trade Building">Girl’s Trade Building</option>
-            <option value="Food Innovation Center">Food Innovation Center</option>
-            <option value="University Health Center (with OSA)">University Health Center (with OSA)</option>
-            <option value="Old Science Building">Old Science Building</option>
-            <option value="Old Education Building">Old Education Building</option>
-            <option value="Old Student Center">Old Student Center</option>
-            <option value="Science Complex">Science Complex</option>
-            <option value="Engineering Complex (Right Wing)">Engineering Complex (Right Wing)</option>
-            <option value="Engineering Complex (Left Wing)">Engineering Complex (Left Wing)</option>
-            <option value="Student Center & Education Complex">Student Center & Education Complex</option>
-            <option value="Fabrication Laboratory Shop">Fabrication Laboratory Shop</option>
-            <option value="Technology Building">Technology Building</option>
-            <option value="Faculty Resource Center">Faculty Resource Center</option>
-            <option value="Campus Residences / Dorm (new)">Campus Residences / Dorm (new)</option>
-            <option value="Fab Lab Building">Fab Lab Building</option>
-            <option value="Child Minding Center">Child Minding Center</option>
-            <option value="BGMS">BGMS</option>
-            <option value="Supply and Property Management Section">Supply and Property Management Section</option>
-            <option value="Waiting Shed (Building 24)">Waiting Shed (Building 24)</option>
-            <option value="Movable Classroom 1">Movable Classroom 1</option>
-            <option value="Movable Classroom 2">Movable Classroom 2</option>
-            <option value="Movable Classroom 3">Movable Classroom 3</option>
-            <option value="Movable Classroom 4">Movable Classroom 4</option>
-            <option value="Movable Classroom 5">Movable Classroom 5</option>
-            <option value="Movable Classroom 6">Movable Classroom 6</option>
-            <option value="Movable Classroom 7">Movable Classroom 7</option>
-            <option value="Movable Classroom 8">Movable Classroom 8</option>
-            <option value="Others">Others (please specify)</option>
-          </select>
+              {/* CATEGORY INPUT WITH TYPE + DROPDOWN */}
+              <div style={{ position: "relative", width: "26%", marginRight: "10px" }}>
+                <input
+                  type="text"
+                  value={category}
+                  onChange={(e) => {
+                    const inputValue = e.target.value;
+                    setCategory(inputValue);
+                    setFilteredCategories(
+                      CATEGORIES.filter((cat) =>
+                        cat.toLowerCase().includes(inputValue.toLowerCase())
+                      )
+                    );
+                  }}
+                  onFocus={() => {
+                    setFilteredCategories(CATEGORIES);
+                    setShowCategoryDropdown(true);
+                  }}
+                  onBlur={() => setTimeout(() => setShowCategoryDropdown(false), 150)}
+                  placeholder="Type or select category"
+                  style={{
+                    width: "100%",
+                    height: "35px",
+                    borderRadius: "8px",
+                    border: "2px solid #475C6F",
+                    color: "#475C6F",
+                    backgroundColor: "white",
+                    padding: "5px",
+                  }}
+                  required
+                />
 
-          {locationLost === "Others" && (
-            <input
-            className="custom-location-input"
-              type="text"
-              placeholder="Please specify location"
-              value={customLocation}
-              onChange={(e) => setCustomLocation(e.target.value)}
-              style={{
-                position: "absolute",
-                left: "32%",
-                top: "20%",
-                width: "350px",
-                height: "25px",
-                marginTop: "8px",
-                backgroundColor: "white",
-                border: "none",
-                padding: "5px",
-                marginLeft: '10px',
-                marginRight: '10px'
-                
-              }}
-              required
-            />
-          )}
-
-            <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ width: '26%', height: '35px', borderRadius: '10px', backgroundColor: 'transparent', border: '2px solid #475C6F', color: '#475C6F', marginRight: '10px' }} required>
-              <option value="">Select Category</option>
-              <option value="Electronics">Electronics</option>
-              <option value="Accessories">Accessories</option>
-              <option value="Clothing & Apparel">Clothing & Apparel</option>
-              <option value="Bags & Luggage">Bags & Luggage</option>
-              <option value="Documents & IDs">Documents & IDs</option>
-              <option value="Books & Stationery">Books & Stationery</option>
-              <option value="Household Items">Household Items</option>
-              <option value="Sports & Fitness">Sports & Fitness</option>
-              <option value="Health & Personal Care">Health & Personal Care</option>
-              <option value="Toys & Games">Toys & Games</option>
-              <option value="Food & Beverages">Food & Beverages</option>
-              <option value="Automotive Items">Automotive Items</option>
-              <option value="Musical Instruments">Musical Instruments</option>
-              <option value="Pet Items">Pet Items</option>
-              <option value="Others">Others</option>
-            </select>
+                {showCategoryDropdown && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "38px",
+                      left: 0,
+                      width: "100%",
+                      backgroundColor: "white",
+                      border: "1px solid #ccc",
+                      borderRadius: "8px",
+                      maxHeight: "150px",
+                      overflowY: "auto",
+                      zIndex: 9999,
+                    }}
+                  >
+                    {filteredCategories.length > 0 ? (
+                      filteredCategories.map((cat) => (
+                        <div
+                          key={cat}
+                          onClick={() => {
+                            setCategory(cat);
+                            setShowCategoryDropdown(false);
+                          }}
+                          style={{
+                            padding: "8px",
+                            cursor: "pointer",
+                            borderBottom: "1px solid #eee",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "#f0f0f0")}
+                          onMouseLeave={(e) => (e.currentTarget.style.background = "white")}
+                        >
+                          {cat}
+                        </div>
+                      ))
+                    ) : (
+                      <div style={{ padding: "8px", color: "#888" }}>No match found</div>
+                    )}
+                  </div>
+                )}
+              </div>
 
           </div>
               

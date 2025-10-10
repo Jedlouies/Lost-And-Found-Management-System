@@ -13,7 +13,7 @@ function LandingPage() {
         </div>
         <div className='page-qoute'>
             <h1>When losing something <br /> doesn’t mean it’s gone forever </h1>
-            <button>Get Started</button>
+            <button>Download APK (Android)</button>
         </div>
         <div className='page-features'>
             <h1>Core Features</h1>

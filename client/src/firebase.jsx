@@ -3,10 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from 'firebase/storage';
-import { setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence } from "firebase/auth";
-
-
-
+import { browserLocalPersistence, inMemoryPersistence } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API,
@@ -20,15 +17,11 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
+
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
+export const auth = getAuth(app); // main persistent auth
+export const secondaryAuth = getAuth(app, "Secondary"); // in-memory auth for additional accounts
+
 export default app;
-
-
-const secondaryApp = initializeApp(firebaseConfig, "Secondary");
-export const secondaryAuth = getAuth(secondaryApp);
-
-setPersistence(auth, browserLocalPersistence);       
-setPersistence(secondaryAuth, inMemoryPersistence);
-

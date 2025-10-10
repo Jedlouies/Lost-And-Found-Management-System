@@ -69,7 +69,21 @@ export default function LostMatchResults() {
       <div className='background1'>
        
     <div className="p-6" style={{position: 'absolute',  padding: '20px', backgroundColor: '#D9D9D9', width: '100%', height: '130vh'}}>
-      {matches.length === 0 && <p style={{color: 'black', marginTop: '20px'}}>No matches found.</p>}
+{matches.length === 0 && (
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      height: "80vh", // full vertical center
+      width: "100%",
+    }}
+  >
+    <p style={{ color: "black", fontSize: "20px", textAlign: 'center'}}>
+      No matches Lost. <br/> You can also clicked the match another for a different description and image.
+    </p>
+  </div>
+)}
       <h1 style={{position: 'absolute', fontWeight: 'bold', fontSize: '20px'}}>Matching Lost Item</h1>
 
 

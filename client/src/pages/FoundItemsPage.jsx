@@ -13,7 +13,8 @@ import {
   doc, 
   updateDoc, 
   query, 
-  where 
+  where,
+  orderBy 
 } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from "firebase/auth";
@@ -25,8 +26,8 @@ import BlankHeader from '../components/BlankHeader';
 
 
 function FoundItemsPage() {
-    const API = "http://localhost:4000" || "https://server.spotsync.site";
-
+ const API = "https://server.spotsync.site";
+ 
   const [items, setItems] = useState([]); 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,7 +57,8 @@ useEffect(() => {
     try {
       const q = query(
         collection(db, "foundItems"),
-        where("archivedStatus", "==", false)
+        where("archivedStatus", "==", false),
+        orderBy("createdAt", "desc")
       );
 
       const querySnapshot = await getDocs(q);

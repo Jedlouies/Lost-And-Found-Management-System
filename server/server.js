@@ -3,10 +3,8 @@ import cors from "cors";
 import fetch from "node-fetch";
 import sharp from "sharp";
 import { db, resend, openai } from "./firebaseAdmin.js";
-import { v4 as uuidv4 } from "uuid";
 import session from "express-session";
-import bcrypt from "bcrypt";
-import { auth } from "./firebaseAdmin.js"; // make sure firebaseAdmin.js exports both
+import { auth } from "./firebaseAdmin.js";
 
 // --- Server Setup ---
 const app = express();
@@ -49,18 +47,6 @@ async function getTextEmbedding(text) {
   }
 }
 
-// --- Image Preprocessing & Embedding ---
-async function preprocessImage(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Failed to fetch image: ${url}`);
-  const buffer = await response.arrayBuffer();
-  const processed = await sharp(Buffer.from(buffer))
-    .resize(224, 224, { fit: "cover" })
-    .png()
-    .toBuffer();
-  return Buffer.from(processed).toString("base64");
-}
-
 async function getImageEmbedding(url) {
   try {
     const visionRes = await openai.chat.completions.create({
@@ -88,21 +74,6 @@ async function getImageEmbedding(url) {
     console.error("Image embedding error:", err);
     return [];
   }
-}
-
-async function detectObjects(url) {
-  return [url]; // placeholder
-}
-
-// --- Check Relevance ---
-async function isRelevantObject(itemName, detectedObjects) {
-  const itemEmb = await getTextEmbedding(itemName);
-  for (const obj of detectedObjects) {
-    const objEmb = await getTextEmbedding(obj);
-    const sim = cosineSimilarity(itemEmb, objEmb);
-    if (sim >= 0.5) return true;
-  }
-  return false;
 }
 
 // --- Compare Images ---

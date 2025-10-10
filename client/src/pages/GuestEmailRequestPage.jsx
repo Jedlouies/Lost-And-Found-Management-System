@@ -17,8 +17,8 @@ export default function GuestEmailRequestPage() {
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [pendingEmail, setPendingEmail] = useState("");
 
-  const API = "http://localhost:4000" || "https://server.spotsync.site";
-
+ const API = "https://server.spotsync.site";
+ 
   async function sendVerificationEmail(user, code) {
     await fetch(`${API}/api/send-email`, {
       method: "POST",
