@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import './styles/FeedBackChart.css';
+import './styles/FeedbackChart.css';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
