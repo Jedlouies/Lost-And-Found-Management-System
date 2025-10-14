@@ -4,7 +4,7 @@ import './styles/DashboardPage.css'
 import DashboardHeader from '../components/DashboardHeader'
 import ClaimedLostFoundChart from '../components/ClaimedLostFoundChart'
 import WeeklyUsersCard from '../components/WeeklyUsersCard'
-import FeedBackChart from '../components/FeedBackChart'
+import FeedBackChart from '../components/FeedbackChart'
 import AdminAddInfoPanel from '../components/AdminAddInfoPanel'
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
