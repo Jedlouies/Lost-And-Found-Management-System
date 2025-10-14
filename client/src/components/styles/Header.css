@@ -34,5 +34,6 @@
     .header-container button {
         width: 100px;
         left: 75%;
+        opacity: 0;
     }
 }
