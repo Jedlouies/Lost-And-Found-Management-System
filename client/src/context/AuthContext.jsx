@@ -74,16 +74,9 @@ useEffect(() => {
       const unsub2 = onAuthStateChanged(secondaryAuth, (user) => {
         setSecondaryUser(user || null);
       });
-
-      // 🚫 REMOVE THIS BLOCK — it's causing forced logout
-      // window.addEventListener("beforeunload", handleBeforeUnload);
-      // window.addEventListener("unload", handleUnload);
-
       return () => {
         unsub1();
         unsub2();
-        // window.removeEventListener("beforeunload", handleBeforeUnload);
-        // window.removeEventListener("unload", handleUnload);
       };
     } catch (error) {
       console.error("Error setting session persistence:", error);
@@ -93,7 +86,6 @@ useEffect(() => {
 
   setupAuth();
 }, []);
-
   const value = {
     currentUser,
     secondaryUser,

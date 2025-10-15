@@ -51,28 +51,6 @@ import InactivityHandler from "./InactivityHandler";
 
 function App() {
 
-  useEffect(() => {
-    const auth = getAuth();
-
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      const cachedUID = localStorage.getItem("uid");
-
-      if (!user) {
-        localStorage.clear();
-        console.log("Cleared cache after sign-out");
-      } else if (cachedUID && cachedUID !== user.uid) {
-        localStorage.clear();
-        console.log("Cleared cache for previous user");
-      }
-
-      if (user) {
-        localStorage.setItem("uid", user.uid);
-        console.log("User is logged in:", user.uid);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   return (
     <div>
