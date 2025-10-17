@@ -4,6 +4,9 @@ import Footer from '../components/Footer'
 import './styles/LandingPage.css'
 
 function LandingPage() {
+
+  const apkFilePath = '/Spotsync.apk';
+
   return (
     <>
       <div className='page-body'>
@@ -13,7 +16,13 @@ function LandingPage() {
         </div>
         <div className='page-qoute'>
             <h1>When losing something <br /> doesn’t mean it’s gone forever </h1>
-            <button>Download APK (Android)</button>
+            <a
+            href={apkFilePath}
+            download="SpotSyncApp.apk" // Suggests the filename to the browser
+            className="download-button" // Use a CSS class for styling
+          >
+            Download APK (Android)
+          </a>
         </div>
         <div className='page-features'>
             <h1>Core Features</h1>

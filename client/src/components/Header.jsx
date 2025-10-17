@@ -28,7 +28,6 @@ function Header() {
   return (
     <div className='header-container'>
       <img src="/spotsync-slogan.png" alt="img" height={'50px'} />
-      {/* 4. Conditionally apply the style to the button */}
       <button
         onClick={signInClicked}
         style={isDesktopView ? { opacity: 0, pointerEvents: 'none' } : {}}
