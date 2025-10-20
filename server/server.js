@@ -2,14 +2,8 @@ import express from "express";
 import cors from "cors";
 import fetch from "node-fetch";
 import sharp from "sharp";
-import { 
-  db, 
-  resend, 
-  openai, 
-  auth,                
-  realtimeDB,       
-  rtdbServerTimestamp  
-} from "./firebaseAdmin.js";import session from "express-session";
+import { db, resend, openai } from "./firebaseAdmin.js";
+import session from "express-session";
 import { auth } from "./firebaseAdmin.js";
 
 // --- Server Setup ---
@@ -36,41 +30,6 @@ function cosineSimilarity(vecA, vecB) {
   const normB = Math.sqrt(vecB.reduce((sum, val) => sum + val * val, 0));
   if (normA === 0 || normB === 0) return 0; // avoid division by zero
   return dot / (normA * normB);
-}
-
-// --- Middleware to check Firebase auth token ---
-async function verifyToken(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-  const token = authHeader.split('Bearer ')[1];
-  try {
-    const decodedToken = await auth.verifyIdToken(token);
-    req.user = decodedToken; // Adds user (with uid) to the request
-    next();
-  } catch (error) {
-    console.error("Error verifying token:", error);
-    res.status(401).json({ error: 'Unauthorized' });
-  }
-}
-
-// --- Realtime DB Notifier ---
-async function notifyUser(uid, message, type = "item") {
-  if (!uid) return;
-  try {
-    const notifRef = realtimeDB.ref(`notifications/${uid}`);
-    const newNotifRef = notifRef.push();
-    await newNotifRef.set({
-      message,
-      timestamp: rtdbServerTimestamp,
-      type,
-      read: false,
-    });
-    console.log(`Notification sent to ${uid}`);
-  } catch (error) {
-    console.error(`Failed to send notification to ${uid}:`, error);
-  }
 }
 
 // --- Text Embeddings (Used for CREATING items, not matching) ---
@@ -194,282 +153,110 @@ function calculateMatchScore(lostItem, foundItem) {
 
 
 // --- API: Found-to-Lost (UPGRADED) ---
-// --- API: ALL-IN-ONE REPORT LOST ITEM ---
-app.post("/api/report-lost-item", verifyToken, async (req, res) => {
-  try {
-    // 1. Get Data and User
-    const { itemName, dateLost, locationLost, category, itemDescription, howItemLost, images } = req.body;
-    const uid = req.user.uid;
-    const userDoc = await db.collection('users').doc(uid).get();
-    if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
-    const userData = userDoc.data();
-
-    console.log(`[${uid}] Creating embeddings for LOST item: ${itemName}`);
-    // 2. Calculate All Embeddings
-    const nameEmbedding = await getTextEmbedding(itemName || "");
-    const descriptionEmbedding = await getTextEmbedding(itemDescription || "");
-    const locationEmbedding = await getTextEmbedding(locationLost || "");
-    const imageEmbeddings = [];
-    if (images && images.length > 0) {
-      for (const url of images) {
-        const imgEmb = await getImageEmbedding(url);
-        if (imgEmb.length) imageEmbeddings.push(imgEmb);
-      }
-    }
-    console.log(`[${uid}] Embeddings created.`);
-
-    // 3. Save to lostItems (with embeddings)
-    const customItemId = generateItemId();
-    const isoTimestamp = new Date().toISOString();
-    const firestoreTimestamp = new Date(); // Use server timestamp
-
-    const lostItemData = {
-      itemId: customItemId,
-      uid: uid,
-      images: images || [],
-      itemName, dateLost, locationLost,
-      archivedStatus: false,
-      founder: 'Unknown',
-      owner: `${userData.firstName || ''} ${userData.lastName || ''}`,
-      claimStatus: 'unclaimed',
-      category, itemDescription, howItemLost,
-      status: 'posted',
-      personalInfo: userData,
-      createdAt: firestoreTimestamp, // Use Firestore timestamp
-      // --- The new, fast fields ---
-      nameEmbedding,
-      descriptionEmbedding,
-      locationEmbedding,
-      imageEmbeddings
-    };
+app.post("/api/match/found-to-lost", async (req, res) => {
+  try {
+    const { uidFound } = req.body;
+    const foundDoc = await db.collection("foundItems").doc(uidFound).get();
+    if (!foundDoc.exists) return res.status(404).json({ error: "Found item not found." });
     
-    const lostItemRef = await db.collection('lostItems').add(lostItemData);
-    const lostItemId = lostItemRef.id;
-    console.log(`[${uid}] Lost item ${lostItemId} saved.`);
+    // 'foundItem' now contains pre-calculated embeddings
+    const foundItem = foundDoc.data();
 
-    // 4. Run Matching
-    const foundSnapshot = await db.collection("foundItems").where("category", "==", category).get();
-    const matches = [];
-    const batch = db.batch();
+    const lostSnapshot = await db.collection("lostItems").where("category", "==", foundItem.category).get();
+    const matches = [];
 
-    for (const foundDoc of foundSnapshot.docs) {
-      const foundItem = foundDoc.data();
-      if (["claimed", "pending", "canceled"].includes(foundItem.status) || foundItem.archivedStatus) continue;
-      const scores = calculateMatchScore(lostItemData, foundItem); 
-      const matchData = {
-        transactionId: generateTransactionId(),
-        itemId: generateItemId(),
-        lostItem: { ...lostItemData, id: lostItemId },
-        foundItem: { ...foundItem, id: foundDoc.id },
-        scores,
-        createdAt: isoTimestamp
-      };
+    // --- BATCH WRITE UPGRADE ---
+    const batch = db.batch(); // 1. Create a batch
+
+    for (const lostDoc of lostSnapshot.docs) {
+      // 'lostItem' also has pre-calculated embeddings
+      const lostItem = lostDoc.data();
+      if (["claimed", "pending", "canceled"].includes(lostItem.status) || lostItem.archivedStatus) continue;
+
+      // 2. Calculate scores (NO 'await', this is now INSTANT)
+      const scores = calculateMatchScore(lostItem, foundItem);
+
+      const matchData = {
+        transactionId: generateTransactionId(),
+        itemId: generateItemId(),
+        lostItem: { ...lostItem, id: lostDoc.id },
+        foundItem: { ...foundItem, id: uidFound },
+        scores,
+        createdAt: new Date().toISOString()
+      };
+
+      // 3. Add to the batch instead of calling 'add()'
       const newMatchRef = db.collection("matches").doc();
       batch.set(newMatchRef, matchData);
-      matches.push(matchData);
-    }
+      
+      matches.push(matchData);
+    }
+
+    // 4. Commit all writes at once
     await batch.commit();
+    // --- END OF BATCH WRITE ---
 
-    matches.sort((a, b) => b.scores.overallScore - a.scores.overallScore);
-    const top4Matches = matches.filter(m => m.scores.overallScore >= 60).slice(0, 4);
+    matches.sort((a, b) => b.scores.overallScore - a.scores.overallScore);
+    const filteredMatches = matches.filter(m => m.scores.overallScore >= 60);
+    res.json(filteredMatches);
 
-    // 5. Save to itemManagement
-    const createdItemManagementData = {
-      itemId: customItemId,
-      uid: uid,
-      images: images || [],
-      archivedStatus: false,
-      itemName,
-      dateSubmitted: isoTimestamp,
-      itemDescription,
-      type: "Lost",
-      locationLost,
-      category,
-      status: "Posted",
-      highestMatchingRate: top4Matches?.[0]?.scores?.overallScore ?? 0,
-      topMatches: top4Matches,
-      personalInfo: userData,
-      createdAt: firestoreTimestamp,
-    };
-    await db.collection('itemManagement').add(createdItemManagementData);
-    console.log(`[${uid}] ItemManagement record created.`);
-
-    // 6. Send Notifications
-    for (const match of top4Matches) {
-      if (match.foundItem?.uid) {
-        await notifyUser(
-          match.foundItem.uid,
-          `Your found item <b>${match.foundItem.itemName}</b> may possibly match a newly reported lost item: <b>${itemName}</b>.`,
-          "item"
-        );
-        if (match.foundItem?.personalInfo?.email) {
-          await resend.emails.send({
-            from: "Spotsync <Onboarding@spotsync.site>",
-            to: match.foundItem.personalInfo.email,
-            subject: "Potential Match for Your Found Item",
-            html: `<p>Hello,</p><p>Your found item <b>${match.foundItem.itemName}</b> may match a reported lost item: <b>${itemName}</b>.</p><p>Please log in to check details.</p>`,
-          });
-        }
-      }
-    }
-    if (top4Matches.length > 0) {
-      const topMatch = top4Matches[0];
-      await notifyUser(
-        uid,
-        `Hello ${userData.firstName}, we found a possible match for your lost item <b>${itemName}</b>: Found item <b>${topMatch.foundItem?.itemName}</b>. Please check your matches.`,
-        "item"
-      );
-      if (userData.email) {
-        await resend.emails.send({
-          from: "Spotsync <Onboarding@spotsync.site>",
-          to: userData.email,
-          subject: "Potential Match Found for Your Lost Item!",
-          html: `<p>Hello ${userData.firstName},</p><p>We found a potential match for your lost item <b>${itemName}</b>: Found item <b>${topMatch.foundItem?.itemName}</b>.</p><p>Please log in to view more details and verify.</p>`,
-        });
-      }
-    } else {
-      await notifyUser(
-        uid,
-        `Hello <b>${userData.firstName}</b>, your lost item report for <b>${itemName}</b> has been submitted and posted. We'll notify you if a potential match is found.`,
-        "item"
-      );
-    }
-    console.log(`[${uid}] Notifications sent.`);
-
-    // 7. Return final data to client
-    res.status(201).json(createdItemManagementData);
-
-  } catch (error) {
-    console.error("Error in /api/report-lost-item:", error);
-    res.status(500).json({ error: "Internal server error." });
-  }
+  } catch (error) {
+    console.error("Error in /api/match/found-to-lost:", error);
+    res.status(500).json({ error: "Internal server error." });
+  }
 });
 
-
-// --- API: ALL-IN-ONE REPORT FOUND ITEM ---
-app.post("/api/report-found-item", verifyToken, async (req, res) => {
-  try {
-    // 1. Get Data and User
-    const { itemName, dateFound, locationFound, category, itemDescription, howItemFound, images } = req.body;
-    const uid = req.user.uid;
-    const userDoc = await db.collection('users').doc(uid).get();
-    if (!userDoc.exists) return res.status(404).json({ error: "User not found." });
-    const userData = userDoc.data();
-
-    console.log(`[${uid}] Creating embeddings for FOUND item: ${itemName}`);
-    // 2. Calculate All Embeddings
-    const nameEmbedding = await getTextEmbedding(itemName || "");
-    const descriptionEmbedding = await getTextEmbedding(itemDescription || "");
-    const locationEmbedding = await getTextEmbedding(locationFound || "");
-    const imageEmbeddings = [];
-    if (images && images.length > 0) {
-      for (const url of images) {
-        const imgEmb = await getImageEmbedding(url);
-        if (imgEmb.length) imageEmbeddings.push(imgEmb);
-      }
-    }
-    console.log(`[${uid}] Embeddings created.`);
-
-    // 3. Save to foundItems (with embeddings)
-    const customItemId = generateItemId();
-    const isoTimestamp = new Date().toISOString();
-    const firestoreTimestamp = new Date(); // Use server timestamp
-
-    const foundItemData = {
-      itemId: customItemId,
-      uid: uid,
-      images: images || [],
-      itemName, dateFound, locationFound,
-      archivedStatus: false,
-      remindersSent: [],
-      founder: `${userData.firstName || ''} ${userData.lastName || ''}`,
-      owner: 'Unknown',
-      claimStatus: 'unclaimed',
-      category, itemDescription, howItemFound,
-      status: 'pending', // Found items start as pending
-      personalInfo: userData,
-      createdAt: firestoreTimestamp,
-      // --- The new, fast fields ---
-      nameEmbedding,
-      descriptionEmbedding,
-      locationEmbedding,
-      imageEmbeddings
-    };
+// --- API: Lost-to-Found (UPGRADED) ---
+app.post("/api/match/lost-to-found", async (req, res) => {
+  try {
+    const { uidLost } = req.body;
+    const lostDoc = await db.collection("lostItems").doc(uidLost).get();
+    if (!lostDoc.exists) return res.status(404).json({ error: "Lost item not found." });
     
-    const foundItemRef = await db.collection('foundItems').add(foundItemData);
-    const foundItemId = foundItemRef.id;
-    console.log(`[${uid}] Found item ${foundItemId} saved.`);
+    // 'lostItem' now contains pre-calculated embeddings
+    const lostItem = lostDoc.data();
 
-    // 4. Run Matching
-    const lostSnapshot = await db.collection("lostItems").where("category", "==", category).get();
-    const matches = [];
-    const batch = db.batch();
+    const foundSnapshot = await db.collection("foundItems").where("category", "==", lostItem.category).get();
+    const matches = [];
 
-    for (const lostDoc of lostSnapshot.docs) {
-      const lostItem = lostDoc.data();
-      if (["claimed", "pending", "canceled"].includes(lostItem.status) || lostItem.archivedStatus) continue;
-      const scores = calculateMatchScore(lostItem, foundItemData);
-      const matchData = {
-        transactionId: generateTransactionId(),
-        itemId: generateItemId(),
-        lostItem: { ...lostItem, id: lostDoc.id },
-        foundItem: { ...foundItemData, id: foundItemId },
-        scores,
-        createdAt: isoTimestamp
-      };
+    // --- BATCH WRITE UPGRADE ---
+    const batch = db.batch(); // 1. Create a batch
+
+    for (const foundDoc of foundSnapshot.docs) {
+      // 'foundItem' also has pre-calculated embeddings
+      const foundItem = foundDoc.data();
+      if (["claimed", "pending", "canceled"].includes(foundItem.status) || foundItem.archivedStatus) continue;
+
+      // 2. Calculate scores (NO 'await', this is now INSTANT)
+      const scores = calculateMatchScore(lostItem, foundItem);
+
+      const matchData = {
+        transactionId: generateTransactionId(),
+        itemId: generateItemId(),
+        lostItem: { ...lostItem, id: uidLost },
+        foundItem: { ...foundItem, id: foundDoc.id },
+        scores,
+        createdAt: new Date().toISOString()
+      };
+
+      // 3. Add to the batch instead of calling 'add()'
       const newMatchRef = db.collection("matches").doc();
       batch.set(newMatchRef, matchData);
-      matches.push(matchData);
-    }
+
+      matches.push(matchData);
+    }
+    
+    // 4. Commit all writes at once
     await batch.commit();
+    // --- END OF BATCH WRITE ---
 
-    matches.sort((a, b) => b.scores.overallScore - a.scores.overallScore);
-    const top4Matches = matches.filter(m => m.scores.overallScore >= 60).slice(0, 4);
-
-    // 5. Save to itemManagement
-    const createdItemManagementData = {
-      itemId: customItemId,
-      uid: uid,
-      images: images || [],
-      archivedStatus: false,
-      itemName,
-      dateSubmitted: isoTimestamp,
-      itemDescription,
-      type: "Found",
-      locationFound,
-      category,
-      status: "Pending", // Match the found item status
-      highestMatchingRate: top4Matches?.[0]?.scores?.overallScore ?? 0,
-      topMatches: top4Matches,
-      personalInfo: userData,
-      createdAt: firestoreTimestamp,
-    };
-    await db.collection('itemManagement').add(createdItemManagementData);
-    console.log(`[${uid}] ItemManagement record created.`);
-
-    // 6. Send Notifications (Only to the finder)
-    await notifyUser(
-      uid,
-      `Hello <b>${userData.firstName}</b> Your found item <b>${itemName}</b> has been submitted. Please surrender it to the OSA for verification. The item is currently pending.`,
-      "item"
-    );
-    if (userData.email) {
-      await resend.emails.send({
-        from: "Spotsync <Onboarding@spotsync.site>",
-        to: userData.email,
-        subject: "Instructions for Found Items",
-        html: `<p>Hello ${userData.firstName},</p><p>Your found item <b>${itemName}</b> has been submitted.</p><p>Please surrender it to the OSA for verification.</p><p>The item is currently on pending status.</p>`,
-      });
-    }
-    console.log(`[${uid}] Finder notifications sent.`);
-
-    // 7. Return final data to client
-    res.status(201).json(createdItemManagementData);
-
-  } catch (error) {
-    console.error("Error in /api/report-found-item:", error);
-    res.status(500).json({ error: "Internal server error." });
-  }
+    matches.sort((a, b) => b.scores.overallScore - a.scores.overallScore);
+    const filteredMatches = matches.filter(m => m.scores.overallScore >= 60);
+    res.json(filteredMatches);
+  } catch (error) {
+    console.error("Error in /api/match/lost-to-found:", error);
+    res.status(500).json({ error: "Internal server error." });
+  }
 });
 
 // --- API: Send Email ---
