@@ -196,12 +196,21 @@
 
 
 
+// REPLACE your old handleSubmit in UserLostItemDetailPage.jsx with this
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!currentUser) return alert('You must be logged in to submit a report.');
 
+    // Note: Your original code didn't check for empty fields, you may want to add that.
+
     setIsSubmitting(true);
+    setIsMatching(true); // Set matching state right away
+
     try {
+      // Get the user's auth token
+      const token = await currentUser.getIdToken();
+
+      // 1. Upload images
       const imageURLs = [];
       if (images && images.length > 0) {
         for (let i = 0; i < images.length; i++) {
@@ -210,172 +219,50 @@
         }
       }
 
-    
-      const customItemId = `ITM-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(100 + Math.random() * 900)}`;
-
-      const docRef = await addDoc(collection(db, 'lostItems'), {
-        itemId: customItemId,
-        uid: currentUser.uid,
-        images: imageURLs,
+      // 2. Prepare all item data
+      const itemReportData = {
         itemName,
         dateLost,
-        locationLost,
-        archivedStatus: false,
-        founder,
-        owner,
-        claimStatus,
+        locationLost: locationLost === "Others" ? customLocation : locationLost,
         category,
         itemDescription,
         howItemLost,
-        personalInfo: {
-          firstName,
-          middleName,
-          lastName,
-          email,
-          contactNumber,
-          address,
-          profileURL,
-          coverURL,
-          course,
-          section,
-          yearLevel,
-          birthdate,
-        },
-        createdAt: serverTimestamp(),
-      });
-
-      const matchResponse = await fetch(`${API}/api/match/lost-to-found`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uidLost: docRef.id }),
-      });
-
-      if (!matchResponse.ok) throw new Error("Matching failed");
-      const matches = await matchResponse.json();
-
-      const top4Matches = matches.slice(0, 4);
-
-      for (let i = 0; i < top4Matches.length; i++) {
-        const match = top4Matches[i];
-
-        if (match.scores?.overallScore >= 60 && match.foundItem?.uid) {
-          
-          await notifyUser(
-            match.foundItem?.uid,
-            `Your found item <b>${match.foundItem.itemName}</b> may possibly match with a newly reported lost item: <b>${itemName}</b>.`
-          );
-
-          try {
-            const emailRes = await fetch(`${API}/api/send-email`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                to: match.foundItem?.personalInfo?.email,   
-                subject: "Best Possible Match for Found Item",
-                html: `
-                <p>Hello,</p>
-                <p>Your found item <b>${match.foundItem.itemName}</b> may possibly match with a newly reported lost item: <b>${itemName}</b>.</p>
-                <p>Please log in to check the full details.</p>
-              `,
-              }),
-            });
-
-            const emailData = await emailRes.json();
-            console.log("📧 Email API response:", emailData);
-
-            if (!emailRes.ok) {
-              console.error(`❌ Failed to send email to ${match.foundItem?.personalInfo?.email}:`, emailData);
-            } else {
-              console.log(`✅ Email successfully sent to ${match.foundItem?.personalInfo?.email}`);
-            }
-          } catch (err) {
-            console.error(`⚠️ Error sending email to ${match.foundItem?.personalInfo?.email}:`, err);
-          }
-
-
-
-          if (i === 0) {
-            await notifyUser(
-              currentUser.uid,
-              `Hello ${firstName} This is the most possible match for your lost item <b>${itemName}</b>: Found item <b>${match.foundItem?.itemName} : Transaction ID: ${match.transactionId}</b>.`
-            );
-            try {
-                  const emailResUser = await fetch(`${API}/api/send-email`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      to: email, 
-                      subject: "Best Match Found for Your Lost Item",
-                      html: `
-                        <p>Hello ${firstName},</p>
-                        <p>This is the most possible match for your lost item <b>${itemName}</b>: Found item <b>${match.foundItem?.itemName} : Transaction ID: ${match.transactionId}</b>.</p>
-                        
-                        <p>Please log in to view more details.</p>
-                      `
-                    })
-                  });
-
-                  const emailDataUser = await emailResUser.json();
-                  console.log("Email response for user:", emailDataUser);
-
-                  if (!emailResUser.ok) {
-                    console.error("Failed to send email to user:", emailDataUser);
-                  } else {
-                    console.log("Email successfully sent to user:", email);
-                  }
-
-                } catch (emailErrorUser) {
-                  console.error("Error sending email to user:", emailErrorUser);
-                }
-            
-          }
-
-
-        }
-      }
-
-
-      await addDoc(collection(db, 'itemManagement'), {
-        itemId: customItemId,  
-        uid: currentUser.uid,
         images: imageURLs,
-        itemName,
-        archivedStatus: false,
-        dateSubmitted: new Date().toISOString(),
-        itemDescription,
-        type: "Lost",  
-        locationLost: locationLost === "Others" ? customLocation : locationLost,
-        category,
-        status: "Posted",
-        highestMatchingRate: top4Matches?.[0]?.scores?.overallScore ?? 0,
-        topMatches: top4Matches,
-        personalInfo: {
-          firstName,
-          middleName,
-          lastName,
-          email,
-          contactNumber,
-          address,
-          profileURL,
-          coverURL,
-          course,
-          section,
-          yearLevel,
-          birthdate,
+      };
+
+      // 3. Make ONE API call
+      const response = await fetch(`${API}/api/report-lost-item`, { // <-- NEW ENDPOINT
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` // Send the token
         },
-        createdAt: serverTimestamp(),
+        body: JSON.stringify(itemReportData),
       });
 
-      navigate(`/users/lost-items/matching/${currentUser.uid}`, { state: { matches } });
+      const createdItemManagementData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(createdItemManagementData.error || `API failed: ${response.statusText}`);
+      }
+      
+      // 4. Navigate to results page
+      // Note: The server now returns the itemManagement data, not the raw matches
+      navigate(`/users/lost-items/matching/${currentUser.uid}`, { 
+        state: { 
+          // Pass the top matches from the itemManagement data
+          matches: createdItemManagementData.topMatches 
+        } 
+      });
 
     } catch (error) {
       console.error(error);
       alert('Failed to submit lost item report.');
+    } finally {
+      setIsSubmitting(false);
+      setIsMatching(false);
     }
-    setIsSubmitting(false);
-    setIsMatching(false);
   };
-
 
 
 

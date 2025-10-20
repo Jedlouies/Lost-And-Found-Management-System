@@ -201,154 +201,79 @@ useEffect(() => {
 };
 
 
+// REPLACE your old handleSubmit in UserFoundItemDetailPage.jsx with this
 const handleSubmit = async (e) => {
   e.preventDefault();
   if (!currentUser) return alert('You must be logged in to submit a report.');
+  
+  // Note: Your original code didn't check for empty fields, you may want to add that.
 
   setIsSubmitting(true);
+  setIsMatching(true); // Set matching state right away
+
   try {
+    // Get the user's auth token
+    const token = await currentUser.getIdToken();
+
+    // 1. Upload images
     const imageURLs = [];
     if (images && images.length > 0) {
       for (let i = 0; i < images.length; i++) {
         const url = await uploadFoundItemImage(images[i], `found-items/${currentUser.uid}`);
         imageURLs.push(url);
       }
+    } else {
+      // Your original code didn't require images, but ReportFoundItemScreen.tsx did.
+      // Add a check if necessary:
+      // alert('Please select at least one image.');
+      // setIsSubmitting(false);
+      // setIsMatching(false);
+      // return;
     }
 
-    const customItemId = `ITM-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(100 + Math.random() * 900)}`;
-
-    const docRef = await addDoc(collection(db, 'foundItems'), {
-      itemId: customItemId,
-      uid: currentUser.uid,
-      images: imageURLs,
+    // 2. Prepare all item data
+    const itemReportData = {
       itemName,
       dateFound,
       locationFound: locationFound === "Others" ? customLocation : locationFound,
-      archivedStatus: false,
-      remindersSent: [],
-      founder,
-      owner,
-      claimStatus,
       category,
       itemDescription,
       howItemFound,
-      status: 'pending',
-      personalInfo: {
-        firstName,
-        middleName,
-        lastName,
-        email,
-        contactNumber,
-        address,
-        profileURL,
-        coverURL,
-        course,
-        section,
-        yearLevel,
-        birthdate,
-      },
-      createdAt: serverTimestamp(),
-    });
-
-    setIsMatching(true);
-
-    const matchResponse = await fetch(`${API}/api/match/found-to-lost`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ uidFound: docRef.id }),
-    });
-
-    if (!matchResponse.ok) throw new Error("Matching failed");
-    const matches = await matchResponse.json();
-
-    const top4Matches = matches.slice(0, 4);
-
-// Loop is only for matches (if needed later)
-for (let i = 0; i < top4Matches.length; i++) {
-  const match = top4Matches[i];
-  // (maybe process matches here if needed)
-}
-
-await notifyUser(
-  currentUser.uid,
-  `Hello <b>${firstName}</b> Your found item <b>${itemName}</b> has been submitted. 
-  Please surrender it to the OSA for verification. The item is currently on a pending status for 24 hours and once verified, 
-  the system will notify possible owners and post the item.`,
-  "info"
-);
-
-try {
-  const emailRes = await fetch(`${API}/api/send-email`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      to: email,
-      subject: "Instructions for Found Items",
-      html: `
-        <p>Hello ${firstName},</p>
-        <p>Your found item <b>${itemName}</b> has been submitted.</p>
-        <p>Please surrender it to the OSA for verification.</p>
-        <p>The item is currently on pending status for 24 hours and once verified, 
-        the system will notify possible owners and post the item.</p>
-      `,
-    }),
-  });
-
-  const emailData = await emailRes.json();
-  console.log("📧 Email API response:", emailData);
-
-  if (!emailRes.ok) {
-    console.error(`❌ Failed to send email to ${email}:`, emailData);
-  } else {
-    console.log(`✅ Email successfully sent to ${email}`);
-  }
-} catch (err) {
-  console.error(`⚠️ Error sending email to ${email}:`, err);
-}
-
-
-    await addDoc(collection(db, 'itemManagement'), {
-      itemId: customItemId, 
-      uid: currentUser.uid,
       images: imageURLs,
-      archivedStatus: false,
-      itemName,
-      dateSubmitted: new Date().toISOString(),
-      itemDescription,
-      type: "Found",  
-      locationFound: locationFound === "Others" ? customLocation : locationFound,
-      category,
-      status: "Pending",
-      expiryTime,
-      highestMatchingRate: top4Matches?.[0]?.scores?.overallScore ?? 0,
-      topMatches: top4Matches,
-      personalInfo: {
-        firstName,
-        middleName,
-        lastName,
-        email,
-        contactNumber,
-        address,
-        profileURL,
-        coverURL,
-        course,
-        section,
-        yearLevel,
-        birthdate,
+    };
+
+    // 3. Make ONE API call
+    const response = await fetch(`${API}/api/report-found-item`, { // <-- NEW ENDPOINT
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` // Send the token
       },
-      createdAt: serverTimestamp(),
+      body: JSON.stringify(itemReportData),
     });
 
-    navigate(`/users/found-items/matching/${currentUser.uid}`, { state: { matches } });
+    const createdItemManagementData = await response.json();
+
+    if (!response.ok) {
+      throw new Error(createdItemManagementData.error || `API failed: ${response.statusText}`);
+    }
+
+    // 4. Navigate to results page
+    navigate(`/users/found-items/matching/${currentUser.uid}`, { 
+      state: { 
+        // Pass the top matches from the itemManagement data
+        matches: createdItemManagementData.topMatches 
+      } 
+    });
 
   } catch (error) {
     console.error(error);
     alert('Failed to submit found item report.');
+  } finally {
+    setIsSubmitting(false);
+    setIsMatching(false);
   }
-  setIsSubmitting(false);
-  setIsMatching(false);
 };
-
 
 
 
