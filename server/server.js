@@ -167,13 +167,14 @@ app.post("/api/moderate-image", async (req, res) => {
 
     // --- 🛑 CRITICAL FIX: Check for the AI's refusal to describe ---
     const refusalKeywords = [
-      "sorry", "can't assist", "unable to process", "violation", "safety guidelines", "cannot fulfill", "explicit content", "graphic content"
+      "sorry", "can't assist", "unable to process", "violation", "safety guidelines", "cannot fulfill", "explicit content", "graphic content", "not related to the request"
     ];
     const lowerDescription = description.toLowerCase();
 
     if (description.trim() === "" || refusalKeywords.some(keyword => lowerDescription.includes(keyword))) {
         console.warn("AI refused or failed to describe the image, blocking upload.");
-        // If the AI refuses to describe it, we treat the image as unsafe.
+        // If the AI refuses to describe it, we treat the image as unsafe (isSafe: false).
+        // We use status 200 here because the check was successful, but the image was rejected.
         return res.status(200).json({ 
           isSafe: false,
           error: "AI service blocked description (likely due to graphic/inappropriate content)."
@@ -198,8 +199,9 @@ app.post("/api/moderate-image", async (req, res) => {
     console.error("Error calling OpenAI Moderation/Vision API:", error);
 
     let statusCode = 500;
-    let errorMessage = "Failed to moderate image due to an internal server error or API failure. No images were added.";
+    let errorMessage = "Failed to moderate image due to an internal server error or API failure.";
 
+    // If the error response is malformed or non-existent, default to a clean 500.
     if (error.response && error.response.data) {
        console.error("OpenAI API Error details:", error.response.data);
        errorMessage = `Moderation service failed: ${error.response.data?.error?.message || error.message}`;
@@ -212,11 +214,9 @@ app.post("/api/moderate-image", async (req, res) => {
        errorMessage = `Moderation service failed: ${error.message}`;
     }
 
-    // On any server-side error (API down, network error, etc.), we return unsafe.
-    res.status(500).json({ error: errorMessage, isSafe: false }); 
+    res.status(statusCode).json({ error: errorMessage, isSafe: false }); 
   }
 });
-
 // --- API: Found-to-Lost ---
 app.post("/api/match/found-to-lost", async (req, res) => {
   try {
