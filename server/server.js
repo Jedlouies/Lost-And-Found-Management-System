@@ -138,6 +138,61 @@ async function calculateMatchScore(lostItem, foundItem) {
   };
 }
 
+
+app.post("/api/moderate-image", async (req, res) => {
+  const { image } = req.body; 
+
+  if (!image || typeof image !== 'string' || !image.startsWith('data:image/')) {
+    console.error("Moderation request failed: Invalid or missing image data.");
+    return res.status(400).json({ error: "Invalid or missing image data in request body." });
+  }
+
+  const base64Data = image.split(',')[1];
+  if (!base64Data) {
+     console.error("Moderation request failed: Invalid base64 image format.");
+     return res.status(400).json({ error: "Invalid base64 image format." });
+  }
+
+  try {
+    console.log("Calling OpenAI Moderation API...");
+    const moderationResponse = await openai.moderations.create({
+      input: base64Data, 
+    });
+    console.log("OpenAI Moderation API response received.");
+
+
+    if (!moderationResponse || !moderationResponse.results || moderationResponse.results.length === 0) {
+        throw new Error("Invalid response structure from OpenAI Moderation API.");
+    }
+    const result = moderationResponse.results[0];
+    const isSafe = !result.flagged; 
+
+    console.log(`Moderation result: flagged=${result.flagged}, categories=${JSON.stringify(result.categories)}`);
+
+    res.status(200).json({ isSafe }); 
+
+  } catch (error) {
+    console.error("Error calling OpenAI Moderation API:", error);
+
+    let statusCode = 500;
+    let errorMessage = "Failed to moderate image due to an internal server error.";
+
+    if (error.response && error.response.data) {
+       console.error("OpenAI API Error details:", error.response.data);
+       errorMessage = `Moderation service failed: ${error.response.data?.error?.message || error.message}`;
+       statusCode = error.response.status || 500;
+    } else if (error.status) {
+        statusCode = error.status;
+        errorMessage = `Moderation service failed (${statusCode}): ${error.message}`;
+    }
+     else {
+       errorMessage = `Moderation service failed: ${error.message}`;
+    }
+
+    res.status(statusCode).json({ error: errorMessage, isSafe: false }); 
+  }
+});
+
 // --- API: Found-to-Lost ---
 app.post("/api/match/found-to-lost", async (req, res) => {
   try {
