@@ -139,60 +139,41 @@ async function calculateMatchScore(lostItem, foundItem) {
 }
 
 
+// ➡️ This is what your server code needs to do (conceptually):
+
 app.post("/api/moderate-image", async (req, res) => {
-  const { image } = req.body; 
+  const { image } = req.body; 
+  if (!image || !image.startsWith('data:image/')) { /* ... error handling ... */ }
 
-  if (!image || typeof image !== 'string' || !image.startsWith('data:image/')) {
-    console.error("Moderation request failed: Invalid or missing image data.");
-    return res.status(400).json({ error: "Invalid or missing image data in request body." });
-  }
-
-  const base64Data = image.split(',')[1];
-  if (!base64Data) {
-     console.error("Moderation request failed: Invalid base64 image format.");
-     return res.status(400).json({ error: "Invalid base64 image format." });
-  }
-
-  try {
-    console.log("Calling OpenAI Moderation API...");
-    const moderationResponse = await openai.moderations.create({
-      input: base64Data, 
-    });
-    console.log("OpenAI Moderation API response received.");
+  try {
+    // 1. Use Vision to Describe the Image Content
+    const visionRes = await openai.chat.completions.create({
+      model: "gpt-4o-mini", // Use a Vision-capable model
+      messages: [{
+        role: "user",
+        content: [
+          { type: "text", text: "Describe the content of this image, focusing on any graphic, violent, or sensitive details." },
+          { type: "image_url", image_url: { url: image } } // Pass the full data URL
+        ]
+      }]
+    });
+    const description = visionRes.choices[0].message.content || "";
+    console.log("Generated Description:", description);
 
 
-    if (!moderationResponse || !moderationResponse.results || moderationResponse.results.length === 0) {
-        throw new Error("Invalid response structure from OpenAI Moderation API.");
-    }
-    const result = moderationResponse.results[0];
-    const isSafe = !result.flagged; 
+    // 2. Use Moderation API on the *Text Description*
+    const moderationResponse = await openai.moderations.create({
+      input: description, // <-- Now we are moderating text!
+    });
+    const result = moderationResponse.results[0];
+    const isSafe = !result.flagged; 
 
-    console.log(`Moderation result: flagged=${result.flagged}, categories=${JSON.stringify(result.categories)}`);
+    res.status(200).json({ isSafe }); 
 
-    res.status(200).json({ isSafe }); 
-
-  } catch (error) {
-    console.error("Error calling OpenAI Moderation API:", error);
-
-    let statusCode = 500;
-    let errorMessage = "Failed to moderate image due to an internal server error.";
-
-    if (error.response && error.response.data) {
-       console.error("OpenAI API Error details:", error.response.data);
-       errorMessage = `Moderation service failed: ${error.response.data?.error?.message || error.message}`;
-       statusCode = error.response.status || 500;
-    } else if (error.status) {
-        statusCode = error.status;
-        errorMessage = `Moderation service failed (${statusCode}): ${error.message}`;
-    }
-     else {
-       errorMessage = `Moderation service failed: ${error.message}`;
-    }
-
-    res.status(statusCode).json({ error: errorMessage, isSafe: false }); 
-  }
+  } catch (error) {
+    // ... error handling ...
+  }
 });
-
 // --- API: Found-to-Lost ---
 app.post("/api/match/found-to-lost", async (req, res) => {
   try {
