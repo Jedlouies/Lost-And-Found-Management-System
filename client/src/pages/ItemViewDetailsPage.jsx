@@ -149,7 +149,7 @@ const renderUser = (userData, isGuest = false) => {
                 <h3>How It Was Lost</h3>
                 <p>{item.howItemLost || "No description provided"}</p>
                 <h3>Date Lost:</h3>
-                <p>{item.dateLost ? new Date(item.dateLost).toLocaleString() : "N/A"}</p>
+                <p>{item.dateLost ? new Date(item.dateLost).toLocaleDateString() : "N/A"}</p>
                 <h3>Location Lost:</h3>
                 <p>{item.locationLost}</p>
                 <h3>Category:</h3>
@@ -163,7 +163,7 @@ const renderUser = (userData, isGuest = false) => {
                 <h3>How It Was Found</h3>
                 <p>{item.howItemFound || "No description provided"}</p>
                 <h3>Date Found:</h3>
-                <p>{item.dateFound ? new Date(item.dateFound).toLocaleString() : "N/A"}</p>
+                <p>{item.dateFound ? new Date(item.dateFound).toLocaleDateString() : "N/A"}</p>
                 <h3>Location Found:</h3>
                 <p>{item.locationFound}</p>
                 <h3>Category:</h3>

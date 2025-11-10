@@ -59,7 +59,6 @@ const [guestSection, setGuestSection] = useState("");
 const [guestYearLevel, setGuestYearLevel] = useState("");
 const [guestSaved, setGuestSaved] = useState(false);
 
-// 🔹 Resize/compress base64 before storing in Firestore
 const resizeBase64Img = (base64, maxWidth = 400, maxHeight = 400, quality = 0.7) => {
   return new Promise((resolve) => {
     let img = new Image();

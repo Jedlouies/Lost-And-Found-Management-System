@@ -509,9 +509,9 @@ const handleCameraSwitch = async (newDeviceId) => {
 
         {qrResult && <div className="qr-result" style={{ backgroundColor: "white", width: "270px", borderRadius: "20px", padding: "10px" }}>
           <p>Scanned ID Info:</p>
-          <p>Fullname: {qrResult.fullname}</p>
-          <p>ID Number: {qrResult.idNumber}</p>
-          <p>Course: {qrResult.course}</p>
+          <p style={{fontWeight: 'lighter'}}><b>Fullname:</b> {qrResult.fullname}</p>
+          <p style={{fontWeight: 'lighter'}}><b>ID Number:</b> {qrResult.idNumber}</p>
+          <p style={{fontWeight: 'lighter'}}><b>Course:</b> {qrResult.course}</p>
         </div>}
 
         {userData && <div className="qr-results" style={{ marginTop: "180px", backgroundColor: "white", width: "500px", borderRadius: "20px", padding: "10px" }}>
@@ -575,20 +575,20 @@ const handleCameraSwitch = async (newDeviceId) => {
                       <br />
                       {userData.isGuest !== true && (
                         <span>
-                          {userData.personalInfo?.course?.abbr
-                            ? `${userData.personalInfo.course.abbr} Student`
+                          {userData.personalInfo?.course?.name
+                            ? `${userData.personalInfo.course.name} Student`
                             : "Unknown"}
                         </span>
                       )}
                     </p>
                   </div>
-          <p>Email: {userData.email}</p>
-          <p>Course: {userData.course?.abbr} | Section: {userData.section}</p>
-          <p>Year Level: {userData.yearLevel}</p>
-          <p>Contact: {userData.contactNumber}</p>
-          <p>Address: {userData.address}</p>
-          <p>Gender: {userData.gender}</p>
-          <p>Birthdate: {userData.birthdate}</p>
+          <p style={{fontWeight: 'lighter'}}><b>Email:</b> {userData.email}</p>
+          <p style={{fontWeight: 'lighter'}}><b>Course:</b> {userData.course?.abbr} | <b>Section:</b> {userData.section}</p>
+          <p style={{fontWeight: 'lighter'}}><b>Year Level:</b> {userData.yearLevel}</p>
+          <p style={{fontWeight: 'lighter'}}><b>Contact Number:</b> {userData.contactNumber}</p>
+          <p style={{fontWeight: 'lighter'}}><b>Address:</b> {userData.address}</p>
+          <p style={{fontWeight: 'lighter'}}><b>Gender:</b> {userData.gender}</p>
+          <p style={{fontWeight: 'lighter'}}><b>Birthdate:</b> {userData.birthdate}</p>
         </div>}
 
         <button onClick={finalizeClaim} disabled={loading} style={{

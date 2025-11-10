@@ -273,18 +273,18 @@ function UserFoundItemsPage() {
             <option value="">Select Category</option>
             <option value="Electronics">Electronics</option>
             <option value="Accessories">Accessories</option>
-            <option value="Clothing">Clothing & Apparel</option>
-            <option value="Bags">Bags & Luggage</option>
-            <option value="Documents">Documents & IDs</option>
-            <option value="Stationery">Books & Stationery</option>
-            <option value="Household">Household Items</option>
-            <option value="Sports">Sports & Fitness</option>
-            <option value="Health">Health & Personal Care</option>
-            <option value="Toys">Toys & Games</option>
-            <option value="Food">Food & Beverages</option>
+            <option value="Clothing & Apparel">Clothing & Apparel</option>
+            <option value="Bags & Luggage">Bags & Luggage</option>
+            <option value="Documents & IDs">Documents & IDs</option>
+            <option value="Books & Stationery">Books & Stationery</option>
+            <option value="Household Items">Household Items</option>
+            <option value="Sports & Fitness">Sports & Fitness</option>
+            <option value="Health & Personal Care">Health & Personal Care</option>
+            <option value="Toys & Games">Toys & Games</option>
+            <option value="Food & Beverages">Food & Beverages</option>
             <option value="Automotive">Automotive Items</option>
-            <option value="Music">Musical Instruments</option>
-            <option value="Pets">Pet Items</option>
+            <option value="Automotive Items Instruments">Musical Instruments</option>
+            <option value="Pet Items">Pet Items</option>
             <option value="Others">Others</option>
           </select>
         </div>

@@ -71,7 +71,7 @@ useEffect(() => {
     } catch (error) {
       console.error("Error fetching lost items:", error);
     } finally {
-      setLoading(false); // stop loading
+      setLoading(false); 
     }
   };
 
@@ -165,15 +165,15 @@ const handleVerifyItem = async (foundDocId) => {
               });
 
               const emailData = await emailRes.json();
-              console.log("📧 Email API response:", emailData);
+              console.log("Email API response:", emailData);
 
               if (!emailRes.ok) {
-                console.error(`❌ Failed to send email to ${match.lostItem?.personalInfo?.email}:`, emailData);
+                console.error(`Failed to send email to ${match.lostItem?.personalInfo?.email}:`, emailData);
               } else {
-                console.log(`✅ Email successfully sent to ${match.lostItem?.personalInfo?.email}`);
+                console.log(`Email successfully sent to ${match.lostItem?.personalInfo?.email}`);
               }
             } catch (err) {
-              console.error(`⚠️ Error sending email to ${match.lostItem?.personalInfo?.email}:`, err);
+              console.error(`Error sending email to ${match.lostItem?.personalInfo?.email}:`, err);
             }
 
 
@@ -204,15 +204,15 @@ const handleVerifyItem = async (foundDocId) => {
             });
 
             const emailData = await emailRes.json();
-            console.log("📧 Email API response:", emailData);
+            console.log("Email API response:", emailData);
 
             if (!emailRes.ok) {
-              console.error(`❌ Failed to send email to ${manageData.personalInfo?.email}:`, emailData);
+              console.error(`Failed to send email to ${manageData.personalInfo?.email}:`, emailData);
             } else {
-              console.log(`✅ Email successfully sent to ${manageData.personalInfo?.email}`);
+              console.log(`Email successfully sent to ${manageData.personalInfo?.email}`);
             }
           } catch (err) {
-            console.error(`⚠️ Error sending email to ${manageData.personalInfo?.email}:`, err);
+            console.error(`Error sending email to ${manageData.personalInfo?.email}:`, err);
           }
 
         }
@@ -346,7 +346,7 @@ const archiveItem = async (item) => {
                 className="btn btn-danger" 
                 onClick={async () => {
                   if (selectedItemId) {
-                    await archiveItem(selectedItemId); // pass full item object
+                    await archiveItem(selectedItemId); 
                   }
                   setShowConfirm(false);
                 }}
@@ -403,7 +403,7 @@ const archiveItem = async (item) => {
                   <Dropdown.Item onClick={() => setSelectedYear("2024")}>2024</Dropdown.Item>
                   <Dropdown.Item onClick={() => setSelectedYear("2025")}>2025</Dropdown.Item>
                 </DropdownButton>
-                <button className={`processClaimBtn  ${location.pathname === `/admin/transactions/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/admin/transactions/${user?.uid}`)} style={{backgroundColor: 'navyblue'}}>Process Claim</button>
+                <button style={{backgroundColor: 'navy', color: 'white', fontWeight: 'bold'}} className={`processClaimBtn  ${location.pathname === `/admin/transactions/${user?.uid}` ? 'active' : ''}`} onClick={() => handleNavigate(`/admin/transactions/${user?.uid}`)}>Process Claim</button>
 
 
             </div>
@@ -531,7 +531,6 @@ const archiveItem = async (item) => {
           {item.claimedBy ? (
             <>
               {item.claimedBy?.isGuest ? (
-                // Case 1: Guest
                 <div
                   style={{
                     width: "50px",
@@ -549,7 +548,6 @@ const archiveItem = async (item) => {
                   Guest
                 </div>
               ) : item.claimedBy?.profileURL ? (
-                // Case 2: Profile Image
                 <img
                   src={item.claimedBy.profileURL}
                   alt="Owner"
@@ -561,7 +559,6 @@ const archiveItem = async (item) => {
                   }}
                 />
               ) : (
-                // Case 3: Initials
                 <div
                   style={{
                     width: "50px",
@@ -582,7 +579,6 @@ const archiveItem = async (item) => {
                 </div>
               )}
 
-              {/* Personal Info */}
               {!item.claimedBy?.isGuest && (
                 <div className='personal-info'>
                   <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'black' }}>
@@ -595,7 +591,6 @@ const archiveItem = async (item) => {
               )}
             </>
           ) : (
-            // No ClaimedBy (Unknown user)
             <>
               <div
                 className='profile'

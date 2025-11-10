@@ -1,15 +1,9 @@
-import { Text, View } from "react-native";
+import React from "react";
+import Onboarding from '../components/OnBoarding';
 
 export default function Index() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text>Edit app/index.tsx to edit this screen.</Text>
-    </View>
-  );
+  // This screen's only job is to show the onboarding flow.
+  // In a real app, you would add logic here to check if the user
+  // has already completed onboarding and redirect them if they have.
+  return <Onboarding />;
 }

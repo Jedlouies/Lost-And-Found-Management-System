@@ -28,27 +28,39 @@ function NavigationBar() {
     setExpanded((prev) => !prev);
   };
 
-  useEffect(() => {
-    if (!user) return;
+useEffect(() => {
+    // Safer check for user UID
+    if (!user?.uid) {
+      setUnreadCount(0); // Reset count if no user
+      return; // Exit if no user UID
+    }
 
     const db = getDatabase();
+    // Path specific to the current admin's notifications
     const notificationsRef = ref(db, `notifications/${user.uid}`);
 
     const unsubscribe = onValue(notificationsRef, (snapshot) => {
+      let count = 0; // Initialize count for this snapshot update
       if (snapshot.exists()) {
-        let count = 0;
         snapshot.forEach((child) => {
-          if (!child.val().read) count++;
+          const notificationData = child.val();
+          // ✅ FILTER ADDED: Count only if it's unread AND NOT a 'user-message' type
+          if (notificationData &&
+              notificationData.read === false &&
+              notificationData.type !== 'user-message') { // <--- Add this condition
+            count++;
+          }
         });
-        setUnreadCount(count);
-      } else {
-        setUnreadCount(0);
       }
+      setUnreadCount(count); // Update state with the filtered count
+    }, (error) => {
+        console.error("Error fetching notification count:", error);
+        setUnreadCount(0); // Reset count on error
     });
 
+    // Cleanup listener on unmount or when user ID changes
     return () => unsubscribe();
-  }, [user]);
-
+  }, [user?.uid]);
   return (
     <>
 

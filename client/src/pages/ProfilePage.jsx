@@ -145,7 +145,7 @@ function ProfilePage() {
           <div className='container-details'>
             
             <h1>{firstName} {lastName}</h1>
-            <h4>{designation}</h4>
+            <h4 style={{marginLeft: '5%'}}>{designation}</h4>
             
           </div>
           <div className={`profile-quick-action ${location.pathname === `/users/settings/${user?.uid}` ? 'active' : ''}`} onClick={() => handleEdit(`/users/settings/${user?.uid}`)}>
@@ -166,12 +166,9 @@ function ProfilePage() {
                 </div>
               <div className='profile-other-details2' style={{marginTop: '50px'}}>
                 <p>
-                  <strong>Course:</strong>{" "}
-                  {course?.abbr && course?.name
-                    ? `${course.abbr} – ${course.name}`
-                    : course || "N/A"}
+                  <strong>Educational Attainment:</strong> {educationalAttainment}
                 </p>
-                <p><strong>Section:</strong> {section}</p>
+                <p><strong>Years of Service:</strong> {yearsOfService}</p>
                 <p><strong>Bio: </strong> {bio}</p>
 
               </div>

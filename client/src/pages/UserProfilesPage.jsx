@@ -16,7 +16,7 @@ function UserProfilesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [previewImage, setPreviewImage] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedYear, setSelectedYear] = useState("All"); // 👈 added state
+  const [selectedYear, setSelectedYear] = useState("All"); 
 
   const itemsPerPage = 6;
   const navigate = useNavigate();
@@ -33,7 +33,7 @@ function UserProfilesPage() {
           return {
             id: doc.id,
             ...data,
-            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : null, // 👈 normalize Firestore Timestamp
+            createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : null,
           };
         });
 
@@ -48,7 +48,7 @@ function UserProfilesPage() {
     fetchUsers();
   }, []);
 
-  // ✅ Apply search filter + year filter
+ 
   const filteredUsers = users.filter(user => {
     const matchesSearch = `${user.firstName} ${user.lastName} ${user.studentId}`
       .toLowerCase()
@@ -183,10 +183,36 @@ function UserProfilesPage() {
 
               <tfoot>
                 <tr className='footer'>
-                  <td colSpan="8" style={{ textAlign: 'center', padding: '10px 0', minWidth: '100px'}}>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '10px 0', minWidth: '200px' }}>
                     <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>{'<'}</button>
-                    {
-                      [...Array(totalPages)].map((_, i) => i + 1).map((pageNum) => (
+                    
+                    {/* --- START OF UPDATED LOGIC --- */}
+                    {(() => {
+                      const pageNumbers = [];
+                      const maxButtonsToShow = 3;
+
+                      let startPage;
+                      let endPage;
+
+                      if (totalPages <= maxButtonsToShow) {
+                        startPage = 1;
+                        endPage = totalPages;
+                      } else if (currentPage <= 2) {
+                        startPage = 1;
+                        endPage = maxButtonsToShow;
+                      } else if (currentPage >= totalPages - 1) {
+                        startPage = totalPages - maxButtonsToShow + 1;
+                        endPage = totalPages;
+                      } else {
+                        startPage = currentPage - 1;
+                        endPage = currentPage + 1;
+                      }
+
+                      for (let i = startPage; i <= endPage; i++) {
+                        pageNumbers.push(i);
+                      }
+
+                      return pageNumbers.map((pageNum) => (
                         <button
                           key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
@@ -197,13 +223,14 @@ function UserProfilesPage() {
                         >
                           {pageNum}
                         </button>
-                      ))
-                    }
+                      ));
+                    })()}
+                    
                     <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>{'>'}</button>
                   </td>
                 </tr>
-              </tfoot>
-            </table>
+              </tfoot>            
+          </table>
           </div>
         </div>
 

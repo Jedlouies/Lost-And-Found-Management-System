@@ -7,6 +7,15 @@ import { useNavigate } from 'react-router-dom';
 import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
 import Header from '../components/Header';
 
+// --- NEW CONSTANTS FOR IMAGE MODERATION ---
+const PLACEHOLDER_COLOR = "#A9A9A9";
+const CHECKING_TEXT = "Checking your image if it contains inappropriate content...";
+const CHECKING_SHORT = "Scanning...";
+const INAPPROPRIATE_ALERT_TITLE = "Inappropriate Content Detected";
+const INAPPROPRIATE_ALERT_MESSAGE = (flaggedCount) => 
+  `${flaggedCount} image(s) were flagged for potentially inappropriate content (e.g., nudity, violence, self-harm, hate speech) and were not added. Please upload appropriate images.`;
+const MAX_IMAGES = 1; // 👈 *** SET TO 1 ***
+
 function GuestReportFoundPage() {
  const API = "https://server.spotsync.site";
   const { currentUser } = useAuth();
@@ -24,7 +33,13 @@ function GuestReportFoundPage() {
   const [section, setSection] = useState('Guest');
   const [yearLevel, setYearLevel] = useState('Guest');
   const [birthdate, setBirthdate] = useState('Guest');
-  const [images, setImages] = useState(null);
+  
+  // --- UPDATED IMAGE STATE ---
+  const [images, setImages] = useState(null); // Actual files for upload
+  const [imagesWithMetadata, setImagesWithMetadata] = useState([]); // For preview URLs
+  
+  // --- NEW MODERATION STATE ---
+  const [isModerating, setIsModerating] = useState(false);
 
   const [founder, setFounder] = useState('Guest');  
   const [owner] = useState('Unknown');             
@@ -162,9 +177,94 @@ function GuestReportFoundPage() {
 }, []);
 
 
-  const handleImageChange = (e) => {
-    setImages(e.target.files);
+  // --- NEW MODERATION FUNCTION ---
+  const checkImageModeration = async (file) => {
+      // 1. Convert File to Base64
+      const fileReader = new FileReader();
+      const base64Promise = new Promise((resolve, reject) => {
+        fileReader.onload = () => resolve(fileReader.result);
+        fileReader.onerror = () => reject(new Error("Failed to read file."));
+      });
+      fileReader.readAsDataURL(file);
+      const base64Data = (await base64Promise).split(',')[1]; // Get only the base64 part
+  
+      try {
+        const response = await fetch(`${API}/api/moderate-image`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: `data:${file.type};base64,${base64Data}` })
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Backend Moderation Error:", response.status, errorData);
+          throw new Error(errorData.error || `Moderation check failed on backend (${response.status})`);
+        }
+  
+        const data = await response.json(); // Expecting { isSafe: boolean }
+        return data.isSafe;
+  
+      } catch (error) {
+        console.error("Error calling backend for moderation:", error);
+        // Fallback: If the moderation service fails, we block the image as a safety measure.
+        return false; 
+      }
   };
+
+
+  // --- UPDATED IMAGE CHANGE HANDLER ---
+  const handleImageChange = async (e) => {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+
+      // Since MAX_IMAGES is 1, we only take the first file.
+      const file = files[0];
+
+      const currentImageCount = imagesWithMetadata.length;
+      if (currentImageCount >= MAX_IMAGES) {
+          alert(`Only ${MAX_IMAGES} image is allowed. Please remove the existing image to add a new one.`);
+          return;
+      }
+      
+      setIsModerating(true);
+      let flaggedCount = 0;
+      const newImages = [];
+
+      try {
+          const isSafe = await checkImageModeration(file);
+          
+          if (isSafe === true) {
+              newImages.push(file);
+          } else {
+              flaggedCount++;
+          }
+
+          if (flaggedCount > 0) {
+              alert(`${INAPPROPRIATE_ALERT_TITLE}\n\n${INAPPROPRIATE_ALERT_MESSAGE(flaggedCount)}`);
+          }
+
+          // Add safe images to the state
+          // Since MAX_IMAGES is 1, we replace instead of add.
+          setImages(newImages);
+          setImagesWithMetadata(newImages.map(file => ({ file, url: URL.createObjectURL(file) })));
+
+
+      } catch (error) {
+          console.error("Error during image moderation/processing:", error);
+          alert('An error occurred during image processing. Please try again.');
+      } finally {
+          setIsModerating(false);
+      }
+  };
+
+  // --- NEW FUNCTION TO REMOVE IMAGE ---
+  const removeImage = (indexToRemove) => {
+      // Remove from the file list (images)
+      setImages(prevImages => prevImages.filter((_, index) => index !== indexToRemove));
+      // Remove from the preview list (imagesWithMetadata)
+      setImagesWithMetadata(prevMeta => prevMeta.filter((_, index) => index !== indexToRemove));
+  };
+
 
   const uploadFoundItemImage = async (file, folder) => {
     const formData = new FormData();
@@ -197,22 +297,35 @@ function GuestReportFoundPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    // --- NEW MODERATION CHECK ---
+    if (isModerating) {
+        alert("Image scanning is still in progress. Please wait.");
+        setIsSubmitting(false);
+        return;
+    }
+    if (!images || images.length === 0) {
+        alert(`Please upload at least one image (Max ${MAX_IMAGES} allowed).`);
+        setIsSubmitting(false);
+        return;
+    }
+
     try {
       const user = auth.currentUser;
 
       if (!user) {
         alert("You must be signed in as a guest or user to submit.");
+        setIsSubmitting(false); // Stop submission
         return;
       }
 
       const uid = user.uid; 
       const imageURLs = [];
 
-      if (images && images.length > 0) {
-        for (let i = 0; i < images.length; i++) {
-          const url = await uploadFoundItemImage(images[i], `found-items/${uid}`);
-          imageURLs.push(url);
-        }
+      // Use the moderated 'images' state
+      for (let i = 0; i < images.length; i++) {
+        const url = await uploadFoundItemImage(images[i], `found-items/${uid}`);
+        imageURLs.push(url);
       }
 
       const customItemId = `ITM-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(100 + Math.random() * 900)}`;
@@ -260,7 +373,7 @@ function GuestReportFoundPage() {
 
         if (!matchResponse.ok) throw new Error("Matching failed");
         const matches = await matchResponse.json();
-        const top4Matches = matches.slice(0, 4);
+        const top4Matches = matches.slice(0, 4); // Keep this, even if unused, for consistency
 
         await notifyUser(
           currentUser.uid,
@@ -337,9 +450,68 @@ function GuestReportFoundPage() {
       <div className='background1' style={{position: 'absolute', width: '100%', height: '120vh', backgroundColor: 'white', backgroundImage: 'url(/landing-page-img.png)', backgroundSize: 'cover', backgroundPosition: 'center'}}>
         <div className="user-found-procedure-body" >
           <h1>Report Found Form</h1>
-          <form className="lost-item-form" onSubmit={handleSubmit}>
-            <input className='file' type="file" multiple accept="image/*" onChange={handleImageChange} style={{ width: '98%', border: '2px solid #475C6F'}} required />
-            <br />
+          
+          {/* --- UPDATED IMAGE UPLOAD AND PREVIEW SECTION --- */}
+          <div style={{ marginBottom: '20px', border: '2px solid #475C6F', padding: '10px', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
+                  {imagesWithMetadata.map((img, index) => (
+                      <div key={index} style={{ position: 'relative', width: '100px', height: '100px' }}>
+                          <img src={img.url} alt="Item Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }} />
+                          <button 
+                              type="button" 
+                              onClick={() => removeImage(index)} 
+                              style={{ position: 'absolute', top: '-10px', right: '-10px', background: 'red', color: 'white', border: 'none', borderRadius: '50%', width: '25px', height: '25px', cursor: 'pointer', fontWeight: 'bold' }}
+                          >
+                              &times;
+                          </button>
+                      </div>
+                  ))}
+                  {imagesWithMetadata.length < MAX_IMAGES && (
+                      <label style={{ 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          width: '100px', 
+                          height: '100px', 
+                          border: '2px dashed #475C6F', 
+                          borderRadius: '4px', 
+                          cursor: isModerating ? 'not-allowed' : 'pointer',
+                          backgroundColor: isModerating ? '#f0f0f0' : 'white',
+                          opacity: isModerating ? 0.6 : 1,
+                          fontSize: '12px'
+                      }}>
+                          {isModerating ? (
+                              <>
+                                  <img src="/Spin_black.gif" alt="Loading..." style={{ width: "20px", height: "20px" }} />
+                                  <span>{CHECKING_SHORT}</span>
+                              </>
+                          ) : (
+                              <>
+                                  <span>+ Add Image</span>
+                              </>
+                          )}
+                          <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageChange}
+                              style={{ display: 'none' }}
+                              disabled={isModerating}
+                              required={imagesWithMetadata.length === 0}
+                          />
+                      </label>
+                  )}
+              </div>
+              <div style={{ fontSize: '12px', color: '#475C6F', textAlign: 'center' }}>
+                Image content is scanned for inappropriate material.
+              </div>
+          </div>
+          {/* --- END UPDATED IMAGE UPLOAD SECTION --- */}
+          
+          {/* --- FORM WITH ID --- */}
+          <form className="lost-item-form" onSubmit={handleSubmit} id="guest-found-form">
+            {/* <input className='file' type="file" multiple accept="image/*" onChange={handleImageChange} style={{ width: '98%', border: '2px solid #475C6F'}} required /> */}
+            {/* <br /> */}
           <input
             type="text"
             value={itemName}
@@ -533,7 +705,7 @@ function GuestReportFoundPage() {
               style={{ color: '#475C6F', width: '98%', marginBottom: '30px'}}
               required
             />
-            <div style={{ position: 'absolute', top: '50%', marginLeft: '2%', fontSize: '12px', color: '#475C6F' }}>
+            <div style={{ position: 'absolute', top: '68%', marginLeft: '2%', fontSize: '12px', color: '#475C6F' }}>
               {countWords(itemDescription)}/{WORD_LIMIT} words
             </div>
 
@@ -546,14 +718,16 @@ function GuestReportFoundPage() {
               style={{ color: '#475C6F', width: '98%', }}
               required
             />
-            <div style={{ position: 'absolute', top: '79%', marginLeft: '2%', fontSize: '12px', color: '#475C6F' }}>
+            <div style={{ position: 'absolute', top: '96%', marginLeft: '2%', fontSize: '12px', color: '#475C6F' }}>
               {countWords(howItemFound)}/{WORD_LIMIT} words
             </div>
             </div>
-            
-            <button
+          </form>
+          {/* --- SUBMIT BUTTON OUTSIDE FORM --- */}
+          <button
             type="submit"
-            disabled={isSubmitting || isMatching}
+            form="guest-found-form" // 👈 *** LINKS TO FORM ID ***
+            disabled={isSubmitting || isMatching || isModerating}
             style={{
               display: "flex",
               alignItems: "center",
@@ -564,12 +738,18 @@ function GuestReportFoundPage() {
               padding: "12px 25px",
               border: "none",
               borderRadius: "10px",
-              cursor: isSubmitting || isMatching ? "not-allowed" : "pointer",
+              cursor: isSubmitting || isMatching || isModerating ? "not-allowed" : "pointer",
               fontSize: "16px",
               fontWeight: "500",
+              marginTop: "130px" // 👈 Added margin top for spacing
             }}
           >
-            {isMatching ? (
+            {isModerating ? (
+              <>
+                <img src="/Spin_black.gif" alt="Loading..." style={{ width: "20px", height: "20px" }} />
+                <span>{CHECKING_SHORT}</span>
+              </>
+            ) : isMatching ? (
               <>
                 <img src="/Spin_black.gif" alt="Loading..." style={{ width: "20px", height: "20px" }} />
                 <span>AI Matching...</span>
@@ -583,7 +763,6 @@ function GuestReportFoundPage() {
               "Submit Report"
             )}
           </button> 
-          </form>
         </div>
       </div>
       </>
