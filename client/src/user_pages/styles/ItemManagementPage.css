@@ -337,6 +337,15 @@ td:hover .floating-location {
     padding: 2px;
 }
 
+.matches-container::-webkit-scrollbar {
+    display: none;
+}
+
+.matches-container {
+    -ms-overflow-style: none; 
+    scrollbar-width: none;    
+}
+
 @media (max-width: 1200px) {
     .manage-spacing {
         left: -10%;

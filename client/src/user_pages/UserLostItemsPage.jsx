@@ -80,17 +80,14 @@ function UserLostItemsPage() {
       const ref = doc(db, "users", currentUser.uid, "savedItems", item.id);
 
       if (savedItems.some((saved) => saved.id === item.id)) {
-        // Unsave
         await deleteDoc(ref);
         setSavedItems((prev) => prev.filter((saved) => saved.id !== item.id));
       } else {
-        // Save
         await setDoc(ref, item);
         setSavedItems((prev) => [...prev, item]);
       }
     };
 
-  // Filter lost items
   const filteredLostItems = [...lostItems]
     .filter(item => item.claimStatus !== "claimed")
     .filter(item => item.archivedStatus !== true)
@@ -241,7 +238,7 @@ function UserLostItemsPage() {
               left: "-15%",
               top: "2%",
               fontSize: "30px",
-              fontWeight: "500",
+              fontWeight: "bold",
               color: "#475C6F",
             }}
           >
@@ -289,7 +286,6 @@ function UserLostItemsPage() {
           </select>
         </div>
 
-        {/* Saved items icon */}
         <div className="right-upper-panel" style={{ position: "absolute" }}>
           <svg
             xmlns="http://www.w3.org/2000/svg"

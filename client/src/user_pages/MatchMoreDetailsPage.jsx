@@ -11,7 +11,6 @@ function MatchMoreDetailsPage() {
 
   if (!item) return <p>No match data provided.</p>;
 
-  // status color container
   const getStatusStyle = (status) => {
     if (!status) return { backgroundColor: "#ccc", color: "black" };
     switch (status.toLowerCase()) {
@@ -22,13 +21,12 @@ function MatchMoreDetailsPage() {
     }
   };
 
-  // Only show opposite type matches
   const filteredMatches = item.topMatches?.filter((match) => {
     if (item.type?.toLowerCase() === "found") {
-      return match.lostItem; // only lost matches
+      return match.lostItem; 
     }
     if (item.type?.toLowerCase() === "lost") {
-      return match.foundItem; // only found matches
+      return match.foundItem; 
     }
     return true;
   });
@@ -36,11 +34,10 @@ function MatchMoreDetailsPage() {
   return (
     <>
       <UserNavigationBar />
-      <div className="manage-item-body">
+      <div className="manage-item-body" >
         <UserBlankHeader />
         <div className="manage-item-container">
 
-          {/* Reported Item */}
           <div style={{ marginBottom: "30px" }}>
             <h2>Reported Item</h2>
             {item.images?.length > 0 && (
@@ -105,95 +102,105 @@ function MatchMoreDetailsPage() {
             </div>
           </div>
 
-          {/* Matches */}
           <div
             className="more-matches-results"
             style={{
-              
-              gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
               gap: "20px",
               marginTop: "20px",
             }}
           >
             <h2>Matching Results</h2>
-            <div style={{display: 'flex', flexDirection: 'row', gap: '20px', flexWrap: 'wrap'}}>
-            {filteredMatches?.length > 0 ? (
-              filteredMatches.map((match, index) => (
-                <div
-                  key={index}
-                  style={{
-                    border: "1px solid #ddd",
-                    borderRadius: "10px",
-                    padding: "10px",
-                    width: "300px",
-                    backgroundColor: "#fff",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                    textAlign: 'center',
-                    fontSize: '12px',
-                    lineHeight: '.5',
-                  }}
-                >
-                  <h4>Top {index + 1}</h4>
+            <div
+              className="matches-container"
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: '20px',
+                flexWrap: 'nowrap',  
+                overflowX: 'auto',    
+                width: '90%',
+                paddingBottom: '10px',
+                borderRadius: '10px', 
+              }}
+            >
+              {filteredMatches?.length > 0 ? (
+                filteredMatches.map((match, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      border: "1px solid #ddd",
+                      borderRadius: "10px",
+                      padding: "10px",
+                      width: "300px",
+                      flexShrink: 0, 
+                      backgroundColor: "#fff",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                      textAlign: 'center',
+                      fontSize: '12px',
+                      lineHeight: '.5',
+                    }}
+                  >
+                    
+                    <h4>Top {index + 1}</h4>
 
-                  {item.type?.toLowerCase() === "found" && match.lostItem && (
-                    <div>
-                      
-                      {match.lostItem.images?.[0] && (
-                        <img
-                          src={match.lostItem.images[0]}
-                          alt="Lost Item"
-                          style={{
-                            width: "200px",
-                            height: "200px",
-                            objectFit: "cover",
-                            borderRadius: "8px",
-                            marginBottom: "10px",
-                          }}
-                        />
-                      )}
-                      <p><b>Item ID:</b> {match.lostItem.itemId}</p>
-                      <p><b>Transaction ID:</b> {match.transactionId}</p>
-                      <p><b>Name:</b> {match.lostItem.itemName}</p>
-                      <p><b>Location:</b> {match.lostItem.locationLost}</p>
-                    </div>
-                  )}
+                    {item.type?.toLowerCase() === "found" && match.lostItem && (
+                      <div>
+                        {match.lostItem.images?.[0] && (
+                          <img
+                            src={match.lostItem.images[0]}
+                            alt="Lost Item"
+                            style={{
+                              width: "200px",
+                              height: "200px",
+                              objectFit: "cover",
+                              borderRadius: "8px",
+                              marginBottom: "10px",
+                            }}
+                          />
+                        )}
+                        <p><b>Item ID:</b> {match.lostItem.itemId}</p>
+                        <p><b>Transaction ID:</b> {match.transactionId}</p>
+                        <p><b>Name:</b> {match.lostItem.itemName}</p>
+                        <p><b>Location:</b> {match.lostItem.locationLost}</p>
+                      </div>
+                    )}
 
-                  {item.type?.toLowerCase() === "lost" && match.foundItem && (
-                    <div>
-                      <h4>Found Item</h4>
-                      {match.foundItem.images?.[0] && (
-                        <img
-                          src={match.foundItem.images[0]}
-                          alt="Found Item"
-                          style={{
-                            width: "100%",
-                            height: "200px",
-                            objectFit: "cover",
-                            borderRadius: "8px",
-                          }}
-                        />
-                      )}
-                      <p><b>ID:</b> {match.foundItem.itemId}</p>
-                      <p><b>Name:</b> {match.foundItem.itemName}</p>
-                      <p><b>Location:</b> {match.foundItem.locationFound}</p>
-                    </div>
-                  )}
+                    {item.type?.toLowerCase() === "lost" && match.foundItem && (
+                      <div>
+                        <h4>Found Item</h4>
+                        {match.foundItem.images?.[0] && (
+                          <img
+                            src={match.foundItem.images[0]}
+                            alt="Found Item"
+                            style={{
+                              width: "100%",
+                              height: "200px",
+                              objectFit: "cover",
+                              borderRadius: "8px",
+                            }}
+                          />
+                        )}
+                        <p><b>ID:</b> {match.foundItem.itemId}</p>
+                        <p><b>Name:</b> {match.foundItem.itemName}</p>
+                        <p><b>Location:</b> {match.foundItem.locationFound}</p>
+                      </div>
+                    )}
 
-                  {match.scores && (
-                    <div style={{ marginTop: "10px" }}>
-                      <p>Scores</p>
-                      <p><b>Overall:</b> {match.scores.overallScore}%</p>
-                      <p><b>Description:</b> {match.scores.descriptionScore}%</p>
-                      <p><b>Image:</b> {match.scores.imageScore}%</p>
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <p>No matches found for this item.</p>
-            )}
+                    {match.scores && (
+                      <div style={{ marginTop: "10px" }}>
+                        <p>Scores</p>
+                        <p><b>Overall:</b> {match.scores.overallScore}%</p>
+                        <p><b>Description:</b> {match.scores.descriptionScore}%</p>
+                        <p><b>Image:</b> {match.scores.imageScore}%</p>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p>No matches found for this item.</p>
+              )}
             </div>
-          </div>
+        </div>
         </div>
       </div>
     </>

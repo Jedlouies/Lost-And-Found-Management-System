@@ -48,7 +48,6 @@ useEffect(() => {
         const data = userDocSnap.data();
         setUserData(data);
 
-        // Optional: cache locally for SPA navigations
         Object.entries(data).forEach(([key, value]) => {
           if (value !== undefined && value !== null) localStorage.setItem(key, value);
         });
@@ -104,6 +103,8 @@ useEffect(() => {
 
   
 useEffect(() => {
+  const scrollSpeed = 3; 
+
   const addHorizontalScroll = (container) => {
     if (!container) return;
 
@@ -112,16 +113,21 @@ useEffect(() => {
       const atStart = scrollLeft === 0;
       const atEnd = scrollLeft + clientWidth >= scrollWidth;
 
-      if (scrollWidth > clientWidth) {
-        if (e.deltaY < 0 && atStart) return;
-        if (e.deltaY > 0 && atEnd) return;
+      const scrollAmount = (e.deltaY !== 0 ? e.deltaY : e.deltaX) * scrollSpeed; 
 
-        e.preventDefault();
-        container.scrollLeft += e.deltaY;
+      if (scrollWidth > clientWidth) {
+        
+        if (scrollAmount < 0 && atStart) return;
+        if (scrollAmount > 0 && atEnd) return;
+        
+        e.preventDefault(); 
+        
+        container.scrollLeft += scrollAmount;
       }
     };
 
     container.addEventListener("wheel", handleWheel, { passive: false });
+    
     return () => container.removeEventListener("wheel", handleWheel);
   };
 
@@ -132,7 +138,7 @@ useEffect(() => {
     if (lostCleanup) lostCleanup();
     if (foundCleanup) foundCleanup();
   };
-}, []);
+}, []); 
 
 
   useEffect(() => {
@@ -240,8 +246,8 @@ useEffect(() => {
           </svg>
         Lost Items
         </h1>
-        <h4 style={{ position: 'absolute', top: '15%', left: '90%', color: '#475C6F', cursor: 'pointer' }} onClick={() => handleNavigate(`/users/lost-items/${user?.uid}`)}>More</h4>
-        <div className="home-lost-container" ref={lostContainerRef}>
+        <h4 style={{ position: 'absolute', top: '15%', left: '90%', color: '#475C6F', cursor: 'pointer' }} onClick={() => handleNavigate(`/users/lost-items/${user?.uid}`)}> See More</h4>
+        <div className="home-lost-container" style={{display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', overflowX: 'auto' }} ref={lostContainerRef}>
           {loadingLost ? (
             <img src="/Spin_black.gif" alt="loading..." style={{ width: "70px", height: "70px" }} />
           ) : recentLostItems.length > 0 ? (
@@ -354,7 +360,7 @@ useEffect(() => {
           </svg>
           Found Items
         </h1>
-        <h4 style={{ position: 'absolute', top: '57%', left: '90%', color: '#475C6F', cursor: 'pointer' }} onClick={() => handleNavigate(`/users/found-items/${user?.uid}`)}>More</h4>
+        <h4 style={{ position: 'absolute', top: '57%', left: '90%', color: '#475C6F', cursor: 'pointer' }} onClick={() => handleNavigate(`/users/found-items/${user?.uid}`)}> See More</h4>
         <div className="home-found-container" ref={foundContainerRef}>
           {loadingFound ? (
             <img src="/Spin_black.gif" alt="loading..." style={{ width: "70px", height: "70px" }} />

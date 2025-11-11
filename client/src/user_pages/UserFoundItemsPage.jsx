@@ -90,7 +90,6 @@ function UserFoundItemsPage() {
     }
   };
 
-  // Filter found items
   const filteredFoundItems = [...foundItems]
     .filter((item) => item.claimStatus !== "claimed")
     .filter((item) => item.archivedStatus !== true)
@@ -241,7 +240,7 @@ function UserFoundItemsPage() {
               left: "-15%",
               top: "2%",
               fontSize: "30px",
-              fontWeight: "500",
+              fontWeight: "bold",
               color: "#475C6F",
             }}
           >
