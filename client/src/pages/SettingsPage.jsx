@@ -167,7 +167,6 @@ const [pendingPassword, setPendingPassword] = useState(null);
     const user = auth.currentUser;
     if (!user) throw new Error("No user logged in");
 
-    // Reauthenticate with current password
     const credential = EmailAuthProvider.credential(user.email, password);
     await reauthenticateWithCredential(user, credential);
 

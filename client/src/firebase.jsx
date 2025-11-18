@@ -21,7 +21,7 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
-export const auth = getAuth(app); // main persistent auth
-export const secondaryAuth = getAuth(app, "Secondary"); // in-memory auth for additional accounts
+export const auth = getAuth(app); 
+export const secondaryAuth = getAuth(app, "Secondary"); 
 
 export default app;

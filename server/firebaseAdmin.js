@@ -18,7 +18,8 @@ const serviceAccount = {
   auth_provider_x509_cert_url: process.env.AUTH_PROVIDER_X509_CERT_URL,
   client_x509_cert_url: process.env.CLIENT_X509_CERT_URL,
   universe_domain: process.env.UNIVERSE_DOMAIN,
-};
+
+}
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -28,7 +29,7 @@ if (!admin.apps.length) {
 
 export const db = admin.firestore();
 export const resend = new Resend(process.env.RESEND_API_KEY);
-export const auth = admin.auth();
+export const  auth = admin.auth();
 
 export const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, 

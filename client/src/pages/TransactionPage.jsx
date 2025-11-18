@@ -268,7 +268,7 @@ const ProfileAvatar = ({ personalInfo }) => {
                   </div>
                 </div>         
               </div>
-            ) : (
+           ) : (
               <p>No lost item details</p>
             )}
 
@@ -332,7 +332,7 @@ const ProfileAvatar = ({ personalInfo }) => {
                   ? ` ${Math.round(selectedMatch.scores.locationScore)}%`
                   : 'N/A'}
               </span>
-              <div className='progress-bar-full' style={{marginTop: '5px'}}>
+              <div> className='progress-bar-full' style={{marginTop: '5px'}}>
                 <div
                   className="progress-bar-percentage"
                   style={{

@@ -86,7 +86,7 @@ async function compareImagesWithFilter(lostUrls, foundUrls) {
       if (score > bestScore) bestScore = score;
     }
   }
-  return bestScore;
+   bestScore;
 }
 
 async function calculateMatchScore(lostItem, foundItem) {
@@ -422,7 +422,7 @@ app.post("/server/create-admin", requireLogin, async (req, res) => {
 
     await db.collection("users").doc(userRecord.uid).set({
       uid: userRecord.uid,
-      email: userRecord.email, // This will now be defined
+      email: userRecord.email,
       studentId,
       role: "admin",
       contactNumber: "",
@@ -581,7 +581,7 @@ async function checkFoundItems() {
           }
         } catch (innerErr) {
           console.error(`[checkFoundItems] error handling threshold ${t.key} for ${id}:`, innerErr);
-Why       }
+       }
       }
 
       // ========== AUTO-CANCEL AFTER 24 HOURS ==========

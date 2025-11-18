@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react"; // Added useEffect
+import React, { useRef, useState, useEffect } from "react"; 
 import "./styles/CreateAccount.css";
 import { Form, Card, Alert } from "react-bootstrap";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -7,7 +7,7 @@ import { signInAnonymously } from "firebase/auth";
 import { auth } from "../firebase";
 import createVerificationCode from "../components/createVerificationCode.jsx";
 import VerificationModal from "../components/VerificationModal";
-import 'bootstrap-icons/font/bootstrap-icons.css'; // Import Bootstrap Icons CSS
+import 'bootstrap-icons/font/bootstrap-icons.css'; 
 
 function CreateAccount() {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ function CreateAccount() {
     navigate("/log-in");
   };
 
-  const [guestLoading, setGuestLoading] = useState(false); // Loading overlay
+  const [guestLoading, setGuestLoading] = useState(false); 
   const firstNameRef = useRef();
   const lastNameRef = useRef();
   const studentIdRef = useRef();
@@ -32,28 +32,23 @@ function CreateAccount() {
   const [pendingUserData, setPendingUserData] = useState(null);
   const [capsLock, setCapsLock] = useState(false);
 
-  // --- NEW STATE FOR PASSWORD FUNCTIONALITY ---
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordValue, setPasswordValue] = useState("");
   const [confirmPasswordValue, setConfirmPasswordValue] = useState("");
   const [passwordsMatch, setPasswordsMatch] = useState(false);
-  // --- END NEW STATE ---
 
-  // --- Check password match on input change ---
   useEffect(() => {
     setPasswordsMatch(passwordValue === confirmPasswordValue && passwordValue !== "");
     if (passwordValue !== confirmPasswordValue && confirmPasswordValue !== "") {
-       setError("Passwords do not match"); // Show error as they type if mismatch
+       setError("Passwords do not match"); 
     } else if (error === "Passwords do not match") {
-       setError(""); // Clear mismatch error if they now match or are empty
+       setError(""); 
     }
   }, [passwordValue, confirmPasswordValue]);
-  // --- END Check ---
 
 
   async function sendVerificationEmail(userData, code) {
-    // ... (sendVerificationEmail function remains the same)
       await fetch(`${API}/api/send-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -72,11 +67,9 @@ function CreateAccount() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    // Use state values for check
     if (passwordValue !== confirmPasswordValue) {
       return setError("Passwords do not match");
     }
-    // Add length check (optional but recommended)
     if (passwordValue.length < 6) {
         return setError("Password should be at least 6 characters");
     }
@@ -87,7 +80,7 @@ function CreateAccount() {
 
       const userData = {
         email: emailRef.current.value,
-        password: passwordValue, // Use state value
+        password: passwordValue, 
         firstName: firstNameRef.current.value,
         lastName: lastNameRef.current.value,
         contactNumber: contactNumberRef.current.value,
@@ -106,7 +99,6 @@ function CreateAccount() {
   }
 
   async function finalizeSignup() {
-      // ... (finalizeSignup function remains the same, uses pendingUserData)
         try {
           const userCredential = await signup(
             pendingUserData.email,
@@ -116,39 +108,31 @@ function CreateAccount() {
             pendingUserData.contactNumber,
             pendingUserData.studentId
           );
-          console.log("✅ Account created:", userCredential.user.uid);
+          console.log(" Account created:", userCredential.user.uid);
           navigate("/log-in");
         } catch (err) {
           console.error("Signup error:", err);
           setError(err.message);
-          // Keep the modal open or close it? If keeping open, provide feedback.
-          // setShowVerifyModal(false); // Option: Close modal even on signup error
         }
-        // setLoading(false); // Ensure loading is stopped if finalizeSignup is called directly
   }
 
   const handleCapsLockCheck = (e) => {
-      // Check if getModifierState exists before calling it
       const capsLockOn = typeof e.getModifierState === 'function' && e.getModifierState('CapsLock');
       setCapsLock(capsLockOn);
   };
 
   const handleGuest = async () => {
-    // ... (handleGuest function remains the same)
       try {
         setGuestLoading(true);
         await signInAnonymously(auth);
         console.log("Guest signed in:", auth.currentUser?.uid);
-        // Wait a short time to show loading
         setTimeout(() => {
           navigate(`/guest/email/${auth.currentUser?.uid}`);
         }, 500);
       } catch (error) {
         console.error("Guest sign-in failed:", error.message);
-        setGuestLoading(false); // Stop loading on error
+        setGuestLoading(false); 
       }
-      // GuestLoading should ideally be stopped in the setTimeout's navigation callback
-      // but for simplicity, we let it run until navigation completes.
   };
 
   return (
@@ -157,9 +141,9 @@ function CreateAccount() {
         <VerificationModal
           show={showVerifyModal}
           onClose={() => setShowVerifyModal(false)}
-          user={pendingUserData} // Pass user data containing email
-          sendVerificationEmail={sendVerificationEmail} // Pass the email sending function
-          onVerified={finalizeSignup} // Function to call after successful verification
+          user={pendingUserData} 
+          sendVerificationEmail={sendVerificationEmail} 
+          onVerified={finalizeSignup} 
         />
       )}
 
@@ -198,25 +182,22 @@ function CreateAccount() {
                 <input className="create-input" type="text" placeholder="Contact Number" ref={contactNumberRef} required />
               </Form.Group>
 
-              {/* --- PASSWORD INPUT WITH TOGGLE --- */}
               <Form.Group id="password">
-                <div className="password-input-wrapper"> {/* Wrapper for positioning */}
+                <div className="password-input-wrapper"> 
                   <input
                     className="create-input"
-                    // Toggle type based on showPassword state
                     type={showPassword ? "text" : "password"}
                     placeholder="Password"
-                    ref={passwordRef} // Keep ref if needed elsewhere, but use state for value
-                    value={passwordValue} // Control input with state
-                    onChange={(e) => setPasswordValue(e.target.value)} // Update state
+                    ref={passwordRef} 
+                    value={passwordValue} 
+                    onChange={(e) => setPasswordValue(e.target.value)} 
                     required
                     onKeyUp={handleCapsLockCheck}
                     onKeyDown={handleCapsLockCheck}
                   />
-                  {/* Eye Icon Toggle */}
                   <i
                     className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'} password-toggle-icon`}
-                    onClick={() => setShowPassword((prev) => !prev)} // Toggle state on click
+                    onClick={() => setShowPassword((prev) => !prev)} 
                   ></i>
                 </div>
                  {capsLock && (
@@ -225,35 +206,29 @@ function CreateAccount() {
                    </p>
                  )}
               </Form.Group>
-              {/* --- END PASSWORD INPUT --- */}
 
-              {/* --- CONFIRM PASSWORD INPUT WITH TOGGLE & CHECKMARK --- */}
               <Form.Group id="confirm-password">
-                 <div className="password-input-wrapper"> {/* Wrapper for positioning */}
+                 <div className="password-input-wrapper"> 
                     <input
                         className="create-input"
-                        // Toggle type based on showConfirmPassword state
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirm Password"
-                        ref={passwordConfirmRef} // Keep ref if needed
-                        value={confirmPasswordValue} // Control input with state
-                        onChange={(e) => setConfirmPasswordValue(e.target.value)} // Update state
+                        ref={passwordConfirmRef} 
+                        value={confirmPasswordValue} 
+                        onChange={(e) => setConfirmPasswordValue(e.target.value)}
                         required
                         onKeyUp={handleCapsLockCheck}
                         onKeyDown={handleCapsLockCheck}
                     />
-                    {/* Checkmark Icon - Conditionally Rendered */}
                     {passwordsMatch && (
                         <i className="bi bi-check-circle-fill password-match-icon"></i>
                     )}
-                    {/* Eye Icon Toggle */}
                     <i
                         className={`bi ${showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'} password-toggle-icon`}
                         onClick={() => setShowConfirmPassword((prev) => !prev)} // Toggle state
                     ></i>
                  </div>
               </Form.Group>
-              {/* --- END CONFIRM PASSWORD INPUT --- */}
 
               <p className="login-link">
                 Already have an account? <strong onClick={handleLogin}> Login </strong>
@@ -261,7 +236,7 @@ function CreateAccount() {
               <button
                 disabled={loading}
                 type="submit"
-                className="create-button" // Use class for styling
+                className="create-button" 
               >
                 {loading ? (
                   <>
@@ -269,13 +244,13 @@ function CreateAccount() {
                     <span>Creating...</span>
                   </>
                 ) : (
-                  "Create Account" // Changed text
+                  "Create Account" 
                 )}
               </button>
               <p
-                className="guest-link" // Use class for styling
-                onClick={!guestLoading ? handleGuest : undefined} // Prevent multiple clicks
-                style={{ opacity: guestLoading ? 0.6 : 1 }} // Visual feedback for loading
+                className="guest-link" 
+                onClick={!guestLoading ? handleGuest : undefined} 
+                style={{ opacity: guestLoading ? 0.6 : 1 }} 
               >
                 Continue as Guest
               </p>
@@ -284,7 +259,6 @@ function CreateAccount() {
         </div>
       </div>
 
-       {/* --- ADD CSS FOR NEW ELEMENTS --- */}
        <style>{`
           .password-input-wrapper {
             position: relative;

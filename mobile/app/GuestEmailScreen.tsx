@@ -48,7 +48,7 @@ export default function GuestEmailRequestPage() {
   const [pendingEmail, setPendingEmail] = useState("");
   const [alert, setAlert] = useState<AlertState | null>(null); // For floating alerts
 
-  // const API = "http://localhost:4000" || "https://server.spotsync.site";
+  // const API = "http://localhost:4000";
   const API = "https://server.spotsync.site";
 
   // --- Helper Functions (Mostly Unchanged) ---
@@ -121,20 +121,16 @@ export default function GuestEmailRequestPage() {
         return;
       }
 
-      // --- Verification Flow ---
-      // Use pendingEmail state to hold the email being verified
       setPendingEmail(trimmedEmail);
-      const fakeUser = { email: trimmedEmail }; // For code generation/email sending
+      const fakeUser = { email: trimmedEmail }; 
       const code = await createVerificationCode(fakeUser); // Assuming adapted for RN
       await sendVerificationEmail(fakeUser, code); // Send email
 
-      setShowVerifyModal(true); // Show modal AFTER email is sent (or attempted)
+      setShowVerifyModal(true); 
 
     } catch (err: any) { // Catch errors from checks or email sending
       console.error("Error during email save process:", err);
-      // Show specific error if known, otherwise generic
       if (err.message?.includes("Network Error")) {
-          // Alert already shown by sendVerificationEmail
           setError("Failed to send verification email due to network issues.");
       } else {
           setError(err.message || "Failed to initiate email verification.");

@@ -7,18 +7,18 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom'; 
 import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
 
-// --- NEW CONSTANTS FOR IMAGE MODERATION ---
 const PLACEHOLDER_COLOR = "#A9A9A9";
 const CHECKING_TEXT = "Checking your image if it contains inappropriate content...";
 const CHECKING_SHORT = "Scanning...";
 const INAPPROPRIATE_ALERT_TITLE = "Inappropriate Content Detected";
 const INAPPROPRIATE_ALERT_MESSAGE = (flaggedCount) => 
   `${flaggedCount} image(s) were flagged for potentially inappropriate content (e.g., nudity, violence, self-harm, hate speech) and were not added. Please upload appropriate images.`;
-const MAX_IMAGES = 1; // 👈 *** SET TO 1 ***
+const MAX_IMAGES = 1; 
 
 
 function UserFoundItemDetailPage() {
- const API = "https://server.spotsync.site";
+ const API = "http://localhost:4000";
+ //const API = "https://server.spotsync.site";
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -36,18 +36,14 @@ function UserFoundItemDetailPage() {
   const [yearLevel, setYearLevel] = useState('');
   const [birthdate, setBirthdate] = useState('');
 
-  // --- UPDATED IMAGE STATE ---
-  const [images, setImages] = useState(null); // Actual files for upload
-  const [imagesWithMetadata, setImagesWithMetadata] = useState([]); // For preview URLs
+  const [images, setImages] = useState(null);
+  const [imagesWithMetadata, setImagesWithMetadata] = useState([]); 
 
-  // --- NEW MODERATION STATE ---
   const [isModerating, setIsModerating] = useState(false);
 
-  // Dropdown control states
 const [showLocationDropdown, setShowLocationDropdown] = useState(false);
 const [filteredLocations, setFilteredLocations] = useState([]);
 
-// For Category input dropdown
 const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 const [filteredCategories, setFilteredCategories] = useState([]);
 

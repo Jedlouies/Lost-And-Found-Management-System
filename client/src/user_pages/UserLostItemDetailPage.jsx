@@ -7,19 +7,18 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp} from "firebase/database";
 
-
-// --- NEW CONSTANTS FOR IMAGE MODERATION ---
 const PLACEHOLDER_COLOR = "#A9A9A9";
 const CHECKING_TEXT = "Checking your image if it contains inappropriate content...";
 const CHECKING_SHORT = "Scanning...";
 const INAPPROPRIATE_ALERT_TITLE = "Inappropriate Content Detected";
 const INAPPROPRIATE_ALERT_MESSAGE = (flaggedCount) => 
   `${flaggedCount} image(s) were flagged for potentially inappropriate content (e.g., nudity, violence, self-harm, hate speech) and were not added. Please upload appropriate images.`;
-const MAX_IMAGES = 1; // 👈 *** SET TO 1 ***
+const MAX_IMAGES = 1; 
 
 
 function UserLostItemDetailPage() {
- const API = "https://server.spotsync.site";
+//const API = "http://localhost:4000";
+const API = "https://server.spotsync.site";
 
     const { currentUser } = useAuth();
     const navigate = useNavigate();
@@ -37,11 +36,9 @@ function UserLostItemDetailPage() {
     const [yearLevel, setYearLevel] = useState('');
     const [birthdate, setBirthdate] = useState('');
     
-    // --- UPDATED IMAGE STATE ---
-    const [images, setImages] = useState(null); // Actual files for upload
-    const [imagesWithMetadata, setImagesWithMetadata] = useState([]); // For preview URLs
+    const [images, setImages] = useState(null); 
+    const [imagesWithMetadata, setImagesWithMetadata] = useState([]); 
     
-    // --- NEW MODERATION STATE ---
     const [isModerating, setIsModerating] = useState(false);
 
 
@@ -68,7 +65,6 @@ function UserLostItemDetailPage() {
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [filteredCategories, setFilteredCategories] = useState([]);
 
-  // Lists
   const LOCATIONS = [
     "Arts and Culture Building",
     "Guidance and Testing Center",
@@ -176,16 +172,14 @@ function UserLostItemDetailPage() {
       fetchUserInfo();
     }, [currentUser]);
 
-    // --- NEW MODERATION FUNCTION ---
     const checkImageModeration = async (file) => {
-        // 1. Convert File to Base64
         const fileReader = new FileReader();
         const base64Promise = new Promise((resolve, reject) => {
           fileReader.onload = () => resolve(fileReader.result);
           fileReader.onerror = () => reject(new Error("Failed to read file."));
         });
         fileReader.readAsDataURL(file);
-        const base64Data = (await base64Promise).split(',')[1]; // Get only the base64 part
+        const base64Data = (await base64Promise).split(',')[1]; 
     
         try {
           const response = await fetch(`${API}/api/moderate-image`, {
@@ -200,23 +194,20 @@ function UserLostItemDetailPage() {
             throw new Error(errorData.error || `Moderation check failed on backend (${response.status})`);
           }
     
-          const data = await response.json(); // Expecting { isSafe: boolean }
+          const data = await response.json(); 
           return data.isSafe;
     
         } catch (error) {
           console.error("Error calling backend for moderation:", error);
-          // Fallback: If the moderation service fails, we block the image as a safety measure.
           return false; 
         }
     };
 
 
-    // --- UPDATED IMAGE CHANGE HANDLER ---
     const handleImageChange = async (e) => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
-        // Since MAX_IMAGES is 1, we only take the first file.
         const file = files[0];
 
         const currentImageCount = imagesWithMetadata.length;
@@ -242,8 +233,6 @@ function UserLostItemDetailPage() {
                 alert(`${INAPPROPRIATE_ALERT_TITLE}\n\n${INAPPROPRIATE_ALERT_MESSAGE(flaggedCount)}`);
             }
 
-            // Add safe images to the state
-            // Since MAX_IMAGES is 1, we replace instead of add.
             setImages(newImages);
             setImagesWithMetadata(newImages.map(file => ({ file, url: URL.createObjectURL(file) })));
 
@@ -256,11 +245,8 @@ function UserLostItemDetailPage() {
     };
 
 
-    // --- NEW FUNCTION TO REMOVE IMAGE ---
     const removeImage = (indexToRemove) => {
-        // Remove from the file list (images)
         setImages(prevImages => prevImages.filter((_, index) => index !== indexToRemove));
-        // Remove from the preview list (imagesWithMetadata)
         setImagesWithMetadata(prevMeta => prevMeta.filter((_, index) => index !== indexToRemove));
     };
 
@@ -301,7 +287,6 @@ function UserLostItemDetailPage() {
     e.preventDefault();
     if (!currentUser) return alert('You must be logged in to submit a report.');
 
-    // --- NEW MODERATION CHECK ---
     if (isModerating) {
         alert("Image scanning is still in progress. Please wait.");
         return;
@@ -312,7 +297,6 @@ function UserLostItemDetailPage() {
     setIsSubmitting(true);
     try {
       const imageURLs = [];
-      // Use the moderated 'images' state for upload
       for (let i = 0; i < images.length; i++) {
         const url = await uploadLostItemImage(images[i], `lost-items/${currentUser.uid}`);
         imageURLs.push(url);
@@ -550,9 +534,7 @@ function UserLostItemDetailPage() {
                  Image content is scanned for inappropriate material.
               </div>
           </div>
-          {/* --- END UPDATED IMAGE UPLOAD SECTION --- */}
-          
-          {/* --- FORM WITH ID --- */}
+         
           <form className="lost-item-form" onSubmit={handleSubmit} id="user-lost-form">
             <input
               type="text"
@@ -583,7 +565,6 @@ function UserLostItemDetailPage() {
                 }}
                 required
               />          
-              {/* LOCATION INPUT WITH TYPE + DROPDOWN */}
               <div style={{ position: "relative", marginRight: "40px" }}>
                 <input
                   type="text"
@@ -653,7 +634,6 @@ function UserLostItemDetailPage() {
                 )}
               </div>
 
-              {/* CATEGORY INPUT WITH TYPE + DROPDOWN */}
               <div style={{ position: "relative", width: "26%", marginRight: "10px" }}>
                 <input
                   type="text"
@@ -754,10 +734,9 @@ function UserLostItemDetailPage() {
             </div>
             </div>
           </form>
-          {/* --- SUBMIT BUTTON OUTSIDE FORM --- */}
           <button
               type="submit"
-              form="user-lost-form" // 👈 *** LINKS TO FORM ID ***
+              form="user-lost-form" 
               disabled={isSubmitting || isMatching || isModerating}
               style={{
                 position: "absolute",

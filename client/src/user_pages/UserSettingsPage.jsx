@@ -13,12 +13,12 @@ import { Modal, Button, Form, Spinner } from 'react-bootstrap';
 import '../user_pages/styles/UserSettingsPage.css'
 import CropperModal from "../components/CropperModal";
 import VerificationModal from "../components/VerificationModal";
-import createVerificationCode from "../components/createVerificationCode.jsx"; // make sure path is correct
+import createVerificationCode from "../components/createVerificationCode.jsx"; 
 
 
 
 function UserSettingsPage() {
-  //const API = "http://localhost:4000" || "https://server.spotsync.site";
+  //const API = "http://localhost:4000";
   const API = "https://server.spotsync.site";
 
 

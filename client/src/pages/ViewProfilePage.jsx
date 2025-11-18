@@ -9,7 +9,7 @@ import UserNavigationBar from '../user_components/UserNavigationBar.jsx';
 import TableHeader from '../components/TablesHeader.jsx';
 
 function ViewProfilePage() {
-  const { uid } = useParams();  // <-- get UID from route
+  const { uid } = useParams();  
   const [userData, setUserData] = useState(null);
   const navigate = useNavigate();
   const profileRef = useRef(null);

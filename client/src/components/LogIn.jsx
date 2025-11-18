@@ -1,19 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
-import './styles/LogIn.css'; // Make sure this path is correct
+import './styles/LogIn.css'; 
 import { Form, Button, Card, Alert, Modal, Spinner } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase.jsx';
 import { doc, getDoc } from 'firebase/firestore';
 import { sendPasswordResetEmail, onAuthStateChanged } from "firebase/auth";
-import 'bootstrap-icons/font/bootstrap-icons.css'; // Import Bootstrap Icons CSS
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 function LogIn() {
   const navigate = useNavigate();
-  const handleSignIn = () => navigate('/sign-in'); // Assuming '/sign-in' is your create account route
+  const handleSignIn = () => navigate('/sign-in'); 
 
   const studentIdRef = useRef();
-  const passwordRef = useRef(); // Keep ref if useAuth().login requires it directly
+  const passwordRef = useRef(); 
   const { login } = useAuth();
 
   const [error, setError] = useState('');
@@ -64,7 +64,7 @@ function LogIn() {
       });
 
 
-      const user = userCredential.user; // User is confirmed
+      const user = userCredential.user; 
       const userDocRef = doc(db, 'users', user.uid);
       const userDocSnap = await getDoc(userDocRef);
 
@@ -82,24 +82,19 @@ function LogIn() {
 
         if (role === 'admin') {
           navigate(`/dashboard/${user.uid}`);
-        } else if (role === 'user') { // Assuming 'user' is the role
+        } else if (role === 'user') { 
           navigate(`/home/${user.uid}`);
         }
          else {
-             // Handle unexpected role or redirect to a default page
              console.warn("User has unexpected role:", role);
              setError('Login successful, but role is undefined. Redirecting to default page.');
          }
       } else {
-        // This case should ideally not happen if signup creates the doc
         console.error('Firestore document missing for user:', user.uid);
-        // Optionally sign the user out as their data is incomplete
-        // await signOut(auth);
         setError('Login successful, but user data is missing. Please contact support.');
       }
     } catch (error) {
-      console.error('🔥 Login error:', error.code, error.message);
-      // More specific error messages
+      console.error(' Login error:', error.code, error.message);
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
           setError('Incorrect Student ID or Password.');
       } else if (error.code === 'auth/too-many-requests') {
@@ -119,16 +114,14 @@ function LogIn() {
   }
 
   const handleCapsLockCheck = (e) => {
-    // Check if getModifierState is available before calling
      const capsLockOn = typeof e.getModifierState === 'function' && e.getModifierState('CapsLock');
      setCapsLock(capsLockOn);
   };
 
-  // --- Forgot Password Handler ---
   const handlePasswordReset = async () => {
       setResetting(true);
-      setResetMessage(''); // Clear previous messages
-      setError(''); // Clear login errors
+      setResetMessage(''); 
+      setError(''); 
 
       if (!forgotId) {
           setResetMessage('Please enter your Student ID.');
@@ -137,8 +130,7 @@ function LogIn() {
       }
 
       try {
-          // 1. Find the email associated with the Student ID
-          const studentDocRef = doc(db, 'studentIndex', forgotId.trim()); // Trim whitespace
+          const studentDocRef = doc(db, 'studentIndex', forgotId.trim());
           const studentDocSnap = await getDoc(studentDocRef);
 
           if (!studentDocSnap.exists()) {
@@ -154,7 +146,6 @@ function LogIn() {
                return;
           }
 
-          // 2. Send the password reset email using the found email
           await sendPasswordResetEmail(auth, matchedEmail);
           setResetMessage(`Password reset link sent to ${matchedEmail}. Check your inbox (and spam folder).`);
 
@@ -175,7 +166,7 @@ function LogIn() {
 
 
   return (
-    <> {/* Use Fragment shorthand */}
+    <> 
       <div className='create-container'>
         <div className='card-image'></div>
         <div className='create-account-card'>
@@ -194,45 +185,42 @@ function LogIn() {
                 />
               </Form.Group>
 
-              {/* --- PASSWORD INPUT WITH TOGGLE --- */}
               <Form.Group id='password'>
-                 <div className="password-input-wrapper"> {/* Add wrapper */}
+                 <div className="password-input-wrapper">
                     <input
                         className='create-input'
-                        type={showPassword ? 'text' : 'password'} // Dynamic type
+                        type={showPassword ? 'text' : 'password'} 
                         placeholder='Password'
-                        ref={passwordRef} // Keep ref if login func needs it
-                        value={passwordValue} // Control with state
-                        onChange={(e) => setPasswordValue(e.target.value)} // Update state
+                        ref={passwordRef} 
+                        value={passwordValue} 
+                        onChange={(e) => setPasswordValue(e.target.value)} 
                         onKeyUp={handleCapsLockCheck}
                         onKeyDown={handleCapsLockCheck}
                         required
                     />
-                    {/* Toggle Icon */}
                     <i
                         className={`bi ${showPassword ? 'bi-eye-slash' : 'bi-eye'} password-toggle-icon`}
                         onClick={() => setShowPassword(prev => !prev)}
                     ></i>
                  </div>
                 {capsLock && (
-                  <p style={{ color: 'yellow', marginTop: '5px', fontSize: '0.8em', textAlign: 'left' }}> {/* Adjusted CAPS LOCK style */}
+                  <p style={{ color: 'yellow', marginTop: '5px', fontSize: '0.8em', textAlign: 'left' }}> 
                     ⚠️ CAPS LOCK IS ON
                   </p>
                 )}
               </Form.Group>
-              {/* --- END PASSWORD INPUT --- */}
 
 
-              <p className="login-link"> {/* Use class */}
+              <p className="login-link"> 
                 Don't have an account?
                 <strong onClick={handleSignIn}> Create an account</strong>
               </p>
               <p
-                className="forgot-password-link" // Use class
+                className="forgot-password-link"
                 onClick={() => {
                     setShowForgotModal(true);
-                    setResetMessage(''); // Clear previous messages when opening modal
-                    setError(''); // Clear login errors when opening modal
+                    setResetMessage(''); 
+                    setError(''); 
                 }}
               >
                 Forgot Password?
@@ -241,12 +229,12 @@ function LogIn() {
               <button
                 disabled={loading}
                 type='submit'
-                className="create-button" // Use class
+                className="create-button" 
               >
                 {loading ? (
                   <>
                     <img
-                      src='/Spin_black.gif' // Assuming you have a black spinner
+                      src='/Spin_black.gif'
                       alt='Loading...'
                       style={{ width: '20px', height: '20px' }}
                     />
@@ -260,7 +248,6 @@ function LogIn() {
           </Card.Body>
         </div>
 
-        {/* --- FORGOT PASSWORD MODAL --- */}
         <Modal
           show={showForgotModal}
           onHide={() => {

@@ -11,7 +11,7 @@ const WeeklyUsersCard = () => {
 
   const getStartOfWeek = () => {
     const now = new Date();
-    const day = now.getDay(); // 0 (Sun) - 6 (Sat)
+    const day = now.getDay(); 
     const diff = now.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(now.setDate(diff));
   };

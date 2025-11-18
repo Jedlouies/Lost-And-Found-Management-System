@@ -21,7 +21,6 @@ function UserFoundItemsPage() {
 
   const navigate = useNavigate();
 
-  // Fetch Found Items
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -41,7 +40,6 @@ function UserFoundItemsPage() {
     fetchItems();
   }, []);
 
-  // Fetch current user
   useEffect(() => {
     const fetchData = async () => {
       if (!currentUser) return;
@@ -53,7 +51,6 @@ function UserFoundItemsPage() {
     fetchData();
   }, [currentUser]);
 
-  // Fetch saved items
   useEffect(() => {
     if (!currentUser) return;
 

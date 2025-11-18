@@ -1,7 +1,6 @@
 function ProfileDisplay({ personalInfo }) {
   if (!personalInfo) return null;
 
-  // If guest
   if (personalInfo.isGuest) {
     return (
       <div style={{ 

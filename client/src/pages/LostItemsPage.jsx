@@ -67,7 +67,7 @@ function LostItemsPage() {
       };
     
       fetchLostItems();
-    }, []);
+    },[])
 
 
 const filteredItems = [...items]

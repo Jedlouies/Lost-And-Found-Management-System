@@ -6,7 +6,7 @@ import GuestRatingModal from "../components/GuestRatingModal"
 
 
 
-export default function GuestLostMatchResults(lostItem) {
+export default function GuestLostMatchResults(lostItem){
   const { state } = useLocation();
   const navigate = useNavigate();
   const matches = (state?.matches || [])

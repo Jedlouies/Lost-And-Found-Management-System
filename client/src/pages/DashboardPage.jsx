@@ -30,7 +30,6 @@ useEffect(() => {
         const data = userDocSnap.data();
         setUserData(data);
 
-        // Optional: cache locally for SPA navigations
         Object.entries(data).forEach(([key, value]) => {
           if (value !== undefined && value !== null) localStorage.setItem(key, value);
         });

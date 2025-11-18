@@ -17,7 +17,8 @@ const INAPPROPRIATE_ALERT_MESSAGE = (flaggedCount) =>
 const MAX_IMAGES = 1; // 👈 *** SET TO 1 ***
 
 function GuestReportLostPage() {
- const API = "https://server.spotsync.site";
+   const API = "http://localhost:4000";
+ //const API = "https://server.spotsync.site";
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -42,7 +43,7 @@ function GuestReportLostPage() {
   // --- NEW MODERATION STATE ---
   const [isModerating, setIsModerating] = useState(false);
 
-  const [founder] = useState('Unknown');  
+  c [founder] = useState('Unknown');  
   const [owner, setOwner] = useState('Guest');             
   const [claimStatus] = useState('unclaimed');
 

@@ -34,7 +34,7 @@ function UserProfilesPage() {
             id: doc.id,
             ...data,
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : null,
-          };
+          }
         });
 
         setUsers(userList);
@@ -186,7 +186,6 @@ function UserProfilesPage() {
                   <td colSpan="8" style={{ textAlign: 'center', padding: '10px 0', minWidth: '200px' }}>
                     <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>{'<'}</button>
                     
-                    {/* --- START OF UPDATED LOGIC --- */}
                     {(() => {
                       const pageNumbers = [];
                       const maxButtonsToShow = 3;
@@ -234,7 +233,6 @@ function UserProfilesPage() {
           </div>
         </div>
 
-        {/* Image Preview Modal */}
         {previewImage && (
           <div 
             style={{

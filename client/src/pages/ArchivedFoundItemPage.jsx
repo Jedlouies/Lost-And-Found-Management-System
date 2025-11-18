@@ -23,7 +23,7 @@ function ArchivedFoundItemsPage() {
   useEffect(() => {
     const q = query(
       collection(db, "foundItems"),
-      where("archivedStatus", "==", true) // only archived found items
+      where("archivedStatus", "==", true) 
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {

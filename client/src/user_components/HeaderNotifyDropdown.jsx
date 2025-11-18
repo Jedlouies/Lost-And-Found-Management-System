@@ -42,7 +42,7 @@ function HeaderNotifyDropdown() {
     setUserId(user.uid);
 
     const db = getDatabase();
-    const notificationsRef = ref(db, `notifications/${user.uid}`);
+    const notificationsRef = ref(db, `notifications/${user.uid}`)
 
     const unsubscribe = onValue(notificationsRef, (snapshot) => {
       if (snapshot.exists()) {

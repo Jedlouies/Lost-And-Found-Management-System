@@ -7,7 +7,6 @@ import { useNavigate } from 'react-router-dom';
 import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
 import Header from '../components/Header';
 
-// --- NEW CONSTANTS FOR IMAGE MODERATION ---
 const PLACEHOLDER_COLOR = "#A9A9A9";
 const CHECKING_TEXT = "Checking your image if it contains inappropriate content...";
 const CHECKING_SHORT = "Scanning...";
@@ -17,11 +16,12 @@ const INAPPROPRIATE_ALERT_MESSAGE = (flaggedCount) =>
 const MAX_IMAGES = 1; // 👈 *** SET TO 1 ***
 
 function GuestReportFoundPage() {
- const API = "https://server.spotsync.site";
+ const API = "https://localhost:4000"; 
+ //const API = "https://server.spotsync.site";
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  const [itemName, setItemName] = useState('');
+  co [itemName, setItemName] = useState('');
   const [dateFound, setDateFound] = useState('');
   const [locationFound, setLocationFound] = useState('');
   const [category, setCategory] = useState('');
@@ -143,7 +143,7 @@ function GuestReportFoundPage() {
     }
   };
 
-  const countWords = (text) => {
+  const countWords = text=> {
     return text.trim().split(/\s+/).filter(Boolean).length;
   };
 
@@ -153,7 +153,6 @@ function GuestReportFoundPage() {
       const user = auth.currentUser;
       if (!user) return; // not logged in
 
-      // Always check Firestore "users" collection for guest records
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
 
@@ -178,7 +177,7 @@ function GuestReportFoundPage() {
 
 
   // --- NEW MODERATION FUNCTION ---
-  const checkImageModeration = async (file) => {
+  const checkImageModeration = async (file)  => {
       // 1. Convert File to Base64
       const fileReader = new FileReader();
       const base64Promise = new Promise((resolve, reject) => {
