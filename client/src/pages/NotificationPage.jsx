@@ -13,7 +13,7 @@ import {
     get, 
     runTransaction,
     push,
-    set, // <--- FIX 1: Added missing 'set' function
+    set, 
     serverTimestamp as rtdbServerTimestamp,
 } from "firebase/database";
 import { getAuth } from "firebase/auth";
@@ -78,35 +78,35 @@ function ConversationPanel({ conversation, onClose, adminName, onReply, onResolv
         }
     };
 
-    return (
-        <div className="conversation-panel-modal-admin">
-            <div className="panel-header-admin">
-                <h3>{liveConversation.subject}</h3>
-                <span className={`status-badge status-${liveConversation.status}`}>
-                    {liveConversation.status.toUpperCase()}
-                </span>
-                <button onClick={onClose} className="close-btn-admin">
-                    &times;
-                </button>
-            </div>
-            
-            <div className="panel-user-info-admin">
-                User: <strong>{liveConversation.user.name}</strong> (UID: {liveConversation.user.uid})
-            </div>
+    return (
+        <div className="conversation-panel-modal-admin">
+            <div className="panel-header-admin">
+                <h3>{liveConversation.subject}</h3>
+                <span className={`status-badge status-${liveConversation.status}`}>
+                    {liveConversation.status.toUpperCase()}
+                </span>
+                <button onClick={onClose} className="close-btn-admin">
+                    &times;
+                </button>
+            </div>
 
-            <div className="chat-area-admin" id="chat-area">
-                {messages.map(msg => (
-                    <div key={msg.id} className={`chat-message-admin message-${msg.from}`}>
-                        <div className="message-bubble-admin">
-                            <strong>{msg.from === 'user' ? liveConversation.user.name : adminName}:</strong>
-                            <p dangerouslySetInnerHTML={{ __html: msg.text }} style={{color: 'black'}}/>
-                        </div>
-                        <small className="message-timestamp-admin" style={{color: 'black'}}>
-                            {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : '...'}
-                        </small>
-                    </div>
-                ))}
-            </div>
+            <div className="panel-user-info-admin">
+                User: <strong>{liveConversation.user.name}</strong> (UID: {liveConversation.user.uid})
+            </div>
+
+            <div className="chat-area-admin" id="chat-area">
+                {messages.map(msg => (
+                    <div key={msg.id} className={`chat-message-admin message-${msg.from}`}>
+                        <div className="message-bubble-admin">
+                             <strong>{msg.from === 'user' ? liveConversation.user.name : adminName}:</strong>
+                            <p dangerouslySetInnerHTML={{ __html: msg.text }} style={{color: 'black'}}/>
+                         </div>
+                    <small className="message-timestamp-admin" style={{color: 'black'}}>
+                    {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : '...'}
+                    </small>
+                    </div>
+            ))}
+            </div>
 
                 <div className="panel-footer-admin">
                 {liveConversation.status === 'open' ? (

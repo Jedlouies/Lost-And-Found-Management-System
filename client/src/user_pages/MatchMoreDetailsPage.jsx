@@ -1,13 +1,17 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
+
 import { useParams, useLocation } from "react-router-dom";
 import UserNavigationBar from "../user_components/UserNavigationBar";
 import UserBlankHeader from "../user_components/UserBlankHeader";
 import "./styles/ItemMoreDetailsPage.css";
 
+
 function MatchMoreDetailsPage() {
   const { uid } = useParams();
   const location = useLocation();
   const { item } = location.state || {};
+  const matchesContainerRef = useRef(null);
+
 
   if (!item) return <p>No match data provided.</p>;
 
@@ -30,6 +34,36 @@ function MatchMoreDetailsPage() {
     }
     return true;
   });
+
+  useEffect(() => {
+  const scrollSpeed = 3; 
+
+  const container = matchesContainerRef.current;
+  if (!container) return;
+
+  const handleWheel = (e) => {
+    const { scrollLeft, scrollWidth, clientWidth } = container;
+
+    const atStart = scrollLeft === 0;
+    const atEnd = scrollLeft + clientWidth >= scrollWidth;
+
+    const scrollAmount =
+      (e.deltaY !== 0 ? e.deltaY : e.deltaX) * scrollSpeed;
+
+    if (scrollWidth > clientWidth) {
+      if (scrollAmount < 0 && atStart) return;
+      if (scrollAmount > 0 && atEnd) return;
+
+      e.preventDefault();
+      container.scrollLeft += scrollAmount;
+    }
+  };
+
+  container.addEventListener("wheel", handleWheel, { passive: false });
+
+  return () => container.removeEventListener("wheel", handleWheel);
+}, []);
+
 
   return (
     <>
@@ -111,6 +145,7 @@ function MatchMoreDetailsPage() {
           >
             <h2>Matching Results</h2>
             <div
+              ref={matchesContainerRef}
               className="matches-container"
               style={{
                 display: 'flex',

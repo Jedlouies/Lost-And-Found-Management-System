@@ -61,31 +61,33 @@ export function AuthProvider({ children }) {
     return await signInWithEmailAndPassword(secondaryAuth, email, password);
   }
 
-useEffect(() => {
-  const setupAuth = async () => {
-    try {
-      await setPersistence(auth, browserLocalPersistence);
+  useEffect(() => {
+    const setupAuth = async () => {
+      try {
+        await setPersistence(auth, browserLocalPersistence);
 
-      const unsub1 = onAuthStateChanged(auth, (user) => {
-        setCurrentUser(user || null);
+        const unsub1 = onAuthStateChanged(auth, (user) => {
+          setCurrentUser(user || null);
+          setLoading(false);
+        });
+
+        const unsub2 = onAuthStateChanged(secondaryAuth, (user) => {
+          setSecondaryUser(user || null);
+        });
+
+        return () => {
+          unsub1();
+          unsub2();
+        };
+      } catch (error) {
+        console.error("Error setting session persistence:", error);
         setLoading(false);
-      });
+      }
+    };
 
-      const unsub2 = onAuthStateChanged(secondaryAuth, (user) => {
-        setSecondaryUser(user || null);
-      });
-      return () => {
-        unsub1();
-        unsub2();
-      };
-    } catch (error) {
-      console.error("Error setting session persistence:", error);
-      setLoading(false);
-    }
-  };
+    setupAuth();
+  }, []);
 
-  setupAuth();
-}, []);
   const value = {
     currentUser,
     secondaryUser,
@@ -94,10 +96,56 @@ useEffect(() => {
     loginSecondary,
   };
 
-  return (
-  <AuthContext.Provider value={value}>
-    {loading ? <div>Loading...</div> : children}
-  </AuthContext.Provider>
-);
+  // **Loading Animation JSX**
+  const LoadingAnimation = () => (
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      alignItems: "center",
+      height: "100vh",
+      backgroundColor: "#f5f7fa",
+    }}>
+      <div className="spinner">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+      <h2 style={{ marginTop: "20px", fontFamily: "Arial, sans-serif", color: "#2c3e50" }}>
+        SpotSync
+      </h2>
 
+      <style>{`
+        .spinner {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 60px;
+          height: 20px;
+        }
+        .spinner div {
+          width: 12px;
+          height: 12px;
+          background-color: #2c3e50;
+          border-radius: 50%;
+          animation: bounce 0.6s infinite alternate;
+        }
+        .spinner div:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+        .spinner div:nth-child(3) {
+          animation-delay: 0.4s;
+        }
+        @keyframes bounce {
+          to { transform: translateY(-15px); }
+        }
+      `}</style>
+    </div>
+  );
+
+  return (
+    <AuthContext.Provider value={value}>
+      {loading ? <LoadingAnimation /> : children}
+    </AuthContext.Provider>
+  );
 }

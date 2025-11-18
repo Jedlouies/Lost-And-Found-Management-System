@@ -99,7 +99,7 @@ useEffect(() => {
     <>
       <NavigationBar />
     <div className='dashboard-body'>
-      <div className='banner1' style={{width: '75%'}}>
+      <div className='banner1' style={{width: '70%'}}>
             <img src="/landing-page-img.png" alt="img" />
             <h1>Welcome to SpotSync!</h1>
             <h5>{formattedDate}</h5>
@@ -127,7 +127,7 @@ useEffect(() => {
             </div>
          </div>
         
-        <div className='graph1'>
+        <div className='graph1' style={{width: '90%'}}>
             <ClaimedLostFoundChart />
         </div>
             
@@ -135,9 +135,9 @@ useEffect(() => {
             <WeeklyUsersCard />
         </div>
         
-        <div className='rating'>
-            <FeedBackChart />
-        </div>
+          <div className='rating' style={{marginTop: '-180px'}}>
+              <FeedBackChart />
+          </div>
         
     </div>
     

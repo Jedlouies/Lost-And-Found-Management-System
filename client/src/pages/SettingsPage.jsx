@@ -36,6 +36,8 @@ function SettingsPage() {
   const [yearsOfService, setYearsOfService] = useState('');
   const [educationalAttainment, setEducationalAttainment] = useState('');
   const [address, setAddress] = useState('');
+  const [updatingProfileInfo, setUpdatingProfileInfo] = useState(false);
+
 
   const [alert, setAlert] = useState(null);
 
@@ -62,14 +64,12 @@ const [pendingPassword, setPendingPassword] = useState(null);
 
 
    const courseList = [
-  // College of Science and Mathematics - CSM (Undergraduate)
   { abbr: "BSAM", name: "Bachelor of Science in Applied Mathematics" },
   { abbr: "BSAP", name: "Bachelor of Science in Applied Physics" },
   { abbr: "BSChem", name: "Bachelor of Science in Chemistry" },
   { abbr: "BSES", name: "Bachelor of Science in Environmental Science " },
   { abbr: "BSFT", name: "Bachelor of Science in Food Technology" },
 
-  // College of Technology - COT (Undergraduate)
   { abbr: "BSAuT", name: "Bachelor of Science in Autotronics" },
   { abbr: "BSAT", name: "Bachelor of Science in Automotive Technology" },
   { abbr: "BSEMT", name: "Bachelor of Science in Electro-Mechanical Technology" },
@@ -78,7 +78,6 @@ const [pendingPassword, setPendingPassword] = useState(null);
   { abbr: "BSMET", name: "Bachelor of Science in Manufacturing Engineering Technology" },
   { abbr: "BTOM", name: "Bachelor of Technology, Operation, and Management" },
 
-  // College of Science and Technology Education - CSTE (Undergraduate)
   { abbr: "BS MathEd", name: "Bachelor of Secondary Education Major in Mathematics" },
   { abbr: "BS SciEd", name: "Bachelor of Secondary Education Major in Science" },
   { abbr: "BTLED", name: "Bachelor of Technology and Livelihood Education" },
@@ -86,11 +85,9 @@ const [pendingPassword, setPendingPassword] = useState(null);
   
   { abbr: "BTTE", name: "Bachelor of Technician Teacher Education" },
 
-  // Senior High School - SHS
   { abbr: "STEM", name: "Senior High School - Science, Technology, Engineering and Mathematics" },
   
 
-  // College of Engineering and Architecture - CEA (Undergraduate)
   { abbr: "BSArch", name: "Bachelor of Science in Architecture" },
   { abbr: "BSCE", name: "Bachelor of Science in Civil Engineering" },
   { abbr: "BSCPE", name: "Bachelor of Science in Computer Engineering" },
@@ -99,25 +96,19 @@ const [pendingPassword, setPendingPassword] = useState(null);
   { abbr: "BSGE", name: "Bachelor of Science in Geodetic Engineering" },
   { abbr: "BSME", name: "Bachelor of Science in Mechanical Engineering" },
 
-  // College of Information Technology and Computing - CITC (Undergraduate)
   { abbr: "BSDS", name: "Bachelor of Science in Data Science" },
   { abbr: "BSIT", name: "Bachelor of Science in Information Technology" },
   { abbr: "BSTCM", name: "Bachelor of Science in Technology Communication Management" },
   { abbr: "BSCS", name: "Bachelor of Science in Computer Science" },
 
-  // College of Medicine - COM
   { abbr: "COM", name: "College of Medicine (Night Class)" },
 
-  // -------- GRADUATE PROGRAMS --------
 
-  // CSM Graduate
   { abbr: "MSAMS", name: "Master of Science in Applied Mathematics Sciences" },
   { abbr: "MSETS", name: "Master of Science in Environmental Science and Technology" },
 
-  // COT Graduate
   { abbr: "MITO", name: "Master in Industrial Technology and Operations" },
 
-  // CSTE Graduate
   { abbr: "DTE", name: "Doctor in Technology Education" },
   { abbr: "PhD MathEdSci", name: "Doctor of Philosophy in Mathematics Sciences" },
   { abbr: "PhD MathEd", name: "Doctor of Philosophy in Mathematics Education" },
@@ -133,17 +124,14 @@ const [pendingPassword, setPendingPassword] = useState(null);
   { abbr: "MTTE", name: "Master in Technician Teacher Education" },
   { abbr: "MTTEd", name: "Master of Technical and Technology Education" },
 
-  // CEA Graduate
   { abbr: "MEng", name: "Master of Engineering Program" },
   { abbr: "MSEE", name: "Master of Science in Electrical Engineering" },
   { abbr: "MSSDPS", name: "Master of Science in Sustainable Development Professional Science" },
   { abbr: "MPSEM", name: "Master in Power System Engineering and Management" },
 
-  // CITC Graduate
   { abbr: "MSTCM", name: "Master of Science in Technology Communication Management" },
   { abbr: "MIT", name: "Master in Information Technology" },
 
-  // Institute of Governance, Innovation and Sustainability
   { abbr: "MPS-DSPE", name: "Master in Public Sector Major in Digital Service Platforms and E-Governance" },
   { abbr: "MPS-SD", name: "Master in Public Sector Innovation Major in Sustainable Development" },
   { abbr: "MPS-PPS", name: "Master in Public Sector Innovation Major in Public Policy Studies" },
@@ -170,14 +158,11 @@ const [pendingPassword, setPendingPassword] = useState(null);
     const credential = EmailAuthProvider.credential(user.email, password);
     await reauthenticateWithCredential(user, credential);
 
-    // Save new password temporarily
     setPendingPassword(newPassword);
 
-    // Send verification email
     const code = await createVerificationCode(user);
     await sendVerificationEmail(user, code);
 
-    // Close change password modal, open verification modal
     setShowChangePasswordModal(false);
     setShowVerificationModal(true);
 
@@ -236,7 +221,7 @@ async function sendVerificationEmail(userData, code) {
   const updateUserInfo = async (uid, updatedData) => {
     try {
       const userRef = doc(db, 'users', uid);
-      await updateDoc(userRef, updatedData);s
+      await updateDoc(userRef, updatedData);
     } catch (error) {
       console.error("Error updating user info:", error);
     }
@@ -258,39 +243,52 @@ const handleSaveClick = () => {
 
 
 const handleConfirmPassword = async () => {
-  setCheckingPassword(true);
+  setCheckingPassword(true); 
   try {
     await reauthenticateUser(password);
     setShowPasswordModal(false);
     setPassword('');
-    await handleUpdate(); // run your existing update
+
+    if (
+      profileImage ||
+      coverImage ||
+      firstName !== localStorage.getItem('firstName') ||
+      lastName !== localStorage.getItem('lastName') ||
+      bio !== localStorage.getItem('bio')
+    ) {
+      setUpdatingProfileInfo(true);
+      await handleUpdate();
+      setUpdatingProfileInfo(false);
+    } else {
+      setAlert({ message: "No changes detected. Reauthentication successful!", type: "success" });
+    }
   } catch (err) {
     console.error("Password incorrect:", err);
     setAlert({ message: "Incorrect Password", type: "error" });
+  } finally {
+    setCheckingPassword(false); 
   }
-  setCheckingPassword(false);
 };
+
 
 
 const handleUpdate = async () => {
   if (!currentUser) return;
 
+  setUpdatingProfileInfo(true); 
   try {
-    // Upload profile image if a new one is selected
     let updatedProfileURL = profileURL;
     if (profileImage) {
       updatedProfileURL = await uploadImage(profileImage, `users/${currentUser.uid}`, "profileURL");
       setProfileURL(updatedProfileURL);
     }
 
-    // Upload cover image if a new one is selected
     let updatedCoverURL = coverURL;
     if (coverImage) {
       updatedCoverURL = await uploadImage(coverImage, `users/${currentUser.uid}`, "coverURL");
       setCoverURL(updatedCoverURL);
     }
 
-    // Update user details
     const updatedData = {
       firstName,
       lastName,
@@ -307,16 +305,16 @@ const handleUpdate = async () => {
       address,
       section: '1',
       course: {abbr: '1', name: '1'},
-      
     };
 
     await updateUserInfo(currentUser.uid, updatedData);
     setAlert({ message: "Profile Information Updated!", type: "success" });
-
   } catch (err) {
     console.error("Error updating profile:", err);
     setAlert({ message: "Failed", type: "error" });
-  }
+  } finally {
+    setUpdatingProfileInfo(false);
+  } 
 };
 
   useEffect(() => {
@@ -434,6 +432,26 @@ const handleUpdate = async () => {
 
   return (
     <>
+      {updatingProfileInfo && (
+  <div style={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999,
+    flexDirection: 'column',
+    color: 'white',
+    fontSize: '1.5rem'
+  }}>
+    <Spinner animation="border" variant="light" style={{ width: '3rem', height: '3rem' }} />
+    <span style={{ marginTop: '1rem' }}>Updating Profile...</span>
+  </div>
+)}
 
       <VerificationModal
   show={showVerificationModal}
@@ -555,7 +573,6 @@ const handleUpdate = async () => {
         <BlankHeader />
 
           <div className='upload-section1' style={{display: 'flex', flexDirection: 'column'}}>
-          {/* Cover Photo */}
             {coverURL ? (
               <div>
                 <img 
@@ -583,7 +600,6 @@ const handleUpdate = async () => {
               </div>
             )}
 
-            {/* Profile Photo */}
             {profileURL ? (
               <div>
                 <img 
@@ -628,7 +644,7 @@ const handleUpdate = async () => {
 
         <div style={{marginTop: '10px'}}>
           <h4>Cover Photo</h4>
-<input
+      <input
         type="file"
         accept="image/*"
         onChange={(e) => handleFileSelect(e, "cover")}
@@ -689,7 +705,10 @@ const handleUpdate = async () => {
           </div> 
           <input placeholder='Address' value={address} onChange={(e) => setAddress(e.target.value)} />
 
-          <button onClick={handleSaveClick}>Save Changes</button>
+          <button onClick={handleSaveClick} disabled={updatingProfileInfo}>
+            {updatingProfileInfo ? "Updating Profile..." : "Save Changes"}
+          </button>
+
 
 <div className='other-settings' style={{marginTop: '30px'}}>
   <h4>Privacy</h4>

@@ -11,6 +11,9 @@ app.use(express.static("public"));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cors({ origin: "*" }));
+app.set("view engine", "ejs");
+app.set("views", "./views");
+
 
 function generateTransactionId() {
   return 'TX-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
@@ -242,7 +245,6 @@ app.post("/api/match/found-to-lost", async (req, res) => {
   }
 });
 
-// --- API: Lost-to-Found ---
 app.post("/api/match/lost-to-found", async (req, res) => {
   try {
     const { uidLost } = req.body;
@@ -280,7 +282,6 @@ app.post("/api/match/lost-to-found", async (req, res) => {
   }
 });
 
-// --- API: Send Email ---
 app.post("/api/send-email", async (req, res) => {
   try {
     const { to, subject, html } = req.body;
@@ -329,7 +330,6 @@ app.use(
   })
 );
 
-// --- Middleware to check admin auth ---
 function requireLogin(req, res, next) {
   if (req.session && req.session.isAdmin) {
     return next();
@@ -337,73 +337,45 @@ function requireLogin(req, res, next) {
   return res.status(401).send("Unauthorized");
 }
 
-// --- Login Route ---
 app.post("/login", (req, res) => {
-  const { username, password } = req.body;
+  const { username, password } = req.body;
 
-  if (username === "admin" && password === "admin123") {
-    req.session.isAdmin = true;
-    res.redirect("/server");
-  } else {
-    res.status(401).send("Invalid credentials");
-  }
+  if (username === "admin" && password === "admin123") {
+    req.session.isAdmin = true;
+    return res.redirect("/server");
+  }
+
+  return res.render("login", { error: "Invalid username or password" });
 });
 
-// --- Admin Dashboard Route ---
+
 app.get("/server", requireLogin, async (req, res) => {
-  try {
-    const snapshot = await db.collection("users").where("role", "==", "admin").get();
-    const admins = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  try {
+    const snapshot = await db.collection("users").where("role", "==", "admin").get();
+    const admins = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-    let tableRows = admins.map(
-      (a, index) => `
-        <tr>
-          <td>${index + 1}</td>
-          <td>${a.email || "N/A"}</td>
-          <td>${a.firstName || ""} ${a.lastName || ""}</td>
-          <td>${a.contactNumber}</td>
-          <td>
-            <form method="POST" action="/server/delete-admin">
-              <input type="hidden" name="userId" value="${a.id}" />
-              <button type="submit">Delete Admin</button>
-            </form>
-          </td>
-        </tr>
-      `
-    ).join("");
+    let adminsTable = admins.map((a, index) => `
+        <tr>
+            <td>${index + 1}</td>
+            <td>${a.email || "N/A"}</td>
+            <td>${a.firstName || ""} ${a.lastName || ""}</td>
+            <td>${a.contactNumber || "N/A"}</td>
+            <td>
+                <form method="POST" action="/server/delete-admin">
+                    <input type="hidden" name="userId" value="${a.id}" />
+                    <button class="btn btn-delete btn-sm">Delete</button>
+                </form>
+            </td>
+        </tr>
+    `).join("");
 
-    res.send(`
-      <h2>Admin Dashboard</h2>
-      <a href="/logout"><button>Logout</button></a>
-      <br/><br/>
-      <table border="1" cellpadding="5" cellspacing="0">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Email</th>
-            <th>Name</th>
-            <th>Contact Number</th>
-            <th>Action</th>
-         </tr>
-        </thead>
-        <tbody>
-          ${tableRows || "<tr><td colspan='4'>No admins found</td></tr>"}
-        </tbody>
-      </table>
+    res.render("server", { adminsTable });
 
-      <h3>Create Admin</h3>
-      <form method="POST" action="/server/create-admin">
-        <input type="text" name="studentId" placeholder="Enter User ID" required />
-        <input type="email" name="email" placeholder="Enter Email" required />
-        <input type="password" name="password" placeholder="Enter Password" required />
-        <button type="submit">Create Admin</button>
-      </form>
-    `);
 
-  } catch (err) {
-    console.error("Dashboard error:", err);
-    res.status(500).send("Error loading dashboard");
-  }
+  } catch (err) {
+    console.error("Dashboard error:", err);
+    res.status(500).send("Error loading dashboard");
+  }
 });
 
 app.post("/server/create-admin", requireLogin, async (req, res) => {
@@ -445,11 +417,11 @@ app.post("/server/create-admin", requireLogin, async (req, res) => {
       email: userRecord.email,
     });
 
-    res.send(`
-      <h2>Admin Created</h2>
-      <p>Admin ${studentId} with email ${email} created.</p>
-      <a href="/server">Back to Dashboard</a>
-    `);
+    return res.render("success", {
+      title: "Admin Created Successfully",
+      message: `Admin ${studentId} with email ${email} was created.`
+      });
+
 
   } catch (err) {
    console.error("Error creating admin:", err);
@@ -457,21 +429,19 @@ app.post("/server/create-admin", requireLogin, async (req, res) => {
   }
 });
 
-// --- Delete Admin ---
 app.post("/server/delete-admin", requireLogin, async (req, res) => {
   try {
     const { userId } = req.body;
     await db.collection("users").doc(userId).update({ role: "user" });
-    res.send(`
-      <h2> Admin Deleted</h2>
-      <a href="/server">Back to Dashboard</a>
-    `);
+    return res.render("success", {
+            title: "Admin Role Removed",
+            message: "The selected admin has been returned to user role."
+            });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// --- Logout Route ---
 app.get("/logout", (req, res) => {
  req.session.destroy((err) => {
     if (err) {
@@ -483,21 +453,10 @@ app.get("/logout", (req, res) => {
   });
 });
 
-// --- Root Route ---
 app.get("/", (req, res) => {
-  res.send(`
-    <h2>Spotsync Server</h2>
-    <form method="POST" action="/login">
-      <input type="text" name="username" placeholder="Username" />
-     <br/>
-      <input type="password" name="password" placeholder="Password" />
-      <br/>
-      <button typeS="submit">Login</button>
-    </form>
-  `);
+  res.render("login");
 });
 
-// ------------------ Reminders ------------------
 
 function toMillis(createdAt) {
   if (!createdAt) return null;
@@ -529,7 +488,6 @@ async function checkFoundItems() {
       const id = doc.id;
       const item = doc.data();
 
-      // Skip invalid or non-pending items
       if (!item || item.status !== "pending") continue;
       if (!item.createdAt) {
         console.warn(`[checkFoundItems] doc ${id} missing createdAt, skipping`);
@@ -551,7 +509,6 @@ async function checkFoundItems() {
 
       console.log(`[checkFoundItems] ${id} email=${item.personalInfo?.email || "N/A"} status=${item.status} hoursElapsed=${hoursElapsed.toFixed(3)} hoursRemaining=${hoursRemaining.toFixed(3)} remindersSent=${JSON.stringify(remindersSent)}`);
 
-     // ========== SEND REMINDERS ==========
       for (const t of THRESHOLDS) {
         try {
           if (timeRemainingMs <= t.ms && !remindersSent.includes(t.key)) {
@@ -584,14 +541,12 @@ async function checkFoundItems() {
        }
       }
 
-      // ========== AUTO-CANCEL AFTER 24 HOURS ==========
       if (timeRemainingMs <= 0 && item.status === "pending") {
         try {
           const foundRef = db.collection("foundItems").doc(id);
           await foundRef.update({ status: "cancelled" });
           console.log(`[checkFoundItems] Auto-cancelled found item ${id}`);
 
-          // Only update itemManagement if the status actually changed
           const imRef = db.collection("itemManagement").doc(id);
          const imDoc = await imRef.get();
           if (imDoc.exists && imDoc.data().status !== "cancelled") {
@@ -609,12 +564,10 @@ async function checkFoundItems() {
   }
 }
 
-// Run once at startup, then every 5 minutes
 checkFoundItems().catch(e => console.error("Initial checkFoundItems error:", e));
 const CHECK_INTERVAL_MS = 5 * 60 * 1000;
 setInterval(checkFoundItems, CHECK_INTERVAL_MS);
 
-// --- Start Server ---
 const PORT = 4000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

@@ -62,7 +62,7 @@ function LostItemsPage() {
         } catch (error) {
           console.error("Error fetching lost items:", error);
         }  finally {
-      setLoading(false); // stop loading
+      setLoading(false); 
         }
       };
     
@@ -243,7 +243,7 @@ const archiveItem = async (item) => {
 
 
           <div>
-            <table className='lost-item-table1' style={{ marginTop: '20px' }}>
+            <table className='lost-item-table1' style={{ marginTop: '20px', width: '90%' }}>
               <thead>
                 <tr>
                   <th >Item ID No.</th>

@@ -94,7 +94,7 @@ function ItemClaimedListPage() {
           </div>
 
           <div>
-            <table className='found-item-table1' style={{marginTop: '20px'}}>
+            <table className='found-item-table1' style={{marginTop: '20px', width: '80%'}}>
               <thead>
                 <tr>
                   <th>Item ID No.</th>
@@ -152,7 +152,6 @@ function ItemClaimedListPage() {
                       <td>
                         <div className='founder-details' >
                           {item.founder?.isGuest ? (
-                            // Case 1: Guest
                             <div
                               style={{
                                 width: "50px",
@@ -170,7 +169,6 @@ function ItemClaimedListPage() {
                               Guest
                             </div>
                           ) : item.founder?.profileURL ? (
-                            // Case 2: Profile Image
                             <>
                               <img
                                 src={item.founder.profileURL}
@@ -194,7 +192,6 @@ function ItemClaimedListPage() {
                               </div>
                             </>
                           ) : (
-                            // Case 3: Initials
                             <>
                               <div
                                 style={{
@@ -228,7 +225,6 @@ function ItemClaimedListPage() {
                       <td>
                         <div className='owner-details'>
                           {item.isGuest ? (
-                            // Case 1: Guest
                             <div
                               style={{
                                 width: "50px",
@@ -246,7 +242,6 @@ function ItemClaimedListPage() {
                               Guest
                             </div>
                           ) : item.owner?.profileURL ? (
-                            // Case 2: Profile Image
                             <>
                               <img
                                 src={item.owner.profileURL}

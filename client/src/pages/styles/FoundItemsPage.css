@@ -69,6 +69,8 @@
   font-size: 12px;       
 }
 
+
+
 .found-item-table thead {
   background-color: #9EBAD6;
   border-top-left-radius: 10px;
@@ -99,6 +101,7 @@
 }
 
 .body-row {
+    max-width: 130%;
     border-bottom: 1px solid black
 }
 

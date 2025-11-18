@@ -9,7 +9,6 @@ import BlankHeader from "../components/BlankHeader";
 import FloatingAlert from "../components/FloatingAlert";
 import { useAuth } from "../context/AuthContext";
 
-// 🔹 Bootstrap imports
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -26,12 +25,10 @@ function TransactionPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Reusable avatar component
 const ProfileAvatar = ({ personalInfo }) => {
   const size = 50;
 
   if (personalInfo?.firstName === "Guest" || personalInfo?.isGuest) {
-    // Case 1: Guest
     return (
       <div
         style={{
@@ -51,7 +48,6 @@ const ProfileAvatar = ({ personalInfo }) => {
       </div>
     );
   } else if (!personalInfo?.profileURL) {
-    // Case 2: Initials fallback
     const initials = `${personalInfo?.firstName?.[0] || ""}${
       personalInfo?.lastName?.[0] || ""
     }`.toUpperCase();
@@ -75,7 +71,6 @@ const ProfileAvatar = ({ personalInfo }) => {
       </div>
     );
   } else {
-    // Case 3: Profile Image
     return (
       <img
         src={personalInfo.profileURL}
@@ -93,10 +88,9 @@ const ProfileAvatar = ({ personalInfo }) => {
 
 
   useEffect(() => {
-    setIsModalOpen(true); // Open modal when page loads
+    setIsModalOpen(true); 
   }, []);
 
-  // 🔹 Fetch specific match
   const handleSearch = async () => {
     if (!searchQuery.trim()) {
       setAlert({
@@ -164,18 +158,16 @@ const ProfileAvatar = ({ personalInfo }) => {
           />
         )}
 
-{/* 🔹 Bootstrap Modal */}
 <Modal
   show={isModalOpen}
   onHide={() => {
-    // Only allow Cancel to close, not clicking outside or pressing ESC
     setIsModalOpen(false);
-    navigate(`/admin/found-items/${user?.uid}`); // go back to lost-items when cancel/close
+    navigate(`/admin/found-items/${user?.uid}`);
   }}
   centered
-  backdrop="static"  // prevents clicking outside to close
-  keyboard={false}   // prevents ESC to close
-  dialogClassName="custom-modal-width" // custom width class
+  backdrop="static"  
+  keyboard={false}   
+  dialogClassName="custom-modal-width" 
 >
   <Modal.Header>
     <Modal.Title>Transaction ID</Modal.Title>
@@ -194,7 +186,7 @@ const ProfileAvatar = ({ personalInfo }) => {
       variant="secondary"
       onClick={() => {
         setIsModalOpen(false);
-        navigate(`/admin/found-items/${user?.uid}`); // redirect when cancel
+        navigate(`/admin/found-items/${user?.uid}`); 
       }}
     >
       Cancel
@@ -205,7 +197,6 @@ const ProfileAvatar = ({ personalInfo }) => {
   </Modal.Footer>
 </Modal>
 
-        {/* 🔹 Open Modal Button */}
         
           <div className='transaction-content'>
            
@@ -332,7 +323,7 @@ const ProfileAvatar = ({ personalInfo }) => {
                   ? ` ${Math.round(selectedMatch.scores.locationScore)}%`
                   : 'N/A'}
               </span>
-              <div> className='progress-bar-full' style={{marginTop: '5px'}}>
+              <div className='progress-bar-full' style={{marginTop: '5px'}}>
                 <div
                   className="progress-bar-percentage"
                   style={{

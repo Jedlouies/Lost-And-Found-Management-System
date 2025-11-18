@@ -48,6 +48,7 @@ import GuestEmailRequestPage from "./pages/GuestEmailRequestPage";
 import ErrorBoundary from "./components/ErrorBoundary";
 import GuestProcessClaimPage from "./pages/GuestProcessClaimPage";
 import InactivityHandler from "./InactivityHandler";
+import HelpPage from "./user_pages/HelpPage";
 
 function App() {
 
@@ -99,6 +100,9 @@ function App() {
             <Route path="/users/item-management/more-details/:uid" element={<MatchMoreDetailsPage />} />
             <Route path="/users/messages/:uid" element={<UserMessagesPage />} />
             <Route path="/users/notifications/:uid" element={<UserNotificationPage />} />
+            <Route path="/users/help/:uid" element={<HelpPage />} />
+
+
 
             <Route path="/guest/:uid" element={<GuestReportPage />} />
             <Route path="/guest/email/:uid" element={<GuestEmailRequestPage />} />

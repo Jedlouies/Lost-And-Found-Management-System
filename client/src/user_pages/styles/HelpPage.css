@@ -1,0 +1,26 @@
+.help-page-body {
+  max-width: 100%;
+  margin-left: 80px;
+  
+  font-family: Arial, sans-serif;
+}
+
+.help-page-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.help-section h4 {
+  background-color: #f0f0f0;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.help-content {
+  padding: 10px 20px;
+  border-left: 3px solid #007bff;
+  margin-top: 5px;
+  background-color: #ffffff;
+  border-radius: 5px;
+}

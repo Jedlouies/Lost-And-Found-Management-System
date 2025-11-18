@@ -1,6 +1,6 @@
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  width: 95%; /* or remove width entirely */
+  width: 100%; /* or remove width entirely */
   min-height: 120vh; /* make it fill screen height */
   font-weight: 400;
   overflow-x: hidden;

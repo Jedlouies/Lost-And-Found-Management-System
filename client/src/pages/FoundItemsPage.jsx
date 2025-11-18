@@ -413,7 +413,7 @@ const archiveItem = async (item) => {
 
 
           <div>
-            <table className='lost-item-table1' style={{marginTop: '30px'}}>
+            <table className='lost-item-table1' style={{marginTop: '30px', width: '90%'}}>
               <thead>
                 <tr>
                   <th style={{minWidth: '180px'}}>Item ID No.</th>
@@ -454,7 +454,6 @@ const archiveItem = async (item) => {
 <td>
   <div className='founder-details'>
     {item.isGuest ? (
-      // Case 1: Guest
       <div
         style={{
           width: "50px",

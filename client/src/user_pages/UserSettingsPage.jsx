@@ -39,6 +39,7 @@ function UserSettingsPage() {
   const [designation, setDesignation] = useState('');
   const [gender, setGender] = useState('');
   const [yearsOfService, setYearsOfService] = useState('');
+  const [updatingProfile, setUpdatingProfile] = useState(false);
   const [educationalAttainment, setEducationalAttainment] = useState('');
   const [address, setAddress] = useState('');
 
@@ -52,13 +53,12 @@ function UserSettingsPage() {
 
    const [cropperOpen, setCropperOpen] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState(null);
-  const [cropAspect, setCropAspect] = useState(1); // default square for profile
+  const [cropAspect, setCropAspect] = useState(1);
 
-  const [pendingField, setPendingField] = useState(null); // profile or cover
+  const [pendingField, setPendingField] = useState(null); 
 
   const initials = `${firstName?.[0] || ''}${lastName?.[0] || ''}`.toUpperCase();
 
-  // Change Password Modal
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -72,14 +72,12 @@ const [pendingPassword, setPendingPassword] = useState(null);
 
 
    const courseList = [
-  // College of Science and Mathematics - CSM (Undergraduate)
   { abbr: "BSAM", name: "Bachelor of Science in Applied Mathematics" },
   { abbr: "BSAP", name: "Bachelor of Science in Applied Physics" },
   { abbr: "BSChem", name: "Bachelor of Science in Chemistry" },
   { abbr: "BSES", name: "Bachelor of Science in Environmental Science " },
   { abbr: "BSFT", name: "Bachelor of Science in Food Technology" },
 
-  // College of Technology - COT (Undergraduate)
   { abbr: "BSAuT", name: "Bachelor of Science in Autotronics" },
   { abbr: "BSAT", name: "Bachelor of Science in Automotive Technology" },
   { abbr: "BSEMT", name: "Bachelor of Science in Electro-Mechanical Technology" },
@@ -87,8 +85,6 @@ const [pendingPassword, setPendingPassword] = useState(null);
   { abbr: "BSESM", name: "Bachelor of Science in Energy Systems and Management" },
   { abbr: "BSMET", name: "Bachelor of Science in Manufacturing Engineering Technology" },
   { abbr: "BTOM", name: "Bachelor of Technology, Operation, and Management" },
-
-  // College of Science and Technology Education - CSTE (Undergraduate)
   { abbr: "BS MathEd", name: "Bachelor of Secondary Education Major in Mathematics" },
   { abbr: "BS SciEd", name: "Bachelor of Secondary Education Major in Science" },
   { abbr: "BTLED", name: "Bachelor of Technology and Livelihood Education" },
@@ -96,11 +92,9 @@ const [pendingPassword, setPendingPassword] = useState(null);
   
   { abbr: "BTTE", name: "Bachelor of Technician Teacher Education" },
 
-  // Senior High School - SHS
   { abbr: "STEM", name: "Senior High School - Science, Technology, Engineering and Mathematics" },
   
 
-  // College of Engineering and Architecture - CEA (Undergraduate)
   { abbr: "BSArch", name: "Bachelor of Science in Architecture" },
   { abbr: "BSCE", name: "Bachelor of Science in Civil Engineering" },
   { abbr: "BSCPE", name: "Bachelor of Science in Computer Engineering" },
@@ -109,25 +103,18 @@ const [pendingPassword, setPendingPassword] = useState(null);
   { abbr: "BSGE", name: "Bachelor of Science in Geodetic Engineering" },
   { abbr: "BSME", name: "Bachelor of Science in Mechanical Engineering" },
 
-  // College of Information Technology and Computing - CITC (Undergraduate)
   { abbr: "BSDS", name: "Bachelor of Science in Data Science" },
   { abbr: "BSIT", name: "Bachelor of Science in Information Technology" },
   { abbr: "BSTCM", name: "Bachelor of Science in Technology Communication Management" },
   { abbr: "BSCS", name: "Bachelor of Science in Computer Science" },
 
-  // College of Medicine - COM
   { abbr: "COM", name: "College of Medicine (Night Class)" },
 
-  // -------- GRADUATE PROGRAMS --------
-
-  // CSM Graduate
   { abbr: "MSAMS", name: "Master of Science in Applied Mathematics Sciences" },
   { abbr: "MSETS", name: "Master of Science in Environmental Science and Technology" },
 
-  // COT Graduate
   { abbr: "MITO", name: "Master in Industrial Technology and Operations" },
 
-  // CSTE Graduate
   { abbr: "DTE", name: "Doctor in Technology Education" },
   { abbr: "PhD MathEdSci", name: "Doctor of Philosophy in Mathematics Sciences " },
   { abbr: "PhD MathEd", name: "Doctor of Philosophy in Mathematics Education" },
@@ -143,17 +130,14 @@ const [pendingPassword, setPendingPassword] = useState(null);
   { abbr: "MTTE", name: "Master in Technician Teacher Education" },
   { abbr: "MTTEd", name: "Master of Technical and Technology Education" },
 
-  // CEA Graduate
   { abbr: "MEng", name: "Master of Engineering Program" },
   { abbr: "MSEE", name: "Master of Science in Electrical Engineering" },
   { abbr: "MSSDPS", name: "Master of Science in Sustainable Development Professional Science" },
   { abbr: "MPSEM", name: "Master in Power System Engineering and Management" },
 
-  // CITC Graduate
   { abbr: "MSTCM", name: "Master of Science in Technology Communication Management" },
   { abbr: "MIT", name: "Master in Information Technology" },
 
-  // Institute of Governance, Innovation and Sustainability
   { abbr: "MPS-DSPE", name: "Master in Public Sector Major in Digital Service Platforms and E-Governance" },
   { abbr: "MPS-SD", name: "Master in Public Sector Innovation Major in Sustainable Development" },
   { abbr: "MPS-PPS", name: "Master in Public Sector Innovation Major in Public Policy Studies" },
@@ -178,18 +162,13 @@ const handleChangePassword = async () => {
 
     if (!user) throw new Error("No user logged in");
 
-    // Step 1: Reauthenticate with current password
     const credential = EmailAuthProvider.credential(user.email, password);
     await reauthenticateWithCredential(user, credential);
-
-    // Step 2: Save new password temporarily
     setPendingPassword(newPassword);
 
-    // Step 3: Send verification email
     const code = await createVerificationCode(user);
     await sendVerificationEmail(user, code);
 
-    // Step 4: Open verification modal
     setShowChangePasswordModal(false);
     setShowVerificationModal(true);
 
@@ -224,7 +203,7 @@ const handleFileSelect = (e, field) => {
       const reader = new FileReader();
       reader.onload = () => {
         setCropImageSrc(reader.result);
-        setCropAspect(field === "profile" ? 1 : 16 / 9); // profile = square, cover = wide
+        setCropAspect(field === "profile" ? 1 : 16 / 9); 
         setPendingField(field);
         setCropperOpen(true);
       };
@@ -233,7 +212,6 @@ const handleFileSelect = (e, field) => {
   };
 
   const handleCropSave = async (croppedBase64) => {
-    // Convert base64 -> File for upload
     const res = await fetch(croppedBase64);
     const blob = await res.blob();
     const file = new File([blob], "cropped.jpg", { type: "image/jpeg" });
@@ -277,17 +255,18 @@ const handleConfirmPassword = async () => {
     await reauthenticateUser(password);
     setShowPasswordModal(false);
     setPassword('');
-    await handleUpdate(); 
+    
+    setUpdatingProfile(true); 
+    await handleUpdate();     
+    setUpdatingProfile(false); 
   } catch (err) {
     console.error("Password incorrect:", err);
     setAlert({ message: "Incorrect Password", type: "error" });
+    setUpdatingProfile(false);
   }
   setCheckingPassword(false);
 };
 
-  const selectedCourse = courseList.find(
-  (c) => c.abbr === course || c.name === course
-);
 
 const handleUpdate = async () => {
   if (!currentUser) return;
@@ -300,14 +279,12 @@ const handleUpdate = async () => {
       setProfileURL(updatedProfileURL);
     }
 
-    // Upload cover image if a new one is selected
     let updatedCoverURL = coverURL;
     if (coverImage) {
       updatedCoverURL = await uploadImage(coverImage, `users/${currentUser.uid}`, "coverURL");
       setCoverURL(updatedCoverURL);
     }
 
-    // Update user details
     const updatedData = {
       firstName,
       lastName,
@@ -456,6 +433,26 @@ const handleUpdate = async () => {
 
   return (
     <>
+          {updatingProfileInfo && (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999,
+        flexDirection: 'column',
+        color: 'white',
+        fontSize: '1.5rem'
+      }}>
+        <Spinner animation="border" variant="light" style={{ width: '3rem', height: '3rem' }} />
+        <span style={{ marginTop: '1rem' }}>Updating Profile...</span>
+      </div>
+    )}
     
       <UserNavigationBar />
 <VerificationModal
@@ -641,7 +638,6 @@ const handleUpdate = async () => {
               </div>
             )}
 
-            {/* Profile Photo */}
             {profileURL ? (
               <div>
                 <img 
@@ -736,7 +732,21 @@ const handleUpdate = async () => {
           </div> 
           <input placeholder='Address' value={address} onChange={(e) => setAddress(e.target.value)} />
 
-          <button onClick={handleSaveClick}>Save Changes</button>
+          <button onClick={handleSaveClick} disabled={updatingProfile}>
+            {updatingProfile ? (
+              <>
+                <Spinner
+                  as="span"
+                  animation="border"
+                  size="sm"
+                  role="status"
+                  aria-hidden="true"
+                /> Saving...
+              </>
+            ) : (
+              "Save Changes"
+            )}
+          </button>
 
           
             <div className='other-settings'>
