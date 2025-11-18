@@ -135,7 +135,7 @@ useEffect(() => {
             <WeeklyUsersCard />
         </div>
         
-          <div className='rating' style={{marginTop: '-180px'}}>
+          <div className='rating'>
               <FeedBackChart />
           </div>
         

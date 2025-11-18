@@ -413,7 +413,7 @@ const archiveItem = async (item) => {
 
 
           <div>
-            <table className='lost-item-table1' style={{marginTop: '30px', width: '90%'}}>
+            <table className='lost-item-table1' style={{marginTop: '30px', width: '95%'}}>
               <thead>
                 <tr>
                   <th style={{minWidth: '180px'}}>Item ID No.</th>

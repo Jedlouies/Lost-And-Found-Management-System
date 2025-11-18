@@ -95,7 +95,7 @@ function UserProfilesPage() {
 
 
           <div>
-            <table className='user-profiles-table' style={{ marginTop: '-10px' }}>
+            <table className='user-profiles-table' style={{ marginTop: '-10px', height: '650px'}}>
               <thead>
                 <tr>
                   <th>Student ID</th>

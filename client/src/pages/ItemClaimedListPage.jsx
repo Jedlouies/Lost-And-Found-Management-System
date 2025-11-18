@@ -94,7 +94,7 @@ function ItemClaimedListPage() {
           </div>
 
           <div>
-            <table className='found-item-table1' style={{marginTop: '20px', width: '80%'}}>
+            <table className='found-item-table1' style={{marginTop: '20px', width: '90%', height: '650px'}}>
               <thead>
                 <tr>
                   <th>Item ID No.</th>
@@ -263,7 +263,6 @@ function ItemClaimedListPage() {
                               </div>
                             </>
                           ) : (
-                            // Case 3: Initials
                             <>
                               <div
                                 style={{
