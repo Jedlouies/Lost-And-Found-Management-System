@@ -26,13 +26,10 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 
-// Custom component imports
 import BlankHeader from '../components/BlankHeader';
 import BottomNavBar from '../components/BottomNavBar';
 
-// Define placeholder color
 const PLACEHOLDER_COLOR = "#A9A9A9";
-// New constants for the check text and alerts
 const CHECKING_TEXT = "Checking your image if it contains inappropriate content...";
 const CHECKING_SHORT = "Scanning...";
 const INAPPROPRIATE_ALERT_TITLE = "Inappropriate Content Detected";
@@ -40,7 +37,6 @@ const INAPPROPRIATE_ALERT_MESSAGE = (flaggedCount: number) =>
   `${flaggedCount} image(s) were flagged for potentially inappropriate content (e.g., nudity, violence, self-harm, hate speech) and were not added. Please upload appropriate images.`;
 
 
-// --- Type Definitions ---
 interface UserData {
   firstName?: string;
   lastName?: string;
