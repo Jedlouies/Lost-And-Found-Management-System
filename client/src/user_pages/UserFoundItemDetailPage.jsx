@@ -17,8 +17,8 @@ const MAX_IMAGES = 1;
 
 
 function UserFoundItemDetailPage() {
- //const API = "http://localhost:4000";
- const API = "https://server.spotsync.site";
+ const API = "http://localhost:4000";
+ //const API = "https://server.spotsync.site";
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();

@@ -17,8 +17,8 @@ import createVerificationCode from "../components/createVerificationCode.jsx";
 
 
 function UserSettingsPage() {
-  //const API = "http://localhost:4000";
-  const API = "https://server.spotsync.site";
+  const API = "http://localhost:4000";
+  //const API = "https://server.spotsync.site";
 
 
   const { currentUser } = useAuth();

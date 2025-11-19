@@ -26,8 +26,8 @@ import BlankHeader from '../components/BlankHeader';
 
 
 function FoundItemsPage() {
- //const API = "http://localhost:4000";
- const API = "https://server.spotsync.site";
+ const API = "http://localhost:4000";
+ //const API = "https://server.spotsync.site";
  
   const [items, setItems] = useState([]); 
   const [currentPage, setCurrentPage] = useState(1);

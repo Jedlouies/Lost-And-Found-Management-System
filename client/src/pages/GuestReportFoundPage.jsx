@@ -13,7 +13,7 @@ const CHECKING_SHORT = "Scanning...";
 const INAPPROPRIATE_ALERT_TITLE = "Inappropriate Content Detected";
 const INAPPROPRIATE_ALERT_MESSAGE = (flaggedCount) => 
   `${flaggedCount} image(s) were flagged for potentially inappropriate content (e.g., nudity, violence, self-harm, hate speech) and were not added. Please upload appropriate images.`;
-const MAX_IMAGES = 1; // 👈 *** SET TO 1 ***
+const MAX_IMAGES = 1;
 
 function GuestReportFoundPage() {
  //const API = "https://localhost:4000"; 

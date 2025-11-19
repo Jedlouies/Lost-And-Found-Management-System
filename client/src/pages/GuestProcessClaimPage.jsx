@@ -22,8 +22,8 @@ import { Modal, Button } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";   
 
 function GuestProcessClaimPage() {
- //const API = "http://localhost:4000";
- const API = "https://server.spotsync.site";
+ const API = "http://localhost:4000";
+ //const API = "https://server.spotsync.site";
  
   const [capturedImage, setCapturedImage] = useState(null);
   const [guestName, setGuestName] = useState("");
