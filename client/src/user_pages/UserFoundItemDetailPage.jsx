@@ -258,11 +258,8 @@ const checkImageModeration = async (file) => {
     }
   };
 
-  // --- NEW FUNCTION TO REMOVE IMAGE ---
   const removeImage = (indexToRemove) => {
-      // Remove from the file list (images)
       setImages(prevImages => prevImages.filter((_, index) => index !== indexToRemove));
-      // Remove from the preview list (imagesWithMetadata)
       setImagesWithMetadata(prevMeta => prevMeta.filter((_, index) => index !== indexToRemove));
   };
 
@@ -300,7 +297,6 @@ const handleSubmit = async (e) => {
   e.preventDefault();
   if (!currentUser) return alert('You must be logged in to submit a report.');
   
-  // --- NEW MODERATION CHECK ---
   if (isModerating) {
       alert("Image scanning is still in progress. Please wait.");
       return;
@@ -311,7 +307,6 @@ const handleSubmit = async (e) => {
   setIsSubmitting(true);
   try {
     const imageURLs = [];
-    // Use the moderated 'images' state for upload
     for (let i = 0; i < images.length; i++) {
         const url = await uploadFoundItemImage(images[i], `found-items/${currentUser.uid}`);
         imageURLs.push(url);

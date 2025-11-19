@@ -3,7 +3,7 @@ import UserNavigationBar from '../user_components/UserNavigationBar';
 import './styles/UserLostItemPage.css';
 import UserFoundHeader from '../user_components/UserFoundHeader';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { collection, doc, getDocs, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -22,22 +22,25 @@ function UserFoundItemsPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        setLoadingFound(true);
-        const foundSnapshot = await getDocs(collection(db, 'foundItems'));
-        const foundData = foundSnapshot.docs.map((doc) => ({
+    setLoadingFound(true);
+    
+    const unsubscribe = onSnapshot(
+      collection(db, 'foundItems'),
+      (snapshot) => {
+        const foundData = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
         setFoundItems(foundData);
-      } catch (error) {
+        setLoadingFound(false);
+      },
+      (error) => {
         console.error("Error fetching items:", error);
-      } finally {
         setLoadingFound(false);
       }
-    };
-    fetchItems();
+    );
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -69,7 +72,6 @@ function UserFoundItemsPage() {
     fetchSaved();
   }, [currentUser]);
 
-  // Toggle save/unsave
   const toggleSave = async (item) => {
     if (!currentUser) {
       alert("Please login to save items");
@@ -100,7 +102,6 @@ function UserFoundItemsPage() {
 
   return (
     <>
-      {/* Saved Items Modal */}
       {showModal && (
         <div
           style={{
@@ -319,7 +320,6 @@ function UserFoundItemsPage() {
         </div>
         </div>
 
-        {/* Loader OR Items */}
         {loadingFound ? (
           <div 
             style={{ 

@@ -49,7 +49,7 @@ function cosineSimilarity(vecA, vecB) {
 async function getImageEmbedding(url) {
   try {
     const visionRes = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5.1",
       messages: [
         {
           role: "user",
@@ -89,7 +89,7 @@ async function compareImagesWithFilter(lostUrls, foundUrls) {
       if (score > bestScore) bestScore = score;
     }
   }
-   bestScore;
+   return bestScore;
 }
 
 async function calculateMatchScore(lostItem, foundItem) {
@@ -147,7 +147,7 @@ app.post("/api/moderate-image", async (req, res) => {
 
   try {
     const visionRes = await openai.chat.completions.create({
-      model: "gpt-4o-mini", 
+      model: "gpt-5.1", 
       messages: [{
         role: "user",
         content: [

@@ -3,7 +3,7 @@ import UserNavigationBar from '../user_components/UserNavigationBar';
 import './styles/UserLostItemPage.css';
 import UserLostHeader from '../user_components/UserLostHeader';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { collection, doc, getDocs, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -24,24 +24,27 @@ function UserLostItemsPage() {
 
   const navigate = useNavigate();
 
+  // FIX: Use onSnapshot for real-time updates of lost items
   useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        setLoadingLost(true);
+    setLoadingLost(true);
 
-
-        const lostSnapshot = await getDocs(collection(db, 'lostItems'));
-        const lostData = lostSnapshot.docs.map(doc => ({
+    const unsubscribe = onSnapshot(
+      collection(db, 'lostItems'),
+      (snapshot) => {
+        const lostData = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data(),
         }));
         setLostItems(lostData);
         setLoadingLost(false);
-      } catch (error) {
+      },
+      (error) => {
         console.error("Error fetching lost items:", error);
+        setLoadingLost(false);
       }
-    };
-    fetchItems();
+    );
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {

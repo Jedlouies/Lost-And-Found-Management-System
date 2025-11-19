@@ -243,33 +243,48 @@ const handleSaveClick = () => {
 
 
 const handleConfirmPassword = async () => {
-  setCheckingPassword(true); 
-  try {
-    await reauthenticateUser(password);
-    setShowPasswordModal(false);
-    setPassword('');
+  setCheckingPassword(true); 
+  try {
+    await reauthenticateUser(password);
+    setShowPasswordModal(false);
+    setPassword('');
 
-    if (
-      profileImage ||
-      coverImage ||
-      firstName !== localStorage.getItem('firstName') ||
-      lastName !== localStorage.getItem('lastName') ||
-      bio !== localStorage.getItem('bio')
-    ) {
-      setUpdatingProfileInfo(true);
-      await handleUpdate();
-      setUpdatingProfileInfo(false);
-    } else {
-      setAlert({ message: "No changes detected. Reauthentication successful!", type: "success" });
-    }
-  } catch (err) {
-    console.error("Password incorrect:", err);
-    setAlert({ message: "Incorrect Password", type: "error" });
-  } finally {
-    setCheckingPassword(false); 
-  }
+    const checkProfileInfoChanged = () => {
+        if (profileImage || coverImage) return true;
+
+        if (
+            firstName !== localStorage.getItem('firstName') ||
+            lastName !== localStorage.getItem('lastName') ||
+            middleName !== (localStorage.getItem('middleName') || '') ||
+            email !== (localStorage.getItem('email') || '') ||
+            contactNumber !== (localStorage.getItem('contactNumber') || '') ||
+            bio !== (localStorage.getItem('bio') || '') ||
+            designation !== (localStorage.getItem('designation') || '') ||
+            gender !== (localStorage.getItem('gender') || '') ||
+            yearsOfService !== (localStorage.getItem('yearsOfService') || '') ||
+            educationalAttainment !== (localStorage.getItem('educationalAttainment') || '') ||
+            address !== (localStorage.getItem('address') || '') 
+        ) {
+            return true;
+        }
+        return false;
+    };
+
+
+    if (checkProfileInfoChanged()) {
+      setUpdatingProfileInfo(true);
+      await handleUpdate();
+      setUpdatingProfileInfo(false);
+    } else {
+      setAlert({ message: "No changes detected. Reauthentication successful!", type: "success" });
+    }
+  } catch (err) {
+    console.error("Password incorrect:", err);
+    setAlert({ message: "Incorrect Password", type: "error" });
+  } finally {
+    setCheckingPassword(false); 
+  }
 };
-
 
 
 const handleUpdate = async () => {
