@@ -16,7 +16,7 @@ function HelpPage() {
             belongings to their rightful owners.
           </p>
           <h5>Who can use it?</h5>
-          <p>
+          <p style={{color: 'black'}}> 
             All USTP CDO students, faculty, staff and non-staff with a valid campus email and ID number.
             USTP guests can also report lost items.
           </p>
@@ -65,7 +65,7 @@ function HelpPage() {
     {
       title: "How Matching Works",
       content: (
-        <p>
+        <p style={{color: 'black'}}>
           SpotSync automatically matches reports based on item description, category, location, photo
           similarity, and unique identifiers. You will receive an email or in-app notification once a match is found.
         </p>
@@ -110,11 +110,11 @@ function HelpPage() {
       content: (
         <>
           <h5>Holding Period</h5>
-          <p>Found items stored at OSA are kept for a defined period per campus policy, then disposed or donated.</p>
+          <p style={{color: 'black'}}>Found items stored at OSA are kept for a defined period per campus policy, then disposed or donated.</p>
           <h5>Accuracy of Reports</h5>
-          <p>Submit honest and accurate details. False claims may result in system restrictions.</p>
+          <p style={{color: 'black'}}>Submit honest and accurate details. False claims may result in system restrictions.</p>
           <h5>Unclaimed Items</h5>
-          <p>After the holding period, unclaimed items may be donated, recycled, or properly disposed.</p>
+          <p style={{color: 'black'}}>After the holding period, unclaimed items may be donated, recycled, or properly disposed.</p>
         </>
       ),
     },
@@ -134,11 +134,11 @@ function HelpPage() {
       title: "Need More Help?",
       content: (
         <>
-          <p>Contact:</p>
-          <p>📍 Office of Student Affairs – USTP CDO</p>
-          <p>📧 Email: [Insert campus email]</p>
-          <p>🕘 Office Hours: 8:00 AM – 5:00 PM, Monday to Friday</p>
-          <p>Or use the in-app Support Form for technical issues or feedback.</p>
+          <p style={{color: 'black'}}>Contact:</p>
+          <p style={{color: 'black'}}>📍 Office of Student Affairs – USTP CDO</p>
+          <p style={{color: 'black'}}>📧 Email: [Insert campus email]</p>
+          <p style={{color: 'black'}}>🕘 Office Hours: 8:00 AM – 5:00 PM, Monday to Friday</p>
+          <p style={{color: 'black'}}>Or use the in-app Support Form for technical issues or feedback.</p>
         </>
       ),
     },
@@ -151,7 +151,7 @@ function HelpPage() {
         <UserBlankHeader />
         <div className="help-page-container">
           <h2>SpotSync Help Center</h2>
-          <p>Welcome to the SpotSync Help Center! Here, you’ll find everything you need to know about reporting, finding, and claiming items within the USTP CDO campus.</p>
+          <p style={{color: 'black'}}>Welcome to the SpotSync Help Center! Here, you’ll find everything you need to know about reporting, finding, and claiming items within the USTP CDO campus.</p>
 
           {helpSections.map((section, idx) => (
             <div key={idx} className="help-section mb-4">

@@ -22,13 +22,11 @@ import TopHeader from '../components/TopHeader';
 import BottomNavBar from '../components/BottomNavBar';
 import { ImageBackground } from 'expo-image';
 import { useOfflineNotifier } from '../hooks/useOfflineNotifier';
-import MessageAdminButton from '../components/MessageAdminButton'; // Import the new component
+import { useExitOnBack } from '../hooks/useExitonBack'
+import MessageAdminButton from '../components/MessageAdminButton'; 
 
 const { width } = Dimensions.get('window');
 
-// --- Simple Floating Alert Component for Home Screen ---
-// Note: This is an implementation of the FloatingAlert functionality 
-// required by the MessageAdminButton's original design.
 const LocalFloatingAlert = ({ message, type, visible, onClose }) => {
   const [fadeAnim] = useState(new Animated.Value(0));
   
@@ -106,6 +104,7 @@ const localAlertStyles = StyleSheet.create({
 export default function HomeScreen() {
   const router = useRouter();
   const { currentUser } = useAuth();
+  useExitOnBack();
   const { notifyOffline, OfflinePanelComponent } = useOfflineNotifier();
 
   const [userData, setUserData] = useState(null);

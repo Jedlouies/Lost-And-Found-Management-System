@@ -206,7 +206,6 @@ app.post("/api/moderate-image", async (req, res) => {
     res.status(statusCode).json({ error: errorMessage, isSafe: false }); 
   }
 });
-// --- API: Found-to-Lost ---
 app.post("/api/match/found-to-lost", async (req, res) => {
   try {
     const { uidFound } = req.body;

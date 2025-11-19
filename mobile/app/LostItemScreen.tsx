@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import {
   View,
   Text,
@@ -12,21 +12,22 @@ import {
   Image,
   SafeAreaView,
 } from 'react-native';
-import { useAuth } from '../context/AuthContext'; // Adjust path if needed
+import { useAuth } from '../context/AuthContext'; 
 import { useRouter } from 'expo-router';
-import { collection, doc, getDocs, setDoc, deleteDoc, getDoc } from 'firebase/firestore'; // ✅ Import getDoc
-import { db } from '../firebase'; // Adjust path if needed
+import { collection, doc, getDocs, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase'; 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import LostHeader from '../components/LostHeader';
-import BottomNavBar from '../components/BottomNavBar'; // Adjust path if needed
+import BottomNavBar from '../components/BottomNavBar';
 
-// 1. IMPORT THE HOOK
-import { useOfflineNotifier } from '../hooks/useOfflineNotifier'; // Adjust path if needed
+import { useOfflineNotifier } from '../hooks/useOfflineNotifier'; 
+import { useExitOnBack } from '../hooks/useExitonBack'
 
-// --- Item Card Component (No changes needed here) ---
+
 const ItemCard = ({ item, isSaved, onSaveToggle, onCardPress }) => {
   const reporter = item.personalInfo;
   const isGuest = item.isGuest === true;
+
 
   const getInitials = () => {
     if (isGuest || !reporter) return "G";
@@ -69,12 +70,12 @@ const ItemCard = ({ item, isSaved, onSaveToggle, onCardPress }) => {
   );
 };
 
-// --- Main Screen Component ---
 export default function LostItemsScreen() {
   const router = useRouter();
   const { currentUser } = useAuth();
 
-  // 2. INSTANTIATE THE HOOK
+  useExitOnBack(); 
+
   const { notifyOffline, OfflinePanelComponent } = useOfflineNotifier();
   
   const [userData, setUserData] = useState(null);

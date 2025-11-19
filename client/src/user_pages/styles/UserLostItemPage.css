@@ -343,6 +343,57 @@
     scale: 1.05;
 }
 
+
+.matching-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.matching-content {
+  text-align: center;
+  color: white;
+  width: 80%;
+  max-width: 400px;
+}
+
+.matching-text {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #BDDDFC;
+}
+
+.progress-container {
+  width: 100%;
+  height: 20px;
+  background-color: #475C6F;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #BDDDFC; /* Your theme blue */
+  width: 0%;
+  transition: width 0.2s ease-in-out;
+  border-radius: 10px;
+}
+
+.progress-percentage {
+  font-size: 18px;
+  font-weight: 600;
+}
+
 @media (max-width: 1920px) {
     .user-lost-searchBar {
         width: 70%;

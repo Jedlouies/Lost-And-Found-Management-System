@@ -21,7 +21,7 @@ function GuestReportFoundPage() {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
 
-  co [itemName, setItemName] = useState('');
+  const [itemName, setItemName] = useState('');
   const [dateFound, setDateFound] = useState('');
   const [locationFound, setLocationFound] = useState('');
   const [category, setCategory] = useState('');
@@ -34,11 +34,9 @@ function GuestReportFoundPage() {
   const [yearLevel, setYearLevel] = useState('Guest');
   const [birthdate, setBirthdate] = useState('Guest');
   
-  // --- UPDATED IMAGE STATE ---
-  const [images, setImages] = useState(null); // Actual files for upload
-  const [imagesWithMetadata, setImagesWithMetadata] = useState([]); // For preview URLs
+  const [images, setImages] = useState(null); 
+  const [imagesWithMetadata, setImagesWithMetadata] = useState([]); 
   
-  // --- NEW MODERATION STATE ---
   const [isModerating, setIsModerating] = useState(false);
 
   const [founder, setFounder] = useState('Guest');  
@@ -63,7 +61,6 @@ function GuestReportFoundPage() {
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const [filteredCategories, setFilteredCategories] = useState([]);
   
-    // Lists
     const LOCATIONS = [
       "Arts and Culture Building",
       "Guidance and Testing Center",
@@ -151,7 +148,7 @@ function GuestReportFoundPage() {
   const fetchGuestInfo = async () => {
     try {
       const user = auth.currentUser;
-      if (!user) return; // not logged in
+      if (!user) return; 
 
       const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
@@ -160,7 +157,7 @@ function GuestReportFoundPage() {
         const userData = userSnap.data();
         console.log("Fetched guest user data:", userData);
 
-        setEmail(userData.email || "");  // <-- fetch the guest email
+        setEmail(userData.email || ""); 
         setFirstName(userData.firstName || "Guest");
         setLastName(userData.lastName || "Guest");
         setFounder(`${userData.firstName || "Guest"} ${userData.lastName || ""}`);
@@ -176,16 +173,14 @@ function GuestReportFoundPage() {
 }, []);
 
 
-  // --- NEW MODERATION FUNCTION ---
   const checkImageModeration = async (file)  => {
-      // 1. Convert File to Base64
       const fileReader = new FileReader();
       const base64Promise = new Promise((resolve, reject) => {
         fileReader.onload = () => resolve(fileReader.result);
         fileReader.onerror = () => reject(new Error("Failed to read file."));
       });
       fileReader.readAsDataURL(file);
-      const base64Data = (await base64Promise).split(',')[1]; // Get only the base64 part
+      const base64Data = (await base64Promise).split(',')[1]; 
   
       try {
         const response = await fetch(`${API}/api/moderate-image`, {
@@ -200,23 +195,20 @@ function GuestReportFoundPage() {
           throw new Error(errorData.error || `Moderation check failed on backend (${response.status})`);
         }
   
-        const data = await response.json(); // Expecting { isSafe: boolean }
+        const data = await response.json(); 
         return data.isSafe;
   
       } catch (error) {
         console.error("Error calling backend for moderation:", error);
-        // Fallback: If the moderation service fails, we block the image as a safety measure.
         return false; 
       }
   };
 
 
-  // --- UPDATED IMAGE CHANGE HANDLER ---
   const handleImageChange = async (e) => {
       const files = e.target.files;
       if (!files || files.length === 0) return;
 
-      // Since MAX_IMAGES is 1, we only take the first file.
       const file = files[0];
 
       const currentImageCount = imagesWithMetadata.length;
@@ -242,8 +234,6 @@ function GuestReportFoundPage() {
               alert(`${INAPPROPRIATE_ALERT_TITLE}\n\n${INAPPROPRIATE_ALERT_MESSAGE(flaggedCount)}`);
           }
 
-          // Add safe images to the state
-          // Since MAX_IMAGES is 1, we replace instead of add.
           setImages(newImages);
           setImagesWithMetadata(newImages.map(file => ({ file, url: URL.createObjectURL(file) })));
 
@@ -256,11 +246,8 @@ function GuestReportFoundPage() {
       }
   };
 
-  // --- NEW FUNCTION TO REMOVE IMAGE ---
   const removeImage = (indexToRemove) => {
-      // Remove from the file list (images)
       setImages(prevImages => prevImages.filter((_, index) => index !== indexToRemove));
-      // Remove from the preview list (imagesWithMetadata)
       setImagesWithMetadata(prevMeta => prevMeta.filter((_, index) => index !== indexToRemove));
   };
 
@@ -297,7 +284,6 @@ function GuestReportFoundPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // --- NEW MODERATION CHECK ---
     if (isModerating) {
         alert("Image scanning is still in progress. Please wait.");
         setIsSubmitting(false);
@@ -314,14 +300,13 @@ function GuestReportFoundPage() {
 
       if (!user) {
         alert("You must be signed in as a guest or user to submit.");
-        setIsSubmitting(false); // Stop submission
+        setIsSubmitting(false); 
         return;
       }
 
       const uid = user.uid; 
       const imageURLs = [];
 
-      // Use the moderated 'images' state
       for (let i = 0; i < images.length; i++) {
         const url = await uploadFoundItemImage(images[i], `found-items/${uid}`);
         imageURLs.push(url);
@@ -372,7 +357,7 @@ function GuestReportFoundPage() {
 
         if (!matchResponse.ok) throw new Error("Matching failed");
         const matches = await matchResponse.json();
-        const top4Matches = matches.slice(0, 4); // Keep this, even if unused, for consistency
+        const top4Matches = matches.slice(0, 4); 
 
         await notifyUser(
           currentUser.uid,
@@ -450,7 +435,6 @@ function GuestReportFoundPage() {
         <div className="user-found-procedure-body" >
           <h1>Report Found Form</h1>
           
-          {/* --- UPDATED IMAGE UPLOAD AND PREVIEW SECTION --- */}
           <div style={{ marginBottom: '20px', border: '2px solid #475C6F', padding: '10px', borderRadius: '8px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
                   {imagesWithMetadata.map((img, index) => (
@@ -505,12 +489,8 @@ function GuestReportFoundPage() {
                 Image content is scanned for inappropriate material.
               </div>
           </div>
-          {/* --- END UPDATED IMAGE UPLOAD SECTION --- */}
           
-          {/* --- FORM WITH ID --- */}
           <form className="lost-item-form" onSubmit={handleSubmit} id="guest-found-form">
-            {/* <input className='file' type="file" multiple accept="image/*" onChange={handleImageChange} style={{ width: '98%', border: '2px solid #475C6F'}} required /> */}
-            {/* <br /> */}
           <input
             type="text"
             value={itemName}
@@ -616,7 +596,6 @@ function GuestReportFoundPage() {
   )}
 </div>
 
-{/* CATEGORY INPUT WITH TYPE + DROPDOWN */}
 <div style={{ position: "relative", width: "26%", marginRight: "10px" }}>
   <input
     type="text"
@@ -722,10 +701,9 @@ function GuestReportFoundPage() {
             </div>
             </div>
           </form>
-          {/* --- SUBMIT BUTTON OUTSIDE FORM --- */}
           <button
             type="submit"
-            form="guest-found-form" // 👈 *** LINKS TO FORM ID ***
+            form="guest-found-form"
             disabled={isSubmitting || isMatching || isModerating}
             style={{
               display: "flex",
@@ -740,7 +718,7 @@ function GuestReportFoundPage() {
               cursor: isSubmitting || isMatching || isModerating ? "not-allowed" : "pointer",
               fontSize: "16px",
               fontWeight: "500",
-              marginTop: "130px" // 👈 Added margin top for spacing
+              marginTop: "130px" 
             }}
           >
             {isModerating ? (

@@ -79,17 +79,14 @@ const CATEGORIES = [
   "Health & Personal Care", "Toys & Games", "Food & Beverages", "Automotive Items",
   "Musical Instruments", "Pet Items", "Others",
 ];
-// Define your backend URL
 const YOUR_BACKEND_URL = "https://server.spotsync.site";
 
-// --- Main Screen Component ---
 function ReportLostItemScreen() {
   const API = YOUR_BACKEND_URL;
   const { currentUser } = useAuth();
   const router = useRouter();
   const auth = getAuth();
 
-  // Form State - Adjusted for Lost Item
   const [itemName, setItemName] = useState('');
   const [dateLost, setDateLost] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -99,10 +96,8 @@ function ReportLostItemScreen() {
   const [howItemLost, setHowItemLost] = useState('');
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
 
-  // User Data State
   const [userData, setUserData] = useState<UserData | null>(null);
 
-  // UI State
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMatching, setIsMatching] = useState(false);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -111,12 +106,10 @@ function ReportLostItemScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [locationSearch, setLocationSearch] = useState('');
   const [categorySearch, setCategorySearch] = useState('');
-  // State for moderation loading - Only for image picking now
   const [isModerating, setIsModerating] = useState(false);
-  // New state for choosing image source
   const [showImageSourceModal, setShowImageSourceModal] = useState(false);
+    const [progress, setProgress] = useState(0);
 
-  // Fetch User Info Effect
   useEffect(() => {
     const fetchUserInfo = async () => {
       if (!currentUser) { setLoadingUser(false); return; }
@@ -132,14 +125,12 @@ function ReportLostItemScreen() {
     fetchUserInfo();
   }, [currentUser]);
 
-  // Moderation Function (Calls Backend) - Unchanged
   const checkImageModeration = async (imageBase64: string): Promise<boolean | null> => {
     try {
       const response = await fetch(`${YOUR_BACKEND_URL}/api/moderate-image`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Add auth headers if your backend requires them
         },
         body: JSON.stringify({ image: `data:image/jpeg;base64,${imageBase64}` })
       });
@@ -150,16 +141,15 @@ function ReportLostItemScreen() {
         throw new Error(errorData.error || `Moderation check failed on backend (${response.status})`);
       }
 
-      const data = await response.json(); // Expecting { isSafe: boolean }
+      const data = await response.json(); 
       return data.isSafe;
 
     } catch (error: any) {
       console.error("Error calling backend for moderation:", error);
-       throw error; // Re-throw the error
+       throw error; 
     }
   };
 
-// --- Image Processing Logic (Consolidated) - Unchanged ---
 const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
     if (isModerating) return;
 
@@ -220,7 +210,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
         );
       }
       if (safeImagesToAdd.length > 0) {
-        // Critical: Replace all images with the single new image if MAX_IMAGES is 1
         if (MAX_IMAGES === 1) {
             setImages(safeImagesToAdd);
         } else {
@@ -249,7 +238,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
     }
   };
 
-  // New Image Picker Logic (Camera)
   const handleImagePickCamera = async () => {
     setShowImageSourceModal(false);
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
@@ -261,7 +249,7 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: false,
       quality: 0.7, 
-      base64: true, // Crucial: Request base64 for moderation
+      base64: true, 
     });
 
     if (!result.canceled && result.assets) {
@@ -269,7 +257,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
     }
   };
 
-  // Unified handler to open modal
   const handleImagePick = () => {
     if (images.length >= MAX_IMAGES) {
       Alert.alert("Limit Reached", `Only ${MAX_IMAGES} image is allowed for this report. Please remove the existing image to change it.`);
@@ -283,14 +270,12 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
     setImages(prevImages => prevImages.filter((_, i) => i !== index));
   };
 
-  // Upload Logic - Use lost-items preset (Unchanged)
   const uploadLostItemImage = async (fileAsset: ImagePicker.ImagePickerAsset, folder: string) => {
-    // Base64 data should exist because moderation check (which required base64) passed in handleImagePick
     if (!fileAsset.base64) throw new Error('Image asset missing base64 data for upload.'); 
     const base64Img = `data:image/jpeg;base64,${fileAsset.base64}`;
     const formData = new FormData();
     formData.append('file', base64Img);
-    formData.append('upload_preset', 'lost-items'); // Use correct preset
+    formData.append('upload_preset', 'lost-items'); 
     formData.append('folder', folder);
     const res = await fetch('https://api.cloudinary.com/v1_1/dunltzf6e/image/upload', {
       method: 'POST', body: formData,
@@ -300,7 +285,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
     return data.secure_url;
   };
 
-  // Notification Logic (Unchanged)
   const notifyUser = async (uid: string, message: string, type = "item") => {
     if (!uid) return;
     const notifRef = ref(realtimeDB, `notifications/${uid}`);
@@ -310,25 +294,22 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
     });
   };
 
-  // Submit Logic - Unchanged
   const handleSubmit = async () => {
     if (!currentUser || !userData) return Alert.alert('Error', 'User data not loaded.');
     if (!itemName || !dateLost || !locationLost || !category || !itemDescription || !howItemLost) return Alert.alert('Error', 'Please fill all required fields.');
 
-    // Require image for lost item report
     if (images.length === 0) return Alert.alert('Error', `Please upload at least one image (Max ${MAX_IMAGES} allowed).`);
 
-    // Check if moderation is currently running (safety check for double-tap/fast submission)
     if (isModerating) {
         Alert.alert("Wait", "Image scanning is still in progress. Please wait for the process to complete before submitting the report.");
         return;
     }
     
     setIsSubmitting(true);
+    setProgress(0);
     let createdItemManagementData = null;
 
     try {
-      // Image upload (now assumes images are safe because they passed the check in handleImagePick)
       const imageURLs = [];
       if (images.length > 0) {
           for (const imageAsset of images) {
@@ -340,7 +321,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
 
       const customItemId = `ITM-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(100 + Math.random() * 900)}`;
 
-      // Add to lostItems collection
       const lostItemData = {
         itemId: customItemId, uid: currentUser.uid, images: imageURLs,
         itemName, dateLost, locationLost,
@@ -353,9 +333,16 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
 
       const lostItemRef = await addDoc(collection(db, 'lostItems'), lostItemData);
 
-      setIsMatching(true); // Show matching indicator
+      setIsMatching(true); 
 
-      // Trigger AI Matching
+      const interval = setInterval(() => {
+        setProgress((oldProgress) => {
+          if (oldProgress >= 90) return 90; 
+          const diff = Math.random() * 10;
+          return Math.min(oldProgress + diff, 90);
+        });
+      }, 500);
+
       const matchResponse = await fetch(`${API}/api/match/lost-to-found`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ uidLost: lostItemRef.id }),
@@ -364,14 +351,15 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
       if (!matchResponse.ok) {
            const errorBody = await matchResponse.text();
            console.error("Matching API Error:", matchResponse.status, errorBody);
-           // We can proceed with submission even if matching fails, but show an error
            Alert.alert("Warning", "Report submitted, but initial AI matching failed. Matching will run again soon.");
       }
+
+    clearInterval(interval); 
+      setProgress(100);  
        
       const matches = matchResponse.ok ? await matchResponse.json() : [];
       const top4Matches = matches.slice(0, 4);
 
-      // Add to itemManagement
       createdItemManagementData = {
         itemId: customItemId, uid: currentUser.uid, images: imageURLs,
         archivedStatus: false, itemName,
@@ -385,8 +373,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
 
       await addDoc(collection(db, 'itemManagement'), createdItemManagementData);
 
-      // --- Notifications ---
-      // Notify potential finders
       for (const match of top4Matches) {
         if (match.scores?.overallScore >= 60 && match.foundItem?.uid) {
           await notifyUser(
@@ -394,7 +380,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
             `Your found item <b>${match.foundItem.itemName}</b> may possibly match a newly reported lost item: <b>${itemName}</b>.`,
             "item"
           );
-          // Send Email to Finder
           try {
             await fetch(`${API}/api/send-email`, {
               method: "POST", headers: { "Content-Type": "application/json" },
@@ -408,7 +393,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
         }
       }
 
-      // Notify Owner (currentUser)
       if (top4Matches.length > 0 && top4Matches[0].scores?.overallScore >= 60) {
           const topMatch = top4Matches[0];
           await notifyUser(
@@ -416,7 +400,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
             `Hello ${userData.firstName}, we found a possible match for your lost item <b>${itemName}</b>: Found item <b>${topMatch.foundItem?.itemName}</b>. Please check your matches.`,
             "item"
           );
-          // Send Email to Owner about top match
           try {
             await fetch(`${API}/api/send-email`, {
               method: "POST", headers: { "Content-Type": "application/json" },
@@ -428,27 +411,23 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
             });
           } catch(emailError) { console.error("Email send failed to owner:", emailError); }
       } else {
-          // Notify Owner that no significant match was found initially
           await notifyUser(
             currentUser.uid,
             `Hello <b>${userData.firstName}</b>, your lost item report for <b>${itemName}</b> has been submitted and posted. We'll notify you if a potential match is found.`,
             "item"
           );
       }
-      // --- End Notifications ---
 
 
       Alert.alert("Success", "Lost item reported successfully!");
 
-      // Navigate to LostMatchResults
       router.push({
-        pathname: "/LostMatchResults", // Adjust path as needed
+        pathname: "/LostMatchResults",
         params: { itemData: JSON.stringify(createdItemManagementData) }
       });
 
     } catch (error: any) {
       console.error("Submission Error:", error);
-       // Handle specific errors like image upload failure
        if (error.message.includes('upload failed')) {
            Alert.alert('Image Upload Failed', "Could not upload one or more images. Please try again.");
        } else if (error.message.includes('network') || error.message.includes('Failed to fetch')) {
@@ -458,16 +437,13 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
             Alert.alert('Submission Failed', error.message || 'Could not submit the report.');
        }
     } finally {
-      // Ensure all loading states are reset
       setIsSubmitting(false);
       setIsMatching(false);
     }
   };
 
-  // Helper for word count (Unchanged)
   const countWords = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
 
-  // Date Picker Handler (Unchanged)
   const onDateChange = (event: DateTimePickerEvent, selectedDateValue?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
     if (selectedDateValue) {
@@ -477,14 +453,12 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
         const day = selectedDateValue.getDate().toString().padStart(2, '0');
         setDateLost(`${year}-${month}-${day}`);
     }
-    // Close automatically on Android after selection or cancel
     if (Platform.OS === 'android') {
         setShowDatePicker(false);
     }
   };
 
 
-  // Render function for location/category modals (UI improved via styles)
   const renderPickerModal = (
     visible: boolean, onClose: () => void, title: string, data: string[],
     onSelect: (value: string) => void, search: string, setSearch: (value: string) => void
@@ -530,7 +504,20 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
 
   return (
     <SafeAreaView style={styles.container}>
-       {/* Modal for Moderation Loading (Unchanged) */}
+       <Modal visible={isMatching} transparent={true} animationType="fade">
+        <View style={styles.matchingOverlay}>
+          <View style={styles.matchingContent}>
+            <ActivityIndicator size="large" color="#BDDDFC" style={{ marginBottom: 20 }} />
+            <Text style={styles.matchingText}>Searching for Matches...</Text>
+            
+            <View style={styles.progressContainer}>
+              <View style={[styles.progressBar, { width: `${progress}%` }]} />
+            </View>
+            
+            <Text style={styles.progressPercentage}>{Math.round(progress)}%</Text>
+          </View>
+        </View>
+      </Modal>
        <Modal visible={isModerating} transparent={true} animationType="fade">
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#FFFFFF" />
@@ -538,7 +525,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
         </View>
       </Modal>
 
-       {/* Modal for Image Source Selection (Unchanged) */}
        <Modal visible={showImageSourceModal} transparent={true} animationType="slide" onRequestClose={() => setShowImageSourceModal(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.imageSourceModalContent}>
@@ -567,11 +553,9 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
         <View style={styles.formContainer}>
           <Text style={styles.mainTitle}>Report Lost Item</Text>
 
-          {/* SECTION 1: Item Details */}
           <View style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>1. Item Details</Text>
 
-            {/* Image Selection */}
             <Text style={styles.label}>Item Image</Text>
             <ScrollView horizontal style={styles.imagePreviewContainer} showsHorizontalScrollIndicator={false}>
               {images.map((image, index) => (
@@ -598,7 +582,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
              )}
           </ScrollView>
 
-            {/* Item Name */}
             <Text style={styles.label}>Item Name (Max 5 words)</Text>
             <TextInput
               style={styles.inputField}
@@ -609,18 +592,15 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
               maxLength={50}
             />
 
-            {/* Category */}
             <Text style={styles.label}>Category</Text>
               <TouchableOpacity style={styles.pickerButton} onPress={() => setShowCategoryModal(true)}>
               <Text style={[styles.pickerButtonText, !category && styles.placeholderText]} numberOfLines={1}>{category || "Select Category"}</Text>
             </TouchableOpacity>
           </View>
 
-          {/* SECTION 2: Circumstance Details */}
           <View style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>2. Location & Time</Text>
 
-            {/* Date Lost */}
             <Text style={styles.label}>Date Lost</Text>
             <TouchableOpacity style={styles.pickerButton} onPress={() => setShowDatePicker(true)}>
                <Text style={[styles.pickerButtonText, !dateLost && styles.placeholderText]}>{dateLost || "Select Date"}</Text>
@@ -629,13 +609,11 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
                <DateTimePicker value={selectedDate} mode="date" display="default" onChange={onDateChange} maximumDate={new Date()} />
              )}
 
-            {/* Location Lost */}
             <Text style={styles.label}>Location Lost</Text>
             <TouchableOpacity style={styles.pickerButton} onPress={() => setShowLocationModal(true)}>
               <Text style={[styles.pickerButtonText, !locationLost && styles.placeholderText]} numberOfLines={1}>{locationLost || "Select Location"}</Text>
             </TouchableOpacity>
 
-            {/* How Item Lost */}
             <Text style={styles.label}>How might the item have been lost?</Text>
             <TextInput
               style={[styles.inputField, styles.textArea]}
@@ -650,7 +628,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
           </View>
 
 
-          {/* SECTION 3: Item Description */}
           <View style={styles.sectionCard}>
             <Text style={styles.sectionTitle}>3. Detailed Description</Text>
             <Text style={styles.label}>Item Description</Text>
@@ -667,7 +644,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
           </View>
 
 
-          {/* Submit Button */}
           <TouchableOpacity
             style={[styles.submitButton, (isSubmitting || isMatching || isModerating) && styles.buttonDisabled]}
             onPress={handleSubmit}
@@ -693,7 +669,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
             )}
           </TouchableOpacity>
 
-          {/* Conditional informational text */}
           {isMatching && (
                <Text style={styles.infoText}>
                  AI Matching may take several minutes due to processing.
@@ -703,7 +678,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
         </View>
       </KeyboardAwareScrollView>
 
-      {/* Location Modal */}
       {renderPickerModal(
           showLocationModal,
           () => {setLocationSearch(''); setShowLocationModal(false)},
@@ -712,7 +686,6 @@ const processImages = async (assets: ImagePicker.ImagePickerAsset[]) => {
           locationSearch, setLocationSearch
       )}
 
-      {/* Category Modal */}
        {renderPickerModal(
           showCategoryModal,
           () => {setCategorySearch(''); setShowCategoryModal(false)},
@@ -739,7 +712,44 @@ const limitWords = (text: string, setFn: (value: string) => void, limit: number)
 
 
 const styles = StyleSheet.create({
-  // --- New/Updated UI Styles ---
+    matchingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)', 
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  matchingContent: {
+    width: '80%',
+    maxWidth: 400,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  matchingText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#BDDDFC',
+    textAlign: 'center',
+  },
+  progressContainer: {
+    width: '100%',
+    height: 20,
+    backgroundColor: '#475C6F',
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#BDDDFC',
+    borderRadius: 10,
+  },
+  progressPercentage: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'white',
+  },
   scrollContent: { paddingBottom: 100 },
   formContainer: { padding: 15, paddingBottom: 30 },
   mainTitle: { 

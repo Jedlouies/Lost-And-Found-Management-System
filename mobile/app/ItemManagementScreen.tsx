@@ -12,15 +12,15 @@ import {
   Modal,
   Alert,
 } from 'react-native';
-import { useAuth } from '../context/AuthContext'; // Adjust path if needed
+import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
-import { db } from '../firebase'; // Adjust path if needed
-import { collection, onSnapshot, query, where, doc, updateDoc, getDocs, getDoc, Timestamp } from 'firebase/firestore'; // Import getDoc
+import { db } from '../firebase';
+import { collection, onSnapshot, query, where, doc, updateDoc, getDocs, getDoc, Timestamp } from 'firebase/firestore'; 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import BlankHeader from '../components/BlankHeader';
 import BottomNavBar from '../components/BottomNavBar';
+import { useExitOnBack } from '@/hooks/useExitonBack';
 
-// --- Type Definitions ---
 interface Item {
   id: string;
   itemName: string;
@@ -35,7 +35,6 @@ interface Item {
   [key: string]: any;
 }
 
-// --- Item Card Component ---
 const ItemCard = ({ item, onSelect, isSelected, onOpenMenu }: { item: Item; onSelect: (id: string) => void; isSelected: boolean; onOpenMenu: (item: Item) => void; }) => {
   const getStatusStyle = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -82,10 +81,11 @@ const ItemCard = ({ item, onSelect, isSelected, onOpenMenu }: { item: Item; onSe
   );
 };
 
-// --- Main Screen Component ---
 function ItemManagementScreen() {
   const { currentUser } = useAuth();
   const router = useRouter();
+
+  useExitOnBack();
 
   const [items, setItems] = useState<Item[]>([]);
   const [currentPage, setCurrentPage] = useState(1);

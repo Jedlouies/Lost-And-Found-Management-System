@@ -46,6 +46,8 @@ const [filteredLocations, setFilteredLocations] = useState([]);
 
 const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 const [filteredCategories, setFilteredCategories] = useState([]);
+  const [progress, setProgress] = useState(0);
+
 
 const CATEGORIES = [
   "Electronics",
@@ -178,16 +180,14 @@ useEffect(() => {
 }, [currentUser]);
 
 
-  // --- NEW MODERATION FUNCTION ---
 const checkImageModeration = async (file) => {
-    // 1. Convert File to Base64
     const fileReader = new FileReader();
     const base64Promise = new Promise((resolve, reject) => {
       fileReader.onload = () => resolve(fileReader.result);
       fileReader.onerror = () => reject(new Error("Failed to read file."));
     });
     fileReader.readAsDataURL(file);
-    const base64Data = (await base64Promise).split(',')[1]; // Get only the base64 part
+    const base64Data = (await base64Promise).split(',')[1]; 
 
     try {
       const response = await fetch(`${API}/api/moderate-image`, {
@@ -202,23 +202,20 @@ const checkImageModeration = async (file) => {
         throw new Error(errorData.error || `Moderation check failed on backend (${response.status})`);
       }
 
-      const data = await response.json(); // Expecting { isSafe: boolean }
+      const data = await response.json(); 
       return data.isSafe;
 
     } catch (error) {
       console.error("Error calling backend for moderation:", error);
-      // Fallback: If the moderation service fails, we block the image as a safety measure.
       return false; 
     }
   };
 
 
-  // --- UPDATED IMAGE CHANGE HANDLER ---
   const handleImageChange = async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // Since MAX_IMAGES is 1, we only take the first file.
     const file = files[0];
 
     const currentImageCount = imagesWithMetadata.length;
@@ -244,8 +241,6 @@ const checkImageModeration = async (file) => {
             alert(`${INAPPROPRIATE_ALERT_TITLE}\n\n${INAPPROPRIATE_ALERT_MESSAGE(flaggedCount)}`);
         }
 
-        // Add safe images to the state
-        // Since MAX_IMAGES is 1, we replace instead of add.
         setImages(newImages);
         setImagesWithMetadata(newImages.map(file => ({ file, url: URL.createObjectURL(file) })));
 
@@ -305,6 +300,8 @@ const handleSubmit = async (e) => {
 
 
   setIsSubmitting(true);
+  setProgress(0);
+
   try {
     const imageURLs = [];
     for (let i = 0; i < images.length; i++) {
@@ -348,6 +345,15 @@ const handleSubmit = async (e) => {
     });
 
     setIsMatching(true);
+    
+    const interval = setInterval(() => {
+        setProgress((oldProgress) => {
+          if (oldProgress >= 90) return 90;
+          const diff = Math.random() * 10;
+          return Math.min(oldProgress + diff, 90);
+        });
+      }, 500);
+    
 
     const matchResponse = await fetch(`${API}/api/match/found-to-lost`, {
       method: "POST",
@@ -358,12 +364,14 @@ const handleSubmit = async (e) => {
     if (!matchResponse.ok) throw new Error("Matching failed");
     const matches = await matchResponse.json();
 
+      clearInterval(interval);
+      setProgress(100);
+
+
     const top4Matches = matches.slice(0, 4);
 
-// Loop is only for matches (if needed later)
 for (let i = 0; i < top4Matches.length; i++) {
   const match = top4Matches[i];
-  // (maybe process matches here if needed)
 }
 
 await notifyUser(
@@ -452,10 +460,22 @@ try {
   
   return (
       <>
+      {isMatching && (
+        <div className="matching-overlay">
+          <div className="matching-content">
+            <img src="/Spin_black.gif" alt="Scanning" style={{ width: '60px', height: '60px', marginBottom: '20px', filter: 'invert(1)' }} />
+            <div className="matching-text">Searching for Matches...</div>
+            <div className="progress-container">
+              <div className="progress-bar" style={{ width: `${progress}%` }}></div>
+            </div>
+            <div className="progress-percentage">{Math.round(progress)}%</div>
+          </div>
+        </div>
+      )}
+
       <div className='background1' style={{position: 'absolute', width: '100%', height: '120vh', backgroundColor: '#D9D9D9'}}>
         <div className="user-found-procedure-body" >
           <h1>Report Found Form</h1>
-          {/* --- UPDATED IMAGE UPLOAD AND PREVIEW SECTION --- */}
           <div style={{ marginBottom: '20px', border: '2px solid #475C6F', padding: '10px', borderRadius: '8px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
                   {imagesWithMetadata.map((img, index) => (

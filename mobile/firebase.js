@@ -25,6 +25,7 @@ const app: FirebaseApp =
 export const db = getFirestore(app);
 export const realtimeDB = getDatabase(app);
 
+
 let authInstance;
 try {
   authInstance = getAuth(app);

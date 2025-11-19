@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+
 import './styles/UserLostItemDetailPage.css';
 import UserLostItemsPage from './UserLostItemsPage';
 import { db } from '../firebase'; 
@@ -64,6 +65,7 @@ const API = "https://server.spotsync.site";
 
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
   const [filteredCategories, setFilteredCategories] = useState([]);
+  const [progress, setProgress] = useState(0);
 
   const LOCATIONS = [
     "Arts and Culture Building",
@@ -292,9 +294,11 @@ const API = "https://server.spotsync.site";
         return;
     }
     if (!images || images.length === 0) return alert(`Please upload at least one image (Max ${MAX_IMAGES} allowed).`);
+    
 
 
     setIsSubmitting(true);
+    setProgress(0);
     try {
       const imageURLs = [];
       for (let i = 0; i < images.length; i++) {
@@ -336,6 +340,16 @@ const API = "https://server.spotsync.site";
         createdAt: serverTimestamp(),
       });
 
+      setIsMatching(true);
+
+      const interval = setInterval(() => {
+        setProgress((oldProgress) => {
+          if (oldProgress >= 90) return 90;
+          const diff = Math.random() * 10;
+          return Math.min(oldProgress + diff, 90);
+        });
+      }, 500);
+
       const matchResponse = await fetch(`${API}/api/match/lost-to-found`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -344,6 +358,9 @@ const API = "https://server.spotsync.site";
 
       if (!matchResponse.ok) throw new Error("Matching failed");
       const matches = await matchResponse.json();
+
+      clearInterval(interval);
+      setProgress(100);
 
       const top4Matches = matches.slice(0, 4);
 
@@ -475,10 +492,21 @@ const API = "https://server.spotsync.site";
 
     return (
       <>
+      {isMatching && (
+        <div className="matching-overlay">
+          <div className="matching-content">
+            <img src="/Spin_black.gif" alt="Scanning" style={{ width: '60px', height: '60px', marginBottom: '20px', filter: 'invert(1)' }} />
+            <div className="matching-text">Searching for Matches...</div>
+            <div className="progress-container">
+              <div className="progress-bar" style={{ width: `${progress}%` }}></div>
+            </div>
+            <div className="progress-percentage">{Math.round(progress)}%</div>
+          </div>
+        </div>
+      )}
       <div className='background1' style={{position: 'absolute', width: '100%', height: '120vh', backgroundColor: '#D9D9D9'}}>
         <div className="user-found-procedure-body" >
           <h1>Report Lost Form</h1>
-          {/* --- UPDATED IMAGE UPLOAD AND PREVIEW SECTION --- */}
           <div style={{ marginBottom: '20px', border: '2px solid #475C6F', padding: '5px', borderRadius: '8px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
                   {imagesWithMetadata.map((img, index) => (

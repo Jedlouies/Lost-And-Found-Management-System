@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -25,6 +25,8 @@ import VerificationModal from '../components/VerificationModal';
 import createVerificationCode from '../utils/createVerificationCode';
 import BlankHeader from '../components/BlankHeader';
 import BottomNavBar from '../components/BottomNavBar';
+import { useExitOnBack } from '../hooks/useExitonBack'
+
 
 // Define placeholder color
 const PLACEHOLDER_COLOR = "#A9A9A9";
@@ -39,6 +41,8 @@ interface Course {
 function UserSettingsScreen() {
   const { currentUser } = useAuth();
   const API = "https://server.spotsync.site";
+
+  useExitOnBack();
 
   const [profileImage, setProfileImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [coverImage, setCoverImage] = useState<ImagePicker.ImagePickerAsset | null>(null);

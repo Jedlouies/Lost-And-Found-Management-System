@@ -442,7 +442,6 @@ function UserLostItemsPage() {
                     </p>
                   </div>
 
-                  {/* Save/Unsave Star */}
                   <div
                     onClick={(e) => {
                       e.stopPropagation(); // prevent navigation

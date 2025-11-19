@@ -36,14 +36,12 @@ function GuestReportLostPage() {
   const [yearLevel, setYearLevel] = useState('Guest');
   const [birthdate, setBirthdate] = useState('Guest');
   
-  // --- UPDATED IMAGE STATE ---
-  const [images, setImages] = useState(null); // Actual files for upload
-  const [imagesWithMetadata, setImagesWithMetadata] = useState([]); // For preview URLs
+  const [images, setImages] = useState(null); 
+  const [imagesWithMetadata, setImagesWithMetadata] = useState([]); 
   
-  // --- NEW MODERATION STATE ---
   const [isModerating, setIsModerating] = useState(false);
 
-  c [founder] = useState('Unknown');  
+  const [founder] = useState('Unknown');  
   const [owner, setOwner] = useState('Guest');             
   const [claimStatus] = useState('unclaimed');
 
@@ -64,7 +62,6 @@ function GuestReportLostPage() {
     const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
     const [filteredCategories, setFilteredCategories] = useState([]);
   
-    // Lists
     const LOCATIONS = [
       "Arts and Culture Building",
       "Guidance and Testing Center",
@@ -144,7 +141,6 @@ function GuestReportLostPage() {
     return text.trim().split(/\s+/).filter(Boolean).length;
   };
 
-  // ✅ Fetch guest data (including email) from Firestore
   useEffect(() => {
     const fetchUserInfo = async () => {
       if (!currentUser) return;
@@ -158,7 +154,7 @@ function GuestReportLostPage() {
           setFirstName(userData.firstName || "Guest");
           setLastName(userData.lastName || "Guest");
           setMiddleName(userData.middleName || "");
-          setEmail(userData.email || "");  // 👈 this ensures we have guest email
+          setEmail(userData.email || "");  
           setContactNumber(userData.contactNumber || "Guest");
           setAddress(userData.address || "Guest");
           setProfileURL(userData.profileURL || "Guest");
@@ -179,16 +175,14 @@ function GuestReportLostPage() {
   }, [currentUser]);
 
 
-  // --- NEW MODERATION FUNCTION ---
   const checkImageModeration = async (file) => {
-      // 1. Convert File to Base64
       const fileReader = new FileReader();
       const base64Promise = new Promise((resolve, reject) => {
         fileReader.onload = () => resolve(fileReader.result);
         fileReader.onerror = () => reject(new Error("Failed to read file."));
       });
       fileReader.readAsDataURL(file);
-      const base64Data = (await base64Promise).split(',')[1]; // Get only the base64 part
+      const base64Data = (await base64Promise).split(',')[1]; 
   
       try {
         const response = await fetch(`${API}/api/moderate-image`, {
@@ -203,23 +197,20 @@ function GuestReportLostPage() {
           throw new Error(errorData.error || `Moderation check failed on backend (${response.status})`);
         }
   
-        const data = await response.json(); // Expecting { isSafe: boolean }
+        const data = await response.json();
         return data.isSafe;
   
       } catch (error) {
         console.error("Error calling backend for moderation:", error);
-        // Fallback: If the moderation service fails, we block the image as a safety measure.
         return false; 
       }
   };
 
 
-  // --- UPDATED IMAGE CHANGE HANDLER ---
   const handleImageChange = async (e) => {
       const files = e.target.files;
       if (!files || files.length === 0) return;
 
-      // Since MAX_IMAGES is 1, we only take the first file.
       const file = files[0];
 
       const currentImageCount = imagesWithMetadata.length;
@@ -245,8 +236,6 @@ function GuestReportLostPage() {
               alert(`${INAPPROPRIATE_ALERT_TITLE}\n\n${INAPPROPRIATE_ALERT_MESSAGE(flaggedCount)}`);
           }
 
-          // Add safe images to the state
-          // Since MAX_IMAGES is 1, we replace instead of add.
           setImages(newImages);
           setImagesWithMetadata(newImages.map(file => ({ file, url: URL.createObjectURL(file) })));
 
@@ -259,11 +248,8 @@ function GuestReportLostPage() {
       }
   };
 
-  // --- NEW FUNCTION TO REMOVE IMAGE ---
   const removeImage = (indexToRemove) => {
-      // Remove from the file list (images)
       setImages(prevImages => prevImages.filter((_, index) => index !== indexToRemove));
-      // Remove from the preview list (imagesWithMetadata)
       setImagesWithMetadata(prevMeta => prevMeta.filter((_, index) => index !== indexToRemove));
   };
 
@@ -300,7 +286,6 @@ function GuestReportLostPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // --- NEW MODERATION CHECK ---
     if (isModerating) {
         alert("Image scanning is still in progress. Please wait.");
         setIsSubmitting(false);
@@ -316,15 +301,13 @@ function GuestReportLostPage() {
       const user = auth.currentUser;
       if (!user) {
         alert("You must be signed in as a guest or user to submit.");
-        setIsSubmitting(false); // Stop submission
+        setIsSubmitting(false); 
         return;
       }
 
       const uid = user.uid; 
 
-      // Upload images
       const imageURLs = [];
-      // Use the moderated 'images' state
       for (let i = 0; i < images.length; i++) {
         const url = await uploadLostItemImage(
           images[i], 
@@ -333,10 +316,8 @@ function GuestReportLostPage() {
         imageURLs.push(url);
       }
       
-      // Generate itemId
       const customItemId = `ITM-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(100 + Math.random() * 900)}`;
 
-      // Save lost item to Firestore
       const docRef = await addDoc(collection(db, 'lostItems'), {
         itemId: customItemId,
         uid,
@@ -369,9 +350,8 @@ function GuestReportLostPage() {
         createdAt: serverTimestamp(),
       });
 
-      // ✅ Matching process
       if (currentUser) {
-        setIsMatching(true); // Show matching indicator
+        setIsMatching(true); 
         const matchResponse = await fetch(`${API}/api/match/lost-to-found`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -476,7 +456,6 @@ function GuestReportLostPage() {
         <div className="user-found-procedure-body" >
           <h1>Guest Report Lost Form</h1>
           
-          {/* --- UPDATED IMAGE UPLOAD AND PREVIEW SECTION --- */}
           <div style={{ marginBottom: '20px', border: '2px solid #475C6F', padding: '10px', borderRadius: '8px' }}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
                   {imagesWithMetadata.map((img, index) => (
@@ -531,12 +510,8 @@ function GuestReportLostPage() {
                 Image content is scanned for inappropriate material.
               </div>
           </div>
-          {/* --- END UPDATED IMAGE UPLOAD SECTION --- */}
 
-          {/* --- FORM WITH ID --- */}
           <form className="lost-item-form" onSubmit={handleSubmit} id="guest-lost-form">
-            {/* <input className='file' type="file" multiple accept="image/*" onChange={handleImageChange} style={{ width: '98%', border: '2px solid #475C6F'}} required /> */}
-            {/* <br /> */}
           <input
             type="text"
             value={itemName}
@@ -566,7 +541,6 @@ function GuestReportLostPage() {
               }}
               required
             />          
-{/* LOCATION INPUT WITH TYPE + DROPDOWN */}
               <div style={{ position: "relative", marginRight: "40px" }}>
                 <input
                   type="text"
@@ -636,7 +610,6 @@ function GuestReportLostPage() {
                 )}
               </div>
 
-              {/* CATEGORY INPUT WITH TYPE + DROPDOWN */}
               <div style={{ position: "relative", width: "26%", marginRight: "10px" }}>
                 <input
                   type="text"
@@ -738,10 +711,9 @@ function GuestReportLostPage() {
             </div>
             </div>
           </form>
-          {/* --- SUBMIT BUTTON OUTSIDE FORM --- */}
           <button
             type="submit"
-            form="guest-lost-form" // 👈 *** LINKS TO FORM ID ***
+            form="guest-lost-form" 
             disabled={isSubmitting || isMatching || isModerating}
             style={{
               display: "flex",
@@ -756,7 +728,7 @@ function GuestReportLostPage() {
               cursor: isSubmitting || isMatching || isModerating ? "not-allowed" : "pointer",
               fontSize: "16px",
               fontWeight: "500",
-              marginTop: "130px" // 👈 Added margin top for spacing
+              marginTop: "130px" 
             }}
           >
             {isModerating ? (

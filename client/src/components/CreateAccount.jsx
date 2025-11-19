@@ -225,7 +225,7 @@ function CreateAccount() {
                     )}
                     <i
                         className={`bi ${showConfirmPassword ? 'bi-eye-slash' : 'bi-eye'} password-toggle-icon`}
-                        onClick={() => setShowConfirmPassword((prev) => !prev)} // Toggle state
+                        onClick={() => setShowConfirmPassword((prev) => !prev)} 
                     ></i>
                  </div>
               </Form.Group>
@@ -247,13 +247,13 @@ function CreateAccount() {
                   "Create Account" 
                 )}
               </button>
-              <p
+              <button
                 className="guest-link" 
                 onClick={!guestLoading ? handleGuest : undefined} 
-                style={{ opacity: guestLoading ? 0.6 : 1 }} 
+                style={{ opacity: guestLoading ? 0.6 : 1 , backgroundColor: 'white', border: 'solid 3px #000000'}} 
               >
                 Continue as Guest
-              </p>
+              </button>
             </Form>
           </Card.Body>
         </div>
@@ -262,36 +262,34 @@ function CreateAccount() {
        <style>{`
           .password-input-wrapper {
             position: relative;
-            display: flex; /* Aligns input and icons */
-            align-items: center; /* Vertically center items */
-            width: 100%; /* Take full width of the Form.Group */
+            display: flex; 
+            align-items: center; 
+            width: 100%; 
           }
 
           .password-input-wrapper .create-input {
-             /* Make input take most space, leave room for icons */
-             padding-right: 60px; /* Adjust padding to prevent text overlap with icons */
+             padding-right: 60px;
              flex-grow: 1;
-             width: auto; /* Override potential fixed width */
+             width: auto;
           }
 
           .password-toggle-icon {
             position: absolute;
-            right: 10px; /* Position inside the input area, adjust as needed */
+            right: 10px;
             cursor: pointer;
-            color: #ccc; /* Adjust icon color */
-            font-size: 1.2em; /* Adjust icon size */
-            z-index: 2; /* Ensure icon is clickable */
+            color: #ccc;
+            font-size: 1.2em;
+            z-index: 2;
           }
 
           .password-match-icon {
              position: absolute;
-             right: 40px; /* Position left of the eye icon */
-             color: green; /* Checkmark color */
+             right: 40px; 
+             color: green; 
              font-size: 1.2em;
              z-index: 2;
           }
 
-          /* Style the main create button using a class */
           .create-button {
             display: flex;
             align-items: center;
@@ -303,28 +301,27 @@ function CreateAccount() {
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            width: 100%; /* Make button full width */
+            width: 100%; 
             font-size: 1em;
-            margin-top: 15px; /* Add some space above */
+            margin-top: 15px; 
             transition: background-color 0.2s;
           }
           .create-button:disabled {
-            background-color: #a8c8e8; /* Lighter color when disabled */
+            background-color: #a8c8e8; 
             cursor: not-allowed;
           }
            .create-button:hover:not(:disabled) {
-            background-color: #a8c8e8; /* Slightly darker on hover */
+            background-color: #a8c8e8; 
           }
 
-          /* Style login and guest links */
           .login-link {
             text-align: center;
             margin-top: 15px;
             font-size: 0.9em;
-            color: #BDDDFC; /* Match button color scheme */
+            color: #BDDDFC;
           }
            .login-link strong {
-              color: #ffffff; /* White or contrasting color */
+              color: #ffffff;
               cursor: pointer;
               text-decoration: underline;
            }
@@ -344,7 +341,6 @@ function CreateAccount() {
            }
 
        `}</style>
-       {/* --- END CSS --- */}
     </>
   );
 }
