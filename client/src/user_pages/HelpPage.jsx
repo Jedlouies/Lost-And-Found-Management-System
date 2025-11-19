@@ -10,7 +10,7 @@ function HelpPage() {
       content: (
         <>
           <h5>What is SpotSync?</h5>
-          <p>
+          <p style={{color: 'black'}}>
             SpotSync is USTP CDO’s digital lost-and-found management system that helps students, faculty,
             staff, and non-staff report lost items, post found items, and quickly match reports to return
             belongings to their rightful owners.

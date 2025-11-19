@@ -27,8 +27,8 @@ import { useAuth } from "../context/AuthContext";
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
 
 function ProcessClaimPage() {
- const API = "http://localhost:4000"; 
- //const API = "https://server.spotsync.site";
+ //const API = "http://localhost:4000"; 
+ const API = "https://server.spotsync.site";
   const [capturedImage, setCapturedImage] = useState(null);
   const [qrResult, setQrResult] = useState(null);
   const [userData, setUserData] = useState(null);
