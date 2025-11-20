@@ -97,7 +97,7 @@ function ItemManagementScreen() {
   const [showYearModal, setShowYearModal] = useState(false);
   const [showActionMenu, setShowActionMenu] = useState(false);
   const [activeItem, setActiveItem] = useState<Item | null>(null);
-  const [userData, setUserData] = useState(null); // ✅ FIX: Added state for userData
+  const [userData, setUserData] = useState(null); 
 
   const itemsPerPage = 10;
 
@@ -108,7 +108,6 @@ function ItemManagementScreen() {
     }
     setLoading(true);
 
-    // ✅ FIX: Fetch User Data
     const fetchUserData = async () => {
         try {
             const userRef = doc(db, 'users', currentUser.uid);

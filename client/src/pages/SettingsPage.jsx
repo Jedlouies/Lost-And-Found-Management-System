@@ -445,83 +445,268 @@ const handleUpdate = async () => {
     setUploadingCover(false);
   };
 
-  return (
+  const styles = {
+        foundItemBody: {
+            backgroundColor: '#f4f4f4',
+            padding: '20px',
+            minHeight: '100vh',
+        },
+        settingsContainer: {
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            padding: '30px',
+            maxWidth: '1200px',
+            margin: '20px auto',
+            display: 'grid',
+            // Simple grid layout for larger screens (Fallback)
+            gridTemplateColumns: window.innerWidth > 992 ? '2fr 1fr' : '1fr',
+            gap: '40px',
+        },
+        profileSettingsWrapper: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '30px',
+        },
+        mediaUploadSection: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+        },
+        imageDisplayContainer: {
+            position: 'relative',
+            marginBottom: '60px', // Adjusted for profile image overlap
+        },
+        coverDisplay: {
+            height: '200px',
+            width: '100%',
+            borderRadius: '8px',
+            objectFit: 'cover',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.2rem',
+            color: '#555',
+            border: '1px solid #ddd',
+        },
+        coverPlaceholder: {
+            height: '200px',
+            width: '100%',
+            borderRadius: '8px',
+            backgroundColor: '#ccc',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.2rem',
+            color: '#555',
+            border: '1px solid #ddd',
+        },
+        profileDisplay: {
+            position: 'absolute',
+            bottom: '-60px',
+            left: '20px',
+            width: '120px',
+            height: '120px',
+            borderRadius: '50%',
+            objectFit: 'cover',
+            backgroundColor: 'navy',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '40px',
+            fontWeight: 'bold',
+            border: '4px solid white',
+            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
+        },
+        profilePlaceholder: {
+            position: 'absolute',
+            bottom: '-60px',
+            left: '20px',
+            width: '120px',
+            height: '120px',
+            borderRadius: '50%',
+            backgroundColor: 'navy',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '40px',
+            fontWeight: 'bold',
+            border: '4px solid white',
+            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
+        },
+        imageInputControls: {
+            display: 'flex',
+            gap: '20px',
+            paddingTop: '20px',
+            // Basic handling for small screens (Media Query approximation)
+            flexDirection: window.innerWidth < 576 ? 'column' : 'row',
+        },
+        imageInputGroup: {
+            flex: 1,
+        },
+        imageInputGroupH4: {
+            marginBottom: '10px',
+            fontSize: '1rem',
+            color: '#333',
+        },
+        userInfoForm: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+            marginTop: '0px',
+        },
+        userInfoFormH4: {
+            borderBottom: '2px solid #eee',
+            paddingBottom: '10px',
+            marginBottom: '20px',
+            fontSize: '1.2rem',
+        },
+        formRow: {
+            display: 'flex',
+            gap: '15px',
+            marginBottom: '15px',
+            // Basic handling for small screens (Media Query approximation)
+            flexDirection: window.innerWidth < 992 ? 'column' : 'row',
+        },
+        formInput: {
+            flex: 1,
+            padding: '10px 15px',
+            backgroundColor: '#f9f9f9', // Light background color for input
+            border: '1px solid #e0e0e0',
+            borderRadius: '6px',
+            fontSize: '1rem',
+            marginBottom: window.innerWidth < 992 ? '15px' : '0', // Re-add margin for stacked inputs
+            color: '#333',
+        },
+        formSelect: {
+            width: '100%',
+            padding: '10px 15px',
+            backgroundColor: '#f9f9f9', // Light background color for select
+            border: '1px solid #e0e0e0',
+            borderRadius: '6px',
+            fontSize: '1rem',
+            color: '#333',
+        },
+        formTextarea: {
+            width: '100%',
+            minHeight: '100px',
+            padding: '10px 15px',
+            backgroundColor: '#f9f9f9', // Light background color for textarea
+            border: '1px solid #e0e0e0',
+            borderRadius: '6px',
+            fontSize: '1rem',
+            resize: 'vertical',
+            marginBottom: '20px',
+            color: '#333',
+        },
+        formButton: {
+            backgroundColor: '#007bff',
+            color: 'white',
+            padding: '12px 20px',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '1.1rem',
+        },
+        otherSettings: {
+            borderLeft: window.innerWidth > 992 ? '1px solid #eee' : 'none',
+            paddingLeft: window.innerWidth > 992 ? '30px' : '0',
+            borderTop: window.innerWidth <= 992 ? '1px solid #eee' : 'none',
+            paddingTop: window.innerWidth <= 992 ? '20px' : '0',
+            marginTop: '0px',
+        },
+        otherSettingsP: {
+            padding: '8px 0',
+            margin: '0',
+            cursor: 'pointer',
+            color: '#4a4a4a',
+        },
+        otherSettingsPDisabled: {
+            padding: '8px 0',
+            margin: '0',
+            color: 'gray', 
+        }
+    };
+
+return (
     <>
       {updatingProfileInfo && (
-  <div style={{
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100vw',
-    height: '100vh',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 9999,
-    flexDirection: 'column',
-    color: 'white',
-    fontSize: '1.5rem'
-  }}>
-    <Spinner animation="border" variant="light" style={{ width: '3rem', height: '3rem' }} />
-    <span style={{ marginTop: '1rem' }}>Updating Profile...</span>
-  </div>
-)}
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          flexDirection: 'column',
+          color: 'white',
+          fontSize: '1.5rem'
+        }}>
+          <Spinner animation="border" variant="light" style={{ width: '3rem', height: '3rem' }} />
+          <span style={{ marginTop: '1rem' }}>Updating Profile...</span>
+        </div>
+      )}
 
       <VerificationModal
-  show={showVerificationModal}
-  onClose={() => setShowVerificationModal(false)}
-  user={currentUser}
-  sendVerificationEmail={sendVerificationEmail}
-  onVerified={async () => {
-    try {
-      const auth = getAuth();
-      const user = auth.currentUser;
+        show={showVerificationModal}
+        onClose={() => setShowVerificationModal(false)}
+        user={currentUser}
+        sendVerificationEmail={sendVerificationEmail}
+        onVerified={async () => {
+          try {
+            const auth = getAuth();
+            const user = auth.currentUser;
 
-      const credential = EmailAuthProvider.credential(user.email, password);
-      await reauthenticateWithCredential(user, credential);
+            const credential = EmailAuthProvider.credential(user.email, password);
+            await reauthenticateWithCredential(user, credential);
 
-      await updatePassword(user, pendingPassword);
+            await updatePassword(user, pendingPassword);
 
-      setAlert({ message: "Password updated successfully!", type: "success" });
-      setPendingPassword(null);
-      setShowVerificationModal(false);
+            setAlert({ message: "Password updated successfully!", type: "success" });
+            setPendingPassword(null);
+            setShowVerificationModal(false);
 
-      setPassword("");
-      setNewPassword("");
-      setConfirmNewPassword("");
+            setPassword("");
+            setNewPassword("");
+            setConfirmNewPassword("");
 
-    } catch (err) {
-      setAlert({ message: "Failed to update password.", type: "error" });
-    }
-  }}
-/>
+          } catch (err) {
+            setAlert({ message: "Failed to update password.", type: "error" });
+          }
+        }}
+      />
 
       <Modal show={showChangePasswordModal} onHide={() => setShowChangePasswordModal(false)} centered>
-  <Modal.Header closeButton>
-    <Modal.Title>Change Password</Modal.Title>
-  </Modal.Header>
-  <Modal.Body>
-    <Form.Group>
-      <Form.Label>Current Password</Form.Label>
-      <Form.Control type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-    </Form.Group>
-    <Form.Group>
-      <Form.Label>New Password</Form.Label>
-      <Form.Control type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
-    </Form.Group>
-    <Form.Group>
-      <Form.Label>Confirm New Password</Form.Label>
-      <Form.Control type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} />
-    </Form.Group>
-  </Modal.Body>
-  <Modal.Footer>
-    <Button variant="secondary" onClick={() => setShowChangePasswordModal(false)}>Cancel</Button>
-    <Button variant="primary" onClick={handleChangePassword} disabled={changingPassword}>
-      {changingPassword ? <Spinner animation="border" size="sm" /> : "Change Password"}
-    </Button>
-  </Modal.Footer>
-</Modal>
+        <Modal.Header closeButton>
+          <Modal.Title>Change Password</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Label>Current Password</Form.Label>
+            <Form.Control type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>New Password</Form.Label>
+            <Form.Control type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Confirm New Password</Form.Label>
+            <Form.Control type="password" value={confirmNewPassword} onChange={(e) => setConfirmNewPassword(e.target.value)} />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowChangePasswordModal(false)}>Cancel</Button>
+          <Button variant="primary" onClick={handleChangePassword} disabled={changingPassword}>
+            {changingPassword ? <Spinner animation="border" size="sm" /> : "Change Password"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
 
 
@@ -584,167 +769,148 @@ const handleUpdate = async () => {
           />
         )}
       <NavigationBar />
-      <div className='found-item-body'>
-        <BlankHeader />
+              <BlankHeader />
 
-          <div className='upload-section1' style={{display: 'flex', flexDirection: 'column'}}>
-            {coverURL ? (
-              <div>
-                <img 
-                  src={coverURL} 
-                  alt="Cover" 
-                  style={{ height: '100px', width: '550px', borderRadius: '10px', objectFit: 'cover' }} 
-                />
+      <div style={styles.foundItemBody}>
+
+        <div style={styles.settingsContainer}>
+          
+          <div style={styles.profileSettingsWrapper}>
+            <div style={styles.mediaUploadSection}>
+              <div style={styles.imageDisplayContainer}>
+                {coverURL ? (
+                  <img 
+                    src={coverURL} 
+                    alt="Cover" 
+                    style={styles.coverDisplay} 
+                  />
+                ) : (
+                  <div style={{...styles.coverDisplay, ...styles.coverPlaceholder}}>
+                    No Cover Photo
+                  </div>
+                )}
+
+                {profileURL ? (
+                  <img 
+                    src={profileURL} 
+                    alt="Profile" 
+                    style={styles.profileDisplay} 
+                  />
+                ) : (
+                  <div style={{...styles.profileDisplay, ...styles.profilePlaceholder}}>
+                    {initials}
+                  </div>
+                )}
               </div>
-            ) : (
-              <div 
-                style={{ 
-                  height: '100px', 
-                  width: '550px', 
-                  borderRadius: '10px', 
-                  backgroundColor: 'gray', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  color: 'white', 
-                  fontWeight: 'bold', 
-                  border: '2px solid black'
-                }}
+              
+              <div style={styles.imageInputControls}>
+                <div style={styles.imageInputGroup}>
+                  <h4 style={styles.imageInputGroupH4}>Profile Picture</h4>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect(e, "profile")}
+                  />         
+                </div>    
+                
+                <div style={styles.imageInputGroup}>
+                  <h4 style={styles.imageInputGroupH4}>Cover Photo</h4>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect(e, "cover")}
+                  />   
+                </div>
+              </div>
+            </div>
+            
+            <div style={styles.userInfoForm}>
+              <h4 style={styles.userInfoFormH4}>Profile Information</h4>
+              
+              <div style={styles.formRow}>
+                <input style={styles.formInput} placeholder='First Name' value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                <input style={styles.formInput} placeholder='Middle Name' value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
+                <input style={styles.formInput} placeholder='Last Name' value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              </div>
+              
+              <div style={styles.formRow}>
+                <input style={styles.formInput} placeholder='Email' type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input style={styles.formInput} placeholder='Contact Number' type="tel" value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} />
+                <select 
+                  style={styles.formInput} 
+                  value={gender} 
+                  onChange={(e) => setGender(e.target.value)} 
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              
+              <select 
+                style={styles.formSelect} 
+                placeholder='Educational Attainment' 
+                value={educationalAttainment} 
+                onChange={(e) => setEducationalAttainment(e.target.value)} 
               >
-                No Picture
-              </div>
-            )}
+                <option value="">Select Educational Attainment</option>
+                {courseList.map((c, index) => (
+                  <option key={index} value={c.name}>
+                    {c.name} 
+                  </option>
+                ))}
+              </select>
+              
+              <textarea style={styles.formTextarea} placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} />
+              
+              <div style={styles.formRow}>
+                <select style={{...styles.formSelect, flex: 2}} value={designation} onChange={(e) => setDesignation(e.target.value)}>
+                  <option value="">Select Designation</option>
+                  <option value="Director">Director</option>
+                  <option value="Secretary">Secretary</option>
+                  <option value="Treasurer">Treasurer</option>
+                  <option value="Auditor">Auditor</option>
+                  <option value="Staff">Staff</option>
+                  <option value="Admin Staff">Admin Staff</option>
+                  <option value="Clerk">Clerk</option>
+                </select>
+                <select style={{...styles.formSelect, flex: 1}} value={yearsOfService} onChange={(e) => setYearsOfService(e.target.value)}>
+                  <option value="">Select Years</option>
+                  {[...Array(41).keys()].map(num => (
+                    <option key={num} value={num}>{num}</option>
+                  ))}
+                </select>          
+              </div> 
+              
+              <input style={styles.formInput} placeholder='Address' value={address} onChange={(e) => setAddress(e.target.value)} />
 
-            {profileURL ? (
-              <div>
-                <img 
-                  src={profileURL} 
-                  alt="Profile" 
-                  style={{ width: '70px', height: '70px', borderRadius: '50%', objectFit: 'cover', marginTop: '-20px'}} 
-                />
-              </div>
-            ) : (
-              <div 
-                style={{ 
-                  width: '70px', 
-                  height: '70px', 
-                  borderRadius: '50%', 
-                  backgroundColor: 'navy', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  color: 'white', 
-                  fontSize: '30px', 
-                  fontWeight: 'bold', 
-                  marginTop: '-20px',
-                  border: '2px solid black'
-                }}
-              >
-                {initials}
-              </div>
-            )}
+              <button style={styles.formButton} onClick={handleSaveClick} disabled={updatingProfileInfo}>
+                {updatingProfileInfo ? "Updating Profile..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+          
+          <div style={styles.otherSettings}>
+            <h4>Privacy</h4>
+            <p 
+              style={styles.otherSettingsP} 
+              onClick={() => setShowChangePasswordModal(true)}
+            >
+              Change Password
+            </p>
+            <p style={styles.otherSettingsPDisabled}>Two-Factor Authentication (coming soon)</p>
 
-          <div >
-        <h4>Profile Picture</h4>
-        <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => handleFileSelect(e, "profile")}
-      />         
-      </div>    
-        </div>
-        
+            <h4>Database Management</h4>
+            <p style={styles.otherSettingsPDisabled}>Back up and Restore (coming soon)</p>
+            <p style={styles.otherSettingsPDisabled}>Data Export (coming soon)</p>
 
-        <div className='upload-section2'>
-
-        <div style={{marginTop: '10px'}}>
-          <h4>Cover Photo</h4>
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => handleFileSelect(e, "cover")}
-      />   
-        </div>
+            <h4>Notification</h4>
+            <p style={styles.otherSettingsPDisabled}>Allow User Messages (coming soon)</p>
+          </div>
         </div>
       </div>
-        <div className='user-info-form' style={{display: 'flex', flexDirection: 'column', gap: '10px', position: 'absolute', top: '55%', left: '7%'}}>
-          <h4>Profile Information</h4>
-          <div style={{display: 'flex', gap: '10px'}}>
-            <input placeholder='First Name' value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-            <input placeholder='Middle Name' value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
-            <input placeholder='Last Name' value={lastName} onChange={(e) => setLastName(e.target.value)} />
-
-          </div>
-          <div style={{display: 'flex', gap: '10px', }}>
-            <input placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} />
-            <input placeholder='Contact Number' value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} />
-            <select 
-                value={gender} 
-                onChange={(e) => setGender(e.target.value)} 
-    
-              >
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-            </select>
-
-          </div>
-          <select placeholder='Educational Attainment' value={educationalAttainment} style={{width: '100%'}} onChange={(e) => setEducationalAttainment(e.target.value)} >
-              <option value="">Select Educational Attainment</option>
-              {courseList.map((c, index) => (
-                <option key={index} value={c.name}>
-                  {c.name} 
-                </option>
-              ))}
-            </select>
-          <textarea placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} />
-          <div style={{display: 'flex', gap: '10px', }}>
-            <select placeholder='Designation' style={{width: '400px'}} value={designation} onChange={(e) => setDesignation(e.target.value)}>
-              <option value="">Select Designation</option>
-              <option value="Director">Director</option>
-              <option value="Secretary">Secretary</option>
-              <option value="Treasurer">Treasurer</option>
-              <option value="Auditor">Auditor</option>
-              <option value="Staff">Staff</option>
-              <option value="Admin Staff">Admin Staff</option>
-              <option value="Clerk">Clerk</option>
-              
-            </select>
-            <select value={yearsOfService} onChange={(e) => setYearsOfService(e.target.value)}>
-              <option value="">Select Years</option>
-              {[...Array(41).keys()].map(num => (
-                <option key={num} value={num}>{num}</option>
-              ))}
-            </select>          
-          </div> 
-          <input placeholder='Address' value={address} onChange={(e) => setAddress(e.target.value)} />
-
-          <button onClick={handleSaveClick} disabled={updatingProfileInfo}>
-            {updatingProfileInfo ? "Updating Profile..." : "Save Changes"}
-          </button>
-
-
-<div className='other-settings' style={{marginTop: '30px'}}>
-  <h4>Privacy</h4>
-  <p 
-    style={{cursor: "pointer", color: "black"}} 
-    onClick={() => setShowChangePasswordModal(true)}
-  >
-    Change Password
-  </p>
-  <p style={{color: "gray"}}>Two-Factor Authentication (coming soon)</p>
-
-  <h4>Database Management</h4>
-  <p style={{color: "gray"}}>Back up and Restore (coming soon)</p>
-  <p style={{color: "gray"}}>Data Export (coming soon)</p>
-
-  <h4>Notification</h4>
-  <p style={{color: "gray"}}>Allow User Messages (coming soon)</p>
-</div>
-
-        </div>
-              <CropperModal
+      <CropperModal
         show={cropperOpen}
         imageSrc={cropImageSrc}
         aspect={cropAspect}

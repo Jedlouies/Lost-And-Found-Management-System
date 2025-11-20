@@ -5,12 +5,13 @@ import { db } from '../firebase';
 import UserNavigationBar from '../user_components/UserNavigationBar';
 import DashboardHeader from '../components/DashboardHeader';
 import UserBlankHeader from '../user_components/UserBlankHeader';
-import '../pages/styles/SettingsPage.css';
+// NOTE: Commented out external CSS imports
+// import '../pages/styles/SettingsPage.css';
 import FloatingAlert from '../components/FloatingAlert';
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider, updatePassword  } from "firebase/auth";
 import { set } from 'firebase/database';
 import { Modal, Button, Form, Spinner } from 'react-bootstrap';
-import '../user_pages/styles/UserSettingsPage.css'
+// import '../user_pages/styles/UserSettingsPage.css' // Main CSS integrated inline below
 import CropperModal from "../components/CropperModal";
 import VerificationModal from "../components/VerificationModal";
 import createVerificationCode from "../components/createVerificationCode.jsx"; 
@@ -67,13 +68,12 @@ function UserSettingsPage() {
 
   const [showVerificationModal, setShowVerificationModal] = useState(false);
 const [pendingPassword, setPendingPassword] = useState(null);
+const [yearLevel, setYearLevel] = useState(localStorage.getItem('yearLevel') || '');
 
-// FIX: Initialize state correctly by safely parsing JSON from localStorage
+
 const [selectedCourse, setSelectedCourse] = useState(() => {
     try {
         const courseData = localStorage.getItem('course');
-        // If courseData is a valid JSON string or null/undefined, parse it.
-        // The default null prevents JSON.parse from failing on empty storage.
         return courseData ? JSON.parse(courseData) : null;
     } catch (e) {
         console.error("Error parsing course from localStorage:", e);
@@ -177,9 +177,9 @@ const updateRelatedItemInfo = async (uid, updatedData) => {
           firstName: updatedData.firstName,
           lastName: updatedData.lastName,
           middleName: updatedData.middleName,
-          profileURL: updatedData.profileURL,
-         coverURL: updatedData.coverURL,
-         course: updatedData.course,         
+          profileURL: updatedData.profileURL,
+         coverURL: updatedData.coverURL,
+         course: updatedData.course,         
         };
         
         batch.update(docSnap.ref, { personalInfo: newPersonalInfo });
@@ -315,7 +315,8 @@ const handleConfirmPassword = async () => {
         contactNumber !== localStorage.getItem('contactNumber') || 
         bio !== (localStorage.getItem('bio') || '') ||       
         gender !== (localStorage.getItem('gender') || '') ||  
-        section !== (localStorage.getItem('section') || '') || 
+        section !== (localStorage.getItem('section') || '') ||
+        yearLevel !== (localStorage.getItem('yearLevel') || '') || 
         address !== (localStorage.getItem('address') || '') || 
         (selectedCourse && selectedCourse.abbr) !== 
         (JSON.parse(localStorage.getItem('course') || 'null')?.abbr || '') 
@@ -366,6 +367,7 @@ const handleUpdate = async () => {
       middleName,
       email,
       contactNumber,
+      yearLevel,
       coverURL: updatedCoverURL,
       profileURL: updatedProfileURL,
       designation: 'Student',
@@ -390,6 +392,7 @@ const handleUpdate = async () => {
     localStorage.setItem('gender', gender);
     localStorage.setItem('section', section);
     localStorage.setItem('address', address);
+    localStorage.setItem('yearLevel', yearLevel);
     localStorage.setItem('course', JSON.stringify(courseToSave)); // FIX: JSON.stringify
     localStorage.setItem('designation', updatedData.designation);
     localStorage.setItem('educationalAttainment', updatedData.educationalAttainment);
@@ -428,6 +431,7 @@ const handleUpdate = async () => {
           );
           setSection(userData.section || '');
           setAddress(userData.address);
+            setYearLevel(userData.yearLevel || '');
 
           localStorage.setItem('role', userData.role || '');
           localStorage.setItem('designation', userData.designation || '');
@@ -442,8 +446,8 @@ const handleUpdate = async () => {
           localStorage.setItem('uid', userData.uid || '');
           localStorage.setItem('bio', userData.bio || '');
           localStorage.setItem('section', userData.section || '');
+        localStorage.setItem('yearLevel', userData.yearLevel || '');
           localStorage.setItem('educationalAttainment', userData.educationalAttainment || '');
-          // FIX: Ensure course object is stringified before saving
           localStorage.setItem('course', JSON.stringify(userData.course || null));
           localStorage.setItem('yearsOfService', userData.yearsOfService || '');
           if (userData.profileURL) {
@@ -524,6 +528,179 @@ const handleUpdate = async () => {
     }
     setUploadingCover(false);
   };
+    
+    const styles = {
+        foundItemBody: {
+            backgroundColor: '#f4f4f4',
+            padding: '20px',
+            minHeight: '100vh',
+        },
+        settingsContainer: {
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            padding: '30px',
+            maxWidth: '1200px',
+            margin: '20px auto',
+            display: 'grid',
+            gridTemplateColumns: window.innerWidth > 992 ? '2fr 1fr' : '1fr',
+            gap: '40px',
+        },
+        profileSettingsWrapper: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '30px',
+        },
+        mediaUploadSection: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+        },
+        imageDisplayContainer: {
+            position: 'relative',
+            marginBottom: '60px', 
+        },
+        coverDisplay: {
+            height: '200px',
+            width: '100%',
+            borderRadius: '8px',
+            objectFit: 'cover',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.2rem',
+            color: '#555',
+            border: '1px solid #ddd',
+        },
+        coverPlaceholder: {
+            height: '200px',
+            width: '100%',
+            borderRadius: '8px',
+            backgroundColor: '#ccc',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.2rem',
+            color: '#555',
+            border: '1px solid #ddd',
+        },
+        profileDisplay: {
+            position: 'absolute',
+            bottom: '-60px',
+            left: '20px',
+            width: '120px',
+            height: '120px',
+            borderRadius: '50%',
+            objectFit: 'cover',
+            backgroundColor: 'navy',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '40px',
+            fontWeight: 'bold',
+            border: '4px solid white',
+            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
+        },
+        profilePlaceholder: {
+            position: 'absolute',
+            bottom: '-60px',
+            left: '20px',
+            width: '120px',
+            height: '120px',
+            borderRadius: '50%',
+            backgroundColor: 'navy',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '40px',
+            fontWeight: 'bold',
+            border: '4px solid white',
+            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
+        },
+        imageInputControls: {
+            display: 'flex',
+            gap: '20px',
+            paddingTop: '20px',
+            flexDirection: window.innerWidth < 576 ? 'column' : 'row',
+        },
+        imageInputGroup: {
+            flex: 1,
+        },
+        userInfoForm: {
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '10px',
+            marginTop: '0px',
+        },
+        userInfoFormH4: {
+            borderBottom: '2px solid #eee',
+            paddingBottom: '10px',
+            marginBottom: '20px',
+            fontSize: '1.2rem',
+        },
+        formRow: {
+            display: 'flex',
+            gap: '15px',
+            marginBottom: '15px',
+            flexDirection: window.innerWidth < 992 ? 'column' : 'row',
+        },
+        formInput: {
+            flex: 1,
+            padding: '10px 15px',
+            backgroundColor: '#f9f9f9', 
+            border: '1px solid #e0e0e0',
+            borderRadius: '6px',
+            fontSize: '1rem',
+            marginBottom: window.innerWidth < 992 ? '15px' : '0',
+            color: '#333',
+        },
+        formSelect: {
+            width: '100%',
+            padding: '10px 15px',
+            backgroundColor: '#f9f9f9', 
+            border: '1px solid #e0e0e0',
+            borderRadius: '6px',
+            fontSize: '1rem',
+            color: '#333',
+        },
+        formTextarea: {
+            width: '100%',
+            minHeight: '100px',
+            padding: '10px 15px',
+            color: '#333',
+            backgroundColor: '#f9f9f9', 
+            border: '1px solid #e0e0e0',
+            borderRadius: '6px',
+            fontSize: '1rem',
+            resize: 'vertical',
+            marginBottom: '20px',
+        },
+        formButton: {
+            backgroundColor: '#007bff',
+            color: 'white',
+            padding: '12px 20px',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '1.1rem',
+        },
+        otherSettings: {
+            // No absolute positioning needed anymore
+            borderLeft: window.innerWidth > 992 ? '1px solid #eee' : 'none',
+            paddingLeft: window.innerWidth > 992 ? '30px' : '0',
+            borderTop: window.innerWidth <= 992 ? '1px solid #eee' : 'none',
+            paddingTop: window.innerWidth <= 992 ? '20px' : '0',
+        },
+        otherSettingsP: {
+            padding: '8px 0',
+            margin: '0',
+            cursor: 'pointer',
+            color: '#4a4a4a',
+            // Note: Cannot easily replicate :hover effects inline
+        }
+    };
 
   return (
     <>
@@ -700,154 +877,143 @@ const handleUpdate = async () => {
           />
         )}
       <UserNavigationBar />
-      <div className='found-item-body'>
-        <UserBlankHeader />
-        <div className='settings-container' >
-          <div className='upload-section1' style={{display: 'flex', flexDirection: 'column'}}>
-            {coverURL ? (
-              <div>
-                <img 
-                  src={coverURL} 
-                  alt="Cover" 
-                  style={{ height: '100px', width: '550px', borderRadius: '10px', objectFit: 'cover' }} 
-                />
-              </div>
-            ) : (
-              <div 
-                style={{ 
-                  height: '100px', 
-                  width: '550px', 
-                  borderRadius: '10px', 
-                  backgroundColor: 'gray', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  color: 'white', 
-                  fontWeight: 'bold', 
-                  border: '2px solid black'
-                }}
-              >
-                No Picture
-              </div>
-            )}
-
-            {profileURL ? (
-              <div>
-                <img 
-                  src={profileURL} 
-                  alt="Profile" 
-                  style={{ width: '70px', height: '70px', borderRadius: '50%', objectFit: 'cover', marginTop: '-20px'}} 
-                />
-              </div>
-            ) : (
-              <div 
-                style={{ 
-                  width: '70px', 
-                  height: '70px', 
-                  borderRadius: '50%', 
-                  backgroundColor: 'navy', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  color: 'white', 
-                  fontSize: '30px', 
-                  fontWeight: 'bold', 
-                  marginTop: '-20px',
-                  border: '2px solid black'
-                }}
-              >
-                {initials}
-              </div>
-            )}
-
-          <div >
-          <h4>Profile Picture</h4>
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => handleFileSelect(e, "profile")}
-      />          
-          </div>     
-        </div>
+<UserBlankHeader />
+      <div style={styles.foundItemBody}>
         
-
-        <div className='upload-section2'>
-
-        <div style={{marginTop: '20px'}}>
-          <h4>Cover Photo</h4>
-<input
-        type="file"
-        accept="image/*"
-        onChange={(e) => handleFileSelect(e, "cover")}
-      />        
-
-        </div>
-        </div>
-      </div>
-        <div className='user-info-form' style={{display: 'flex', flexDirection: 'column', gap: '10px', position: 'absolute', top: '50%', left: '2%'}}>
-          <h4>Profile Information</h4>
-          <div style={{display: 'flex', gap: '10px'}}>
-            <input placeholder='First Name' value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-            <input placeholder='Middle Name' value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
-            <input placeholder='Last Name' value={lastName} onChange={(e) => setLastName(e.target.value)} />
-
-          </div>
-          <div style={{display: 'flex', gap: '10px', }}>
-            <input placeholder='Email' value={email} onChange={(e) => setEmail(e.target.value)} />
-            <input placeholder='Contact Number' value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} />
-            <select 
-                value={gender} 
-                onChange={(e) => setGender(e.target.value)} 
-              >
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-            </select>
-
-          </div>
-          <select
-            style={{width: '100%'}}
-            value={selectedCourse ? selectedCourse.abbr : ""}
-            onChange={(e) => {
-              const found = courseList.find(c => c.abbr === e.target.value);
-              setSelectedCourse(found || null);
-            }}
-          >
-            <option value="">Select Course</option>
-            {courseList.map((c) => (
-              <option key={c.abbr} value={c.abbr}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-
-          <textarea placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} />
-          <div style={{display: 'flex', gap: '10px', }}>
-              <input placeholder='Section' style={{width: '100%'}} value={section} onChange={(e) => setSection(e.target.value)} />    
-          </div> 
-          <input placeholder='Address' value={address} onChange={(e) => setAddress(e.target.value)} />
-
-          <button onClick={handleSaveClick} disabled={updatingProfileInfo}>
-            {updatingProfileInfo ? "Updating Profile..." : "Save Changes"}
-          </button>
-
+        <div style={styles.settingsContainer}>
           
-            <div className='other-settings'>
-              <h4>Privacy</h4>
-              <p style={{cursor:"pointer", color:"black"}} onClick={() => setShowChangePasswordModal(true)}>
-                  Change Password
-                </p>                
-                <p>Two-Factor Authentication</p>
-              <h4>Database Management</h4>
-                <p>Back up and Restore</p>
-                <p>Data Export</p>
-              <h4>Notification</h4>
-                <p>Allow User Messages</p>
-          </div>
-      </div>
-        </div>
+          <div style={styles.profileSettingsWrapper}>
+            <div style={styles.mediaUploadSection}>
+              <div style={styles.imageDisplayContainer}>
+                {coverURL ? (
+                  <img 
+                    src={coverURL} 
+                    alt="Cover" 
+                    style={styles.coverDisplay}
+                  />
+                ) : (
+                  <div style={{...styles.coverDisplay, ...styles.coverPlaceholder}}>
+                    No Cover Photo
+                  </div>
+                )}
 
+                {profileURL ? (
+                  <img 
+                    src={profileURL} 
+                    alt="Profile" 
+                    style={styles.profileDisplay}
+                  />
+                ) : (
+                  <div style={{...styles.profileDisplay, ...styles.profilePlaceholder}}>
+                    {initials}
+                  </div>
+                )}
+              </div>
+              
+              <div style={styles.imageInputControls}>
+                <div style={styles.imageInputGroup}>
+                  <h4 style={{...styles.imageInputGroupH4, marginTop: '0'}}>Profile Picture</h4>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect(e, "profile")}
+                  />          
+                </div>     
+                
+                <div style={styles.imageInputGroup}>
+                  <h4 style={{...styles.imageInputGroupH4, marginTop: '0'}}>Cover Photo</h4>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileSelect(e, "cover")}
+                  />        
+                </div>
+              </div>
+            </div>
+            
+            <div style={styles.userInfoForm}>
+              <h4 style={styles.userInfoFormH4}>Profile Information</h4>
+              
+              <div style={styles.formRow}>
+                <input style={styles.formInput} placeholder='First Name' value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                <input style={styles.formInput} placeholder='Middle Name' value={middleName} onChange={(e) => setMiddleName(e.target.value)} />
+                <input style={styles.formInput} placeholder='Last Name' value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              </div>
+              
+              <div style={styles.formRow}>
+                <select 
+                        style={{...styles.formInput, flex: 1}} 
+                        value={yearLevel} 
+                        onChange={(e) => setYearLevel(e.target.value)}
+                    >
+                        <option value="">Select Year Level</option>
+                        <option value="1st Year">1st Year</option>
+                        <option value="2nd Year">2nd Year</option>
+                        <option value="3rd Year">3rd Year</option>
+                        <option value="4th Year">4th Year</option>
+                        <option value="5th Year">5th Year</option>
+                    </select>
+                <input style={styles.formInput} placeholder='Email' type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <input style={styles.formInput} placeholder='Contact Number' type="tel" value={contactNumber} onChange={(e) => setContactNumber(e.target.value)} />
+                <select 
+                  style={styles.formInput} 
+                  value={gender} 
+                  onChange={(e) => setGender(e.target.value)} 
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              
+              <select
+                style={styles.formSelect}
+                value={selectedCourse ? selectedCourse.abbr : ""}
+                onChange={(e) => {
+                  const found = courseList.find(c => c.abbr === e.target.value);
+                  setSelectedCourse(found || null);
+                }}
+              >
+                <option value="">Select Course</option>
+                {courseList.map((c) => (
+                  <option key={c.abbr} value={c.abbr}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+
+              <textarea style={styles.formTextarea} placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} />
+              
+              <div style={styles.formRow}>
+                <input placeholder='Section' style={{...styles.formInput, width: '100%'}} value={section} onChange={(e) => setSection(e.target.value)} />    
+              </div> 
+              
+              <input style={styles.formInput} placeholder='Address' value={address} onChange={(e) => setAddress(e.target.value)} />
+
+              <button style={styles.formButton} onClick={handleSaveClick} disabled={updatingProfileInfo}>
+                {updatingProfileInfo ? "Updating Profile..." : "Save Changes"}
+              </button>
+            </div>
+          </div>
+          
+          <div style={styles.otherSettings}>
+            <h4>Privacy</h4>
+            <p 
+              style={styles.otherSettingsP} 
+              onClick={() => setShowChangePasswordModal(true)}
+            >
+              Change Password
+            </p>                
+            <p style={styles.otherSettingsP}>Two-Factor Authentication</p>
+            <h4>Database Management</h4>
+            <p style={styles.otherSettingsP}>Back up and Restore</p>
+            <p style={styles.otherSettingsP}>Data Export</p>
+            <h4>Notification</h4>
+            <p style={styles.otherSettingsP}>Allow User Messages</p>
+          </div>
+        </div>
+      </div>
     <CropperModal
         show={cropperOpen}
         imageSrc={cropImageSrc}

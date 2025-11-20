@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import Chart from "react-apexcharts";
-import "./styles/ClaimedLostFound.css";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -126,7 +125,7 @@ function ClaimedLostFoundChart() {
   };
 
   return (
-    <div className="body" style={{ position: "relative", height: "300px" }}>
+    <div className="body" style={{height: '100%'}}>
       {loading ? (
         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%" }}>
           <img src="/Spin_black.gif" alt="Loading..." style={{ width: "40px", height: "40px" }} />

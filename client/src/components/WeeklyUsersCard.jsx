@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import ReactApexChart from 'react-apexcharts';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot } from "firebase/firestore";
-import './styles/WeeklyUsersCard.css'
 
 const WeeklyUsersCard = () => {
   const [series, setSeries] = useState([]);
@@ -82,7 +81,7 @@ const WeeklyUsersCard = () => {
   };
 
   return (
-    <div id="chart" className='chart' style={{width: '60%'}}>
+    <div id="chart" className='chart' style={{width: '100%', padding: '10px'}}>
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px' }}>
           <img src="/Spin_black.gif" alt="Loading..." style={{ width: '40px', height: '40px' }} />

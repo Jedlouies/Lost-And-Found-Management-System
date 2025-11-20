@@ -1,11 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
-import './styles/FeedbackChart.css';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
 function FeedBackChart() {
-  const [ratings, setRatings] = useState({1:[],2:[],3:[],4:[],5:[]}); // only actual feedback
-  const [allRatingsCount, setAllRatingsCount] = useState({1:0,2:0,3:0,4:0,5:0}); // include null for percentage
+  const [ratings, setRatings] = useState({1:[],2:[],3:[],4:[],5:[]}); 
+  const [allRatingsCount, setAllRatingsCount] = useState({1:0,2:0,3:0,4:0,5:0}); 
   const [hoveredRating, setHoveredRating] = useState(null);
   const [hoverPos, setHoverPos] = useState({ top: 0, left: 0 });
   const [currentFeedbackIndex, setCurrentFeedbackIndex] = useState(0);
