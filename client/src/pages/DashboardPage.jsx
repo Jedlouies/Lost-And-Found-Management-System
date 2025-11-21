@@ -11,6 +11,7 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import QuickStatsCards from '../components/QuickStatsCards';
 import BlankHeader from '../components/BlankHeader'
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -18,7 +19,9 @@ function DashboardPage() {
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [isPanelVisible, setIsPanelVisible] = useState(false);
   const { currentUser } = useAuth();
+  
   const [userData, setUserData] = useState(null);
+ 
 
 useEffect(() => {
   const loadUserData = async () => {
@@ -95,6 +98,12 @@ useEffect(() => {
     setIsPanelVisible(false);
   }
 }, [hasEmptyFields]);
+
+    const navigate = useNavigate();
+    const handleNavigate = (path) => {
+      navigate(path);
+    };
+
 
 
   const styles = {
@@ -220,9 +229,9 @@ useEffect(() => {
         marginBottom: '20px',
     },
     mainChartWrapper: {
-        gridColumn: 'span 1', // On mobile, span 1
+        gridColumn: 'span 1', 
         '@media (min-width: 992px)': {
-            gridColumn: 'span 2', // Takes 2/3 of the space on large screens
+            gridColumn: 'span 2',
         }
     },
     sideChartsWrapper: {
@@ -250,6 +259,7 @@ useEffect(() => {
                 <strong style={styles.bannerTime}>{formattedTime}</strong>
                 <img src="/landing-page-img.png" alt="spot-sync-logo" style={styles.bannerImg} />
             </div>
+           
             
             <div style={styles.panelContainer}>
                 <div style={{ padding: '0', margin: '0' }}>
@@ -264,12 +274,19 @@ useEffect(() => {
                 )}
             </div>
         </div>
-
+          
       </div>
+      
 
       <div style={styles.mainContentArea}>
         
         <div style={{ gridColumn: '1 / -1' }}>
+         <button 
+                  style={{...styles.actionButton, ...styles.actionButtonPrimary, backgroundColor: 'green', height: '40px', width: '100%', marginTop: '10px', borderRadius: '8px', color: 'white', fontWeight: 'bold', fontSize: '16px'}} 
+                  onClick={() => handleNavigate(`/admin/transactions/${currentUser?.uid}`)}
+                >
+                    Process Claim
+                </button>
             <div style={styles.reportHeader}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="#475C6F" className="bi bi-bar-chart" viewBox="0 0 16 16" >
                     <path d="M4 11H2v3h2zm5-4H7v7h2zm5-5v12h-2V2zm-2-1a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM6 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zM-5 4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H-4a1 1 0 0 1-1-1z"/>

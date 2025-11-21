@@ -421,10 +421,8 @@ function TransactionPage() {
                     </Modal.Footer>
                 </Modal>
 
-                {/* --- Main Content Grid --- */}
                 {selectedMatch ? (
                     <div style={styles.transactionContent}>
-                        {/* 1. LOST ITEM CARD (Left) */}
                         <div style={styles.itemCard}>
                             <h2 style={{...styles.itemTitle, color: '#000000ff'}}>Lost Item</h2>
                             <img 
@@ -437,7 +435,6 @@ function TransactionPage() {
                             {renderItemDetails(selectedMatch.lostItem, true)}
                         </div>
 
-                        {/* 2. MATCH SCORES CARD (Center) */}
                         <div style={styles.scoreCard}>
                             <h4 style={styles.scoreTitle}>Match Analysis</h4>
                             <div style={{width: '90%'}}>

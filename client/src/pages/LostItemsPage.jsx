@@ -22,6 +22,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import FloatingAlert from '../components/FloatingAlert';
 import UserBlankHeader from '../user_components/UserBlankHeader'
 import BlankHeader from '../components/BlankHeader';
+import { Spinner } from "react-bootstrap"; // Import Spinner
 
 function LostItemsPage() {
   const location = useLocation();
@@ -37,10 +38,9 @@ function LostItemsPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('');
-   const [alert, setAlert] = useState(null);
-   const [loading, setLoading] = useState(true);
-
-
+  const [alert, setAlert] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [isArchiving, setIsArchiving] = useState(false); // NEW STATE ADDED
 
 
   useEffect(() => {
@@ -113,21 +113,23 @@ const filteredItems = [...items]
   }
 
 const archiveItem = async (item) => {
-  try {
-    if (item.claimStatus !== "claimed") {
-      setAlert({
-        message: "You cannot archive unclaimed items.",
-        type: "warning",
-      });
-      return;
-    }
+  if (item.claimStatus !== "claimed") {
+    setAlert({
+      message: "You cannot archive unclaimed items.",
+      type: "warning",
+    });
+    return;
+  }
+  
+  setIsArchiving(true); // START LOADING
 
+  try {
     const q = query(collection(db, "lostItems"), where("itemId", "==", item.itemId));
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
       const docRef = querySnapshot.docs[0].ref; 
-      await updateDoc(docRef, { archivedStatus: true });
+      await updateDoc(docRef, { archivedStatus: true, archivedAt: new Date().toISOString() });
       console.log(`Item ${item.itemId} archived successfully`);
 
       setAlert({
@@ -149,6 +151,8 @@ const archiveItem = async (item) => {
       type: "danger",
     });
     console.error("Error archiving item:", error);
+  } finally {
+    setIsArchiving(false); // STOP LOADING
   }
 };
 
@@ -362,6 +366,19 @@ const styles = {
         fontWeight: 'bold',
         border: '1px solid #007bff',
     },
+    globalLoadingOverlay: { // NEW STYLE
+        position: "fixed",
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: "rgba(0,0,0,0.7)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 9999,
+        flexDirection: "column",
+        color: "white",
+        fontSize: "20px",
+        fontWeight: "bold"
+    }
 };
   
   // Helper to determine who is the founder/owner for rendering logic
@@ -405,7 +422,14 @@ const styles = {
 
   return (
     <>
-          <Modal
+        {/* GLOBAL LOADING OVERLAY */}
+        {isArchiving && (
+            <div style={styles.globalLoadingOverlay}>
+                <Spinner animation="border" variant="light" style={{ width: "4rem", height: "4rem" }} />
+                <p style={{ marginTop: "15px" }}>Archiving item, please wait...</p>
+            </div>
+        )}
+        <Modal
             show={showConfirm}
             onHide={() => setShowConfirm(false)}
             centered
@@ -418,20 +442,29 @@ const styles = {
             </Modal.Body>
             <Modal.Footer>
               <button 
+                className="btn btn-secondary" 
+                onClick={() => setShowConfirm(false)}
+                disabled={isArchiving}
+              >
+                Cancel
+              </button>
+              <button 
                 className="btn btn-danger" 
                 onClick={async () => {
                   if (selectedItemId) {
                     await archiveItem(selectedItemId); 
                   }
-                  setShowConfirm(false); 
+                  setShowConfirm(false);
                 }}
+                disabled={isArchiving}
               >
-                Archive
+                {isArchiving ? <Spinner animation="border" size="sm" /> : "Archive"}
               </button>
 
             </Modal.Footer>
           </Modal>
-          {alert && (
+
+            {alert && (
           <FloatingAlert
             message={alert.message}
             type={alert.type}
@@ -439,7 +472,7 @@ const styles = {
           />
         )}
       <NavigationBar />
-      <BlankHeader />
+      <BlankHeader /> 
       
       <div style={styles.foundItemBody}>
         <div style={styles.foundItemContainer}>

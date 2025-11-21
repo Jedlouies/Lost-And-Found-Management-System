@@ -297,6 +297,10 @@ td:hover .floating-location {
     white-space: nowrap;
 }
 
+.dropdown-toggle-no-caret::after {
+                    display: none !important;
+                }
+
 
 .item-image-match img{
     position: relative;

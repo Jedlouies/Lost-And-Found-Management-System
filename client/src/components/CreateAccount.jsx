@@ -1,10 +1,11 @@
 import React, { useRef, useState, useEffect } from "react"; 
 import "./styles/CreateAccount.css";
-import { Form, Card, Alert } from "react-bootstrap";
+import { Form, Card, Alert, Spinner } from "react-bootstrap"; // Added Spinner import
 import { useAuth } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { signInAnonymously } from "firebase/auth";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase"; // Added db import
+import { doc, getDoc } from "firebase/firestore"; // Added doc/getDoc
 import createVerificationCode from "../components/createVerificationCode.jsx";
 import VerificationModal from "../components/VerificationModal";
 import 'bootstrap-icons/font/bootstrap-icons.css'; 
@@ -13,9 +14,9 @@ function CreateAccount() {
   const navigate = useNavigate();
   const API = "https://server.spotsync.site";
 
-  const handleLogin = () => {
-    navigate("/log-in");
-  };
+  const { signup, login } = useAuth(); // Ensure `login` is available for auto-login
+
+  const handleLogin = () => { navigate("/log-in"); };
 
   const [guestLoading, setGuestLoading] = useState(false); 
   const firstNameRef = useRef();
@@ -24,8 +25,8 @@ function CreateAccount() {
   const contactNumberRef = useRef();
   const emailRef = useRef();
   const passwordRef = useRef();
-  const passwordConfirmRef = useRef();
-  const { signup } = useAuth();
+  const passwordConfirmRef = useRef(); // Unused, replaced by state values
+  
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
@@ -45,7 +46,7 @@ function CreateAccount() {
     } else if (error === "Passwords do not match") {
        setError(""); 
     }
-  }, [passwordValue, confirmPasswordValue]);
+  }, [passwordValue, confirmPasswordValue, error]);
 
 
   async function sendVerificationEmail(userData, code) {
@@ -98,23 +99,63 @@ function CreateAccount() {
     setLoading(false);
   }
 
+  // --- MODIFIED FUNCTION FOR AUTO-LOGIN ---
   async function finalizeSignup() {
-        try {
-          const userCredential = await signup(
-            pendingUserData.email,
-            pendingUserData.password,
-            pendingUserData.firstName,
-            pendingUserData.lastName,
-            pendingUserData.contactNumber,
-            pendingUserData.studentId
-          );
-          console.log(" Account created:", userCredential.user.uid);
-          navigate("/log-in");
-        } catch (err) {
-          console.error("Signup error:", err);
-          setError(err.message);
-        }
+    try {
+      // 1. Create the user account (sign up)
+      await signup(
+        pendingUserData.email,
+        pendingUserData.password,
+        pendingUserData.firstName,
+        pendingUserData.lastName,
+        pendingUserData.contactNumber,
+        pendingUserData.studentId
+      );
+      
+      // 2. Auto-login the newly created user
+      const userCredential = await login(
+        pendingUserData.studentId, 
+        pendingUserData.password
+      );
+      
+      const user = userCredential.user;
+      
+      // 3. Fetch user data, set local storage, and navigate
+      const userDocSnap = await getDoc(doc(db, 'users', user.uid));
+      
+      if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          const role = userData.role;
+
+          // Set required data in localStorage
+          localStorage.setItem('role', userData.role || 'user'); // Default to 'user'
+          localStorage.setItem('firstName', userData.firstName || '');
+          localStorage.setItem('lastName', userData.lastName || '');
+          localStorage.setItem('uid', user.uid); 
+          localStorage.setItem('email', userData.email || ''); 
+          localStorage.setItem('profileURL', userData.profileURL || '');
+
+          // Redirect based on role
+          if (role === 'admin') {
+              navigate(`/dashboard/${user.uid}`);
+          } else { 
+              navigate(`/home/${user.uid}`);
+          }
+
+      } else {
+          // Fallback: If data fetch fails, redirect to manual login
+          console.error('User document missing after auto-login. Redirecting to manual login.');
+          navigate("/log-in"); 
+      }
+
+    } catch (err) {
+      console.error("Auto-login/Signup error:", err);
+      // If auto-login fails, redirect to manual login
+      setError("Account created, but automatic login failed. Please log in manually.");
+      navigate("/log-in");
+    }
   }
+  // ----------------------------------------
 
   const handleCapsLockCheck = (e) => {
       const capsLockOn = typeof e.getModifierState === 'function' && e.getModifierState('CapsLock');

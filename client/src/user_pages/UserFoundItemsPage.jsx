@@ -1,12 +1,359 @@
 import React, { useState, useRef, useEffect } from 'react';
 import UserNavigationBar from '../user_components/UserNavigationBar';
-import './styles/UserLostItemPage.css';
 import UserFoundHeader from '../user_components/UserFoundHeader';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { collection, doc, getDocs, getDoc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Spinner } from 'react-bootstrap'; 
+import BlankHeader from '../components/BlankHeader';
+import UserBlankHeader from '../user_components/UserBlankHeader';
+
+// 🎨 MODERN UI STYLES DEFINITION
+const styles = {
+    pageBody: {
+        backgroundColor: '#f4f7f9',
+        minHeight: '100vh',
+        padding: '20px 0',
+        fontFamily: "'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+    },
+    pageContainer: {
+        maxWidth: '1200px',
+        width: '95%',
+        margin: '20px auto',
+        padding: '20px 0',
+    },
+    controlPanel: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        marginBottom: '30px',
+        padding: '0 10px',
+    },
+    titleSection: {
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    mainTitle: {
+        fontSize: '2rem',
+        fontWeight: '700',
+        color: '#143447',
+        marginBottom: '10px',
+    },
+    searchFilterWrapper: {
+        display: 'flex',
+        gap: '15px',
+        alignItems: 'center',
+        marginTop: '10px',
+        flexWrap: 'wrap',
+    },
+    searchInput: {
+        padding: '8px 15px',
+        border: '1px solid #ccc',
+        borderRadius: '6px',
+        width: '300px',
+        minWidth: '200px',
+        backgroundColor: 'white',
+        color: '#000',
+    },
+    selectCategory: {
+        padding: '8px 15px',
+        border: '1px solid #ccc',
+        borderRadius: '6px',
+        backgroundColor: 'white',
+        color: '#475C6F',
+        width: '200px',
+        cursor: 'pointer',
+    },
+    savedIconWrapper: {
+        position: 'relative',
+        cursor: 'pointer',
+        padding: '5px',
+        marginTop: '5px',
+        transition: 'color 0.2s',
+    },
+    savedBadge: {
+        position: 'absolute',
+        top: '-5px',
+        right: '0px',
+        background: 'red',
+        color: 'white',
+        borderRadius: '50%',
+        padding: '2px 6px',
+        fontSize: '10px',
+        fontWeight: 'bold',
+        lineHeight: 1,
+    },
+    itemGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gap: '30px',
+        padding: '10px',
+    },
+    itemCard: {
+        width: '300px', 
+        height: '350px', 
+        minWidth: '300px',
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+        overflow: 'hidden',
+        cursor: 'pointer',
+        display: 'flex',
+        flexDirection: 'column',
+        position: 'relative',
+    },
+    cardImage: {
+        width: '100%',
+        height: '150px',
+        objectFit: 'cover',
+        backgroundColor: '#eee',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#6c757d',
+    },
+    cardDetails: {
+        padding: '15px',
+        flexGrow: 1,
+        display: 'flex',
+        flexDirection: 'column',
+    },
+    cardItemName: {
+        fontSize: '1.2rem',
+        fontWeight: '600',
+        color: '#333',
+        marginBottom: '5px',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+    },
+    cardDescription: {
+        fontSize: '0.85rem',
+        color: '#6c757d',
+        height: '40px',
+        overflow: 'hidden',
+        lineHeight: '1.4',
+        marginBottom: '10px',
+    },
+    reporterWrapper: { 
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        borderTop: '1px solid #eee',
+        paddingTop: '10px',
+        marginTop: 'auto',
+    },
+    avatar: { 
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%', 
+        objectFit: 'cover',
+        backgroundColor: 'navy',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontSize: '14px',
+        fontWeight: 'bold',
+        flexShrink: 0, 
+    },
+    avatarImage: { 
+        width: '40px',
+        height: '40px',
+        borderRadius: '50%',
+        objectFit: 'cover',
+    },
+    avatarGuest: {
+        backgroundColor: '#6c757d',
+        fontSize: '10px',
+    },
+    infoText: { 
+        fontSize: '0.8rem',
+        lineHeight: '1.3',
+        flexGrow: 1,
+        minWidth: 0, 
+    },
+    infoName: {
+        fontWeight: '600',
+        color: '#143447',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+    },
+    modalCard: {
+        background: 'white',
+        padding: '20px',
+        borderRadius: '10px',
+        width: '450px',
+        maxHeight: '80vh',
+        overflowY: 'auto',
+        position: 'relative',
+        boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
+    },
+    modalItemWrapper: {
+        border: '1px solid #ddd',
+        padding: '12px',
+        marginBottom: '10px',
+        borderRadius: '8px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        transition: 'background-color 0.2s',
+    },
+    modalItemContent: {
+        display: 'flex',
+        gap: '15px',
+        flex: 1,
+        cursor: 'pointer',
+    },
+    modalImage: {
+        width: '50px',
+        height: '50px',
+        borderRadius: '5px',
+        objectFit: 'cover',
+    },
+    modalRemoveBtn: {
+        background: '#dc3545',
+        color: 'white',
+        border: 'none',
+        borderRadius: '6px',
+        padding: '6px 12px',
+        cursor: 'pointer',
+    },
+    modalCloseBtn: {
+        marginTop: "20px",
+        background: "#143447",
+        color: "white",
+        border: "none",
+        borderRadius: "8px",
+        padding: "10px 12px",
+        cursor: "pointer",
+        width: "100%",
+    },
+    postButton: (disabled) => ({
+        backgroundColor: disabled ? "#ccc" : "#143447", // Green for found, gray if disabled
+        cursor: disabled ? "not-allowed" : "pointer",
+        borderRadius: "8px",
+        border: "none",
+        padding: "8px 15px",
+        color: "white",
+        fontWeight: "600",
+        display: "flex",
+        alignItems: "center",
+        gap: "5px",
+        transition: "background-color 0.2s",
+    }),
+    actionRow: { // NEW style for the single horizontal row
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '15px',
+        width: '100%',
+        paddingBottom: '10px',
+    },
+    searchFilterWrapper: {
+        display: 'flex',
+        gap: '15px',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+    },
+    actionGroupRight: { // NEW style for grouping Post button and Saved icon
+        display: 'flex',
+        alignItems: 'center',
+        gap: '15px',
+    },
+};
+
+const ItemCard = ({ item, navigate, toggleSave, isSaved }) => {
+    const person = item.personalInfo;
+    const initials = `${person?.firstName?.[0] || ''}${person?.lastName?.[0] || ''}`.toUpperCase();
+    const description = item.howItemFound;
+    
+    const renderAvatar = () => {
+        const baseAvatarStyle = {
+            ...styles.avatar,
+            flexShrink: 0,
+            width: '40px',
+            height: '40px',
+        };
+
+        if (item.isGuest) {
+            return <div style={{ ...baseAvatarStyle, ...styles.avatarGuest }}>Guest</div>;
+        }
+        if (person?.profileURL) {
+            return <img src={person.profileURL} alt="profile" style={styles.avatarImage} />;
+        }
+        return <div style={baseAvatarStyle}>{initials}</div>;
+    };
+    
+    return (
+        <div style={styles.itemCard}>
+            <div
+                onClick={() =>
+                    navigate(`/users/found-items/more-details/${item.id}`, {
+                        state: { type: "found", item },
+                    })
+                }
+            >
+                <div style={styles.cardImage}>
+                    {item.images && item.images.length > 0 ? (
+                        <img src={item.images[0]} alt={item.itemName} style={styles.cardImage} />
+                    ) : (
+                        <div style={styles.cardImage}>No Image</div>
+                    )}
+                </div>
+                
+                <div style={styles.cardDetails}>
+                    <h4 style={styles.cardItemName}>{item.itemName}</h4>
+                    <p style={styles.cardDescription}>
+                        {description && description.length > 100 ? description.slice(0, 100) + "..." : description || "No description provided."}
+                    </p>
+                    
+                    <div style={styles.reporterWrapper}>
+                        {renderAvatar()}
+                        <div style={styles.infoText}>
+                            <strong style={styles.infoName}>
+                                {item.isGuest ? 'Guest Reporter' : `${person?.firstName || 'Unknown'} ${person?.lastName || ''}`.trim()}
+                            </strong>
+                            <br />
+                            <span style={{color: '#000000ff'}}>{item.personalInfo?.course?.abbr}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                onClick={(e) => {
+                    e.stopPropagation();
+                    toggleSave(item);
+                }}
+                style={{
+                    position: "absolute",
+                    top: "10px",
+                    right: "10px",
+                    cursor: "pointer",
+                    zIndex: 10,
+                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                    borderRadius: '50%',
+                    padding: '5px',
+                }}
+            >
+                {isSaved ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#ffc107" className="bi bi-star-fill" viewBox="0 0 16 16">
+                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                    </svg>
+                ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="#6c757d" className="bi bi-star" viewBox="0 0 16 16">
+                        <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.56.56 0 0 0-.163-.505L1.71 6.745l4.052-.576a.53.53 0 0 0 .393-.288L8 2.223l1.847 3.658a.53.53 0 0 0 .393.288l4.052.575-2.906 2.77a.56.56 0 0 0-.163.506l.694 3.957-3.686-1.894a.5.5 0 0 0-.461 0z"/>
+                    </svg>
+                )}
+            </div>
+        </div>
+    );
+};
+
 
 function UserFoundItemsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,6 +367,26 @@ function UserFoundItemsPage() {
   const [loadingFound, setLoadingFound] = useState(true);
 
   const navigate = useNavigate();
+
+  const requiredFields = ["firstName", "lastName", "email", "contactNumber", "address", "course", "gender", "section"];
+  const hasEmptyFields = userData
+    ? requiredFields.some((field) => {
+        const value = userData[field];
+        // Check if value is undefined, null, or whitespace/empty string
+        return value === undefined || value === null || (typeof value === 'string' && value.trim() === "");
+      })
+    : true; 
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!currentUser) return;
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      if (userDoc.exists()) {
+        setUserData(userDoc.data());
+      }
+    };
+    fetchData();
+  }, [currentUser]);
 
   useEffect(() => {
     setLoadingFound(true);
@@ -91,6 +458,8 @@ function UserFoundItemsPage() {
 
   const filteredFoundItems = [...foundItems]
     .filter((item) => item.claimStatus !== "claimed")
+    .filter((item) => item.status === "posted")
+    .filter((item) => item.status !== "canceled")
     .filter((item) => item.archivedStatus !== true)
     .filter((item) => {
       const matchesSearch = item.itemName?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -119,66 +488,36 @@ function UserFoundItemsPage() {
           onClick={() => setShowModal(false)}
         >
           <div
-            style={{
-              background: "white",
-              padding: "20px",
-              borderRadius: "10px",
-              width: "400px",
-              maxHeight: "70%",
-              overflowY: "auto",
-              position: "relative",
-            }}
+            style={styles.modalCard}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 style={{ marginBottom: "15px", color: "#475C6F" }}>Saved Items</h3>
+            <h3 style={{ marginBottom: "20px", color: "#143447", fontWeight: '600' }}>Saved Items</h3>
+            
             {savedItems.length > 0 ? (
               savedItems.map((item) => (
                 <div
                   key={item.id}
-                  style={{
-                    border: "1px solid #ddd",
-                    padding: "10px",
-                    marginBottom: "10px",
-                    borderRadius: "5px",
-                    display: "flex",
-                    gap: "10px",
-                    alignItems: "center",
-                  }}
+                  style={styles.modalItemWrapper}
                 >
                   <div
-                    style={{ display: "flex", gap: "10px", flex: 1, cursor: "pointer" }}
-                    onClick={() =>
-                      navigate(`/users/lost-items/more-details/${item.id}`, {
-                        state: { type: "lost", item },
-                      })
-                    }
+                    style={styles.modalItemContent}
+                    onClick={() => {
+                        setShowModal(false);
+                        navigate(`/users/lost-items/more-details/${item.id}`, {
+                          state: { type: "lost", item },
+                        });
+                    }}
                   >
                     {item.images?.length > 0 ? (
-                      <img
-                        src={item.images[0]}
-                        alt="saved"
-                        style={{
-                          width: "60px",
-                          height: "60px",
-                          borderRadius: "5px",
-                          objectFit: "cover",
-                        }}
-                      />
+                      <img src={item.images[0]} alt="saved" style={styles.modalImage} />
                     ) : (
-                      <div
-                        style={{
-                          width: "60px",
-                          height: "60px",
-                          background: "#eee",
-                          borderRadius: "5px",
-                        }}
-                      />
+                      <div style={{ ...styles.modalImage, background: '#eee' }} />
                     )}
                     <div>
-                      <strong style={{ color: "black" }}>
+                      <strong style={{ color: "#143447" }}>
                         {item.personalInfo?.firstName}'s {item.itemName}
                       </strong>
-                      <p style={{ fontSize: "12px", margin: 0, color: "black" }}>
+                      <p style={{ fontSize: "12px", margin: 0, color: "#6c757d" }}>
                         {item.personalInfo?.course?.abbr} Student
                       </p>
                     </div>
@@ -190,35 +529,19 @@ function UserFoundItemsPage() {
                       e.preventDefault();
                       toggleSave(item);
                     }}
-                    style={{
-                      background: "red",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "5px",
-                      padding: "4px 8px",
-                      cursor: "pointer",
-                    }}
+                    style={styles.modalRemoveBtn}
                   >
                     Remove
                   </button>
                 </div>
               ))
             ) : (
-              <p>No saved items yet.</p>
+              <p style={{color: '#6c757d'}}>No saved items yet.</p>
             )}
 
             <button
               onClick={() => setShowModal(false)}
-              style={{
-                marginTop: "10px",
-                background: "#475C6F",
-                color: "white",
-                border: "none",
-                borderRadius: "5px",
-                padding: "8px 12px",
-                cursor: "pointer",
-                width: "100%",
-              }}
+              style={styles.modalCloseBtn}
             >
               Close
             </button>
@@ -226,275 +549,121 @@ function UserFoundItemsPage() {
         </div>
       )}
 
+
       <UserNavigationBar />
-      <div className="found-item-body" style={{height: '150vh'}}>
-        <UserFoundHeader />
+       <UserBlankHeader />
+      <div style={styles.pageBody}>
+       
 
-        <div className='user-lost-header-space' style={{ position: 'relative', top: '20px', width: '100%', height: '50px', justifyContent: 'center', alignItems: 'center', display: 'flex' }}>
-        <div className="user-lost-searchBar2">
-          <h1
-            style={{
-              position: "absolute",
-              left: "-15%",
-              top: "2%",
-              fontSize: "30px",
-              fontWeight: "bold",
-              color: "#475C6F",
-            }}
-          >
-            Found Items
-          </h1>
-          <input
-            type="text"
-            placeholder="Search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <select
-            name="category"
-            id="category"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            style={{
-              position: 'relative',
-              left: '80%',
-              width: '150px',
-              borderRadius: '5px',
-              backgroundColor: 'transparent',
-              border: '1px solid #475C6F',
-              color: '#475C6F',
-              cursor: 'pointer',
-              height: '27px'
-            }}
-          >
-            <option value="">Select Category</option>
-            <option value="Electronics">Electronics</option>
-            <option value="Accessories">Accessories</option>
-            <option value="Clothing & Apparel">Clothing & Apparel</option>
-            <option value="Bags & Luggage">Bags & Luggage</option>
-            <option value="Documents & IDs">Documents & IDs</option>
-            <option value="Books & Stationery">Books & Stationery</option>
-            <option value="Household Items">Household Items</option>
-            <option value="Sports & Fitness">Sports & Fitness</option>
-            <option value="Health & Personal Care">Health & Personal Care</option>
-            <option value="Toys & Games">Toys & Games</option>
-            <option value="Food & Beverages">Food & Beverages</option>
-            <option value="Automotive">Automotive Items</option>
-            <option value="Automotive Items Instruments">Musical Instruments</option>
-            <option value="Pet Items">Pet Items</option>
-            <option value="Others">Others</option>
-          </select>
-        </div>
+        <div style={styles.pageContainer}>
 
-        {/* Saved items icon */}
-        <div className="right-upper-panel" style={{ position: "absolute" }}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="25"
-            height="25"
-            fill="currentColor"
-            className="bi bi-bookmark"
-            viewBox="0 0 16 16"
-            style={{ cursor: "pointer" }}
-            onClick={() => setShowModal(true)}
-          >
-            <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/>
-          </svg>
+          <h1 style={styles.mainTitle}>Found Items</h1> 
+
+          <div style={styles.controlPanel}>
+            
+            <div style={styles.actionRow}>
+                
+                <div style={styles.searchFilterWrapper}>
+                    <input
+                      type="text"
+                      placeholder="Search items by name..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      style={styles.searchInput}
+                    />
+                    <select
+                      name="category"
+                      id="category"
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      style={styles.selectCategory}
+                    >
+                        <option value="">All Categories</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Accessories">Accessories</option>
+                        <option value="Clothing & Apparel">Clothing & Apparel</option>
+                        <option value="Bags & Luggage">Bags & Luggage</option>
+                        <option value="Documents & IDs">Documents & IDs</option>
+                        <option value="Books & Stationery">Books & Stationery</option>
+                        <option value="Household Items">Household Items</option>
+                        <option value="Sports & Fitness">Sports & Fitness</option>
+                        <option value="Health & Personal Care">Health & Personal Care</option>
+                        <option value="Toys & Games">Toys & Games</option>
+                        <option value="Food & Beverages">Food & Beverages</option>
+                        <option value="Automotive">Automotive Items</option>
+                        <option value="Musical Instruments">Musical Instruments</option>
+                        <option value="Pet Items">Pet Items</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
+
+                <div style={styles.actionGroupRight}>
+                    
+                    <button
+                        onClick={() => {
+                            if (!hasEmptyFields) {
+                                navigate(`/users/found-items/procedure/${currentUser?.uid}`);
+                            }
+                        }}
+                        disabled={hasEmptyFields}
+                        style={styles.postButton(hasEmptyFields)} 
+                        title={hasEmptyFields ? "Complete profile to post" : "Post a Found Item"}
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-plus" viewBox="0 0 16 16">
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                        </svg>
+                        Post
+                    </button>
+
+                    <div style={styles.savedIconWrapper} onClick={() => setShowModal(true)}>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="25"
+                            height="25"
+                            fill="#143447"
+                            className="bi bi-bookmark"
+                            viewBox="0 0 16 16"
+                        >
+                            <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1z"/>
+                        </svg>
                         {savedItems.length > 0 && (
-            <span
-              style={{
-                position: "relative",
-                top: "-10px",
-                left: "-20%",
-                background: "red",
-                color: "white",
-                borderRadius: "50%",
-                padding: "2px 6px",
-                fontSize: "12px",
+                            <span style={styles.savedBadge}>
+                                {savedItems.length}
+                            </span>
+                        )}
+                    </div>
+                </div>
+            </div>
+          </div>
+
+
+          {loadingFound ? (
+            <div 
+              style={{ 
+                display: "flex", 
+                justifyContent: "center", 
+                alignItems: "center", 
+                marginTop: "100px" 
               }}
             >
-              {savedItems.length}
-            </span>
+              <Spinner animation="border" style={{ width: "60px", height: "60px" }} />
+            </div>
+          ) : (
+            <div style={styles.itemGrid} ref={foundContainerRef}>
+              {filteredFoundItems.length > 0 ? (
+                filteredFoundItems.map((item) => {
+                  const isSaved = savedItems.some((saved) => saved.id === item.id);
+
+                  return (
+                    <ItemCard item={item} navigate={navigate} toggleSave={toggleSave} isSaved={isSaved} key={item.id} />
+                  );
+                })
+              ) : (
+                <p style={{ color: "#6c757d", gridColumn: '1 / -1', textAlign: 'center' }}>No found items matched your criteria.</p>
+              )}
+            </div>
           )}
-
         </div>
-        </div>
-
-        {loadingFound ? (
-          <div 
-            style={{ 
-              display: "flex", 
-              justifyContent: "center", 
-              alignItems: "center", 
-              marginTop: "280px" 
-            }}
-          >
-            <img 
-              src="/Spin_black.gif" 
-              alt="Loading..." 
-              style={{ width: "60px", height: "60px" }} 
-            />
-          </div>
-        ) : (
-          <div className="page-lost-container" style={{height: '125vh'}} ref={foundContainerRef}>
-            {filteredFoundItems.length > 0 ? (
-              filteredFoundItems.map((item) => {
-                const isSaved = savedItems.some((saved) => saved.id === item.id);
-
-                return (
-                  <div
-                    className="found-item-card"
-                    key={item.id}
-                    style={{ cursor: "pointer", position: "relative" }}
-                  >
-                    <div
-                      onClick={() =>
-                        navigate(`/users/found-items/more-details/${item.id}`, {
-                          state: { type: "found", item },
-                        })
-                      }
-                    >
-                      <div className="lost-card-image">
-                        {item.images && item.images.length > 0 ? (
-                          <img
-                            src={item.images[0]}
-                            alt="img"
-                            style={{ width: "300px", height: "200px", objectFit: "cover" }}
-                          />
-                        ) : (
-                          <div className="placeholder-image">No Image</div>
-                        )}
-                      </div>
-                      <div className="card-details">
-                        <h4>{item.itemName}</h4>
-                        <div className="own">
-                    {item.isGuest ? (
-                      <div
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          borderRadius: "40px",
-                          backgroundColor: "blue",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "white",
-                          fontSize: "12px",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        Guest
-                      </div>
-                    ) : item.personalInfo?.profileURL ? (
-                      <img
-                        src={item.personalInfo.profileURL}
-                        alt="profile"
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          borderRadius: "40px",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          width: "50px",
-                          height: "50px",
-                          borderRadius: "40px",
-                          backgroundColor: "navy",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          color: "white",
-                          fontSize: "14px",
-                          fontWeight: "bold",
-                        }}
-                      >
-                        {`${item.personalInfo?.firstName?.[0] || ""}${
-                          item.personalInfo?.lastName?.[0] || ""
-                        }`.toUpperCase()}
-                      </div>
-                    )}
-
-                    <p>
-                      <strong style={{ fontSize: "14px" }}>
-                        {item.isGuest === true
-                          ? item.personalInfo?.firstName || "Guest"
-                          : `${item.personalInfo?.firstName || ""} ${item.personalInfo?.lastName || ""}`.trim()}
-                      </strong>
-                      <br />
-                      {item.isGuest !== true && (
-                        <span>
-                          {item.personalInfo?.course?.abbr
-                            ? `${item.personalInfo.course.abbr} Student`
-                            : "Unknown"}
-                        </span>
-                      )}
-                          </p>
-                        </div>
-                        <p
-                          style={{
-                            marginTop: "10px",
-                            fontSize: "12px",
-                            color: "black",
-                            height: "60px",
-                            width: "250px",
-                            textAlign: "left",
-                            marginLeft: "10px",
-                          }}
-                        >
-                          {item.howItemFound && item.howItemFound.length > 120
-                            ? item.howItemFound.slice(0, 120) + "..."
-                            : item.howItemFound}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSave(item);
-                      }}
-                      style={{
-                        position: "absolute",
-                        top: "10px",
-                        right: "10px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {isSaved ? (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="22"
-                          height="22"
-                          fill="gold"
-                          className="bi bi-star-fill"
-                          viewBox="0 0 16 16"
-                        >
-                          <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
-                        </svg>
-                      ) : (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="22"
-                          height="22"
-                          fill="gray"
-                          className="bi bi-star"
-                          viewBox="0 0 16 16"
-                        >
-                          <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.56.56 0 0 0-.163-.505L1.71 6.745l4.052-.576a.53.53 0 0 0 .393-.288L8 2.223l1.847 3.658a.53.53 0 0 0 .393.288l4.052.575-2.906 2.77a.56.56 0 0 0-.163.506l.694 3.957-3.686-1.894a.5.5 0 0 0-.461 0z"/>
-                        </svg>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <p style={{ color: "black" }}>No recent found items found.</p>
-            )}
-          </div>
-        )}
       </div>
     </>
   );

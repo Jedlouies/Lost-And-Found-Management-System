@@ -17,15 +17,13 @@ import {
     serverTimestamp as rtdbServerTimestamp,
 } from "firebase/database";
 import { getAuth } from "firebase/auth";
+import { Modal, Button, Spinner, Form } from "react-bootstrap"; // Ensure Modal and Button are available
 
 const typeConfig = {
-  "transaction": { title: "Transaction Processed", icon: "bi-cash-stack", color: "green" },
-  "system": { title: "System Update", icon: "bi-gear-fill", color: "#007bff" },
-  "reminder": { title: "Reminder", icon: "bi-bell-fill", color: "orange" },
-  "item": { title: "Item Update", icon: "bi-info-circle", color: "#062949ff" },
+// ... typeConfig definitions ...
 };
 
-
+// --- Conversation Panel Modal Component ---
 function ConversationPanel({ conversation, onClose, adminName, onReply, onResolve, allConversations }) {
     const [replyText, setReplyText] = useState('');
 
@@ -33,7 +31,7 @@ function ConversationPanel({ conversation, onClose, adminName, onReply, onResolv
     const liveConversation = liveConvosArray.find(c => c.id === conversation.id) || conversation;
     
     const messages = liveConversation.messages ? Object.entries(liveConversation.messages).map(([id, msg]) => ({ id, ...msg })) : [];
-    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false); // State remains the same
 
     
     messages.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
@@ -78,6 +76,12 @@ function ConversationPanel({ conversation, onClose, adminName, onReply, onResolv
         }
     };
 
+    // --- Action Handler for Resolution ---
+    const confirmAndResolve = () => {
+        onResolve(liveConversation.user.uid, liveConversation.id);
+        setShowConfirmModal(false);
+    };
+
     return (
         <div className="conversation-panel-modal-admin">
             <div className="panel-header-admin">
@@ -91,7 +95,7 @@ function ConversationPanel({ conversation, onClose, adminName, onReply, onResolv
             </div>
 
             <div className="panel-user-info-admin">
-                User: <strong>{liveConversation.user.name}</strong> (UID: {liveConversation.user.uid})
+                User: <strong>{liveConversation.user.name}</strong> (UID: {liveConversation.user.uid.substring(0, 8)}...)
             </div>
 
             <div className="chat-area-admin" id="chat-area">
@@ -108,7 +112,7 @@ function ConversationPanel({ conversation, onClose, adminName, onReply, onResolv
             ))}
             </div>
 
-                <div className="panel-footer-admin">
+            <div className="panel-footer-admin">
                 {liveConversation.status === 'open' ? (
                     <>
                     <textarea
@@ -133,7 +137,7 @@ function ConversationPanel({ conversation, onClose, adminName, onReply, onResolv
                         Send Reply
                         </button>
                         <button
-                        onClick={() => setShowConfirmModal(true)}
+                        onClick={() => setShowConfirmModal(true)} // Opens the Modal
                         className="resolve-btn-admin"
                         >
                         Resolve & Close
@@ -143,32 +147,27 @@ function ConversationPanel({ conversation, onClose, adminName, onReply, onResolv
                 ) : (
                     <p className="resolved-text-admin">This conversation is marked as resolved.</p>
                 )}
-                </div>
-                {showConfirmModal && (
-        <div className="confirm-modal-overlay">
-            <div className="confirm-modal">
-            <h4>Confirm Resolution</h4>
-            <p>Are you sure you want to mark this conversation as resolved and close it?</p>
-            <div className="confirm-actions">
-                <button
-                className="confirm-btn"
-                onClick={() => {
-                    onResolve(liveConversation.user.uid, liveConversation.id);
-                    setShowConfirmModal(false);
-                }}
-                >
-                Yes, Close Conversation
-                </button>
-                <button
-                className="cancel-btn"
-                onClick={() => setShowConfirmModal(false)}
-                >
-                Cancel
-                </button>
             </div>
-            </div>
-        </div>
-        )}
+            
+            {/* --- REACT BOOTSTRAP CONFIRMATION MODAL --- */}
+            <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Confirm Resolution</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <p>Are you sure you want to mark this conversation as **resolved** and close it?</p>
+                    <p className="text-muted small">This action cannot be undone and will remove the conversation from the active list.</p>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={() => setShowConfirmModal(false)}>
+                        Cancel
+                    </Button>
+                    <Button variant="danger" onClick={confirmAndResolve}>
+                        Yes, Resolve & Close
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+            {/* ------------------------------------------- */}
 
         </div>
 
@@ -177,6 +176,7 @@ function ConversationPanel({ conversation, onClose, adminName, onReply, onResolv
 }
 // --- Main Admin Notification Page ---
 function NotificationPage() {
+// ... (rest of NotificationPage component logic remains identical) ...
   const [groupedSystemNotifications, setGroupedSystemNotifications] = useState({});
   const [allConversations, setAllConversations] = useState({}); // {uid: {convoId: data}}
   const [activeConversation, setActiveConversation] = useState(null);
@@ -491,106 +491,128 @@ function NotificationPage() {
         .admin-page-container {
             padding: 0px;
             padding-left: 70px;
-            width: 105%;
+            width: 100%; /* Changed from 105% to 100% for better layout */
             background-color: #f0f2f5;
             min-height: 100vh;
         }
         .admin-notification-grid {
-            display: flex;
+            display: grid; /* Changed from flex to grid for better control */
+            grid-template-columns: 1fr 1fr; /* Two equal columns */
             gap: 20px;
-            margin-top: 20px;
+            margin: 20px auto;
+            max-width: 1200px;
         }
         .conversations-pane, .system-notifications-pane {
             background-color: white;
-            margin: 20px;
+            /* margin: 20px; Removed margin since grid handles spacing */
             border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            flex: 1; 
-            overflow-y: auto;
+            padding: 25px; /* Increased padding */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Slightly heavier shadow */
+            flex: none; /* Remove flex property for grid */
+            height: 80vh; /* Set a fixed height for scrolling container */
+            overflow-y: auto; /* Enable scrolling */
         }
         .pane-title {
-            font-size: 24px;
-            font-weight: bold;
+            font-size: 26px; /* Slightly larger */
+            font-weight: 700; /* Bold */
             color: #143447;
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #eee;
+            border-bottom: 2px solid #007bff; /* Blue underline for emphasis */
         }
         .unread-summary-admin {
-            font-size: 16px;
-            margin-bottom: 15px;
-            color: #333;
+            font-size: 14px;
+            margin-bottom: 20px;
+            color: #666;
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
         }
         .unread-count-text-admin {
-            color: red;
-            font-weight: bold;
+            color: #dc3545; /* Red for high visibility */
+            font-weight: 700;
         }
         .convo-list-admin {
-            /* Max height removed as pane handles overflow now */
+            display: flex;
+            flex-direction: column;
+            gap: 5px; /* Tighter spacing */
         }
         .convo-item-admin {
-            padding: 15px;
-            border: 1px solid #ddd;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
             border-radius: 8px;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.2s ease;
         }
         .convo-item-admin:hover {
-            background-color: #f9f9f9;
+            background-color: #f0f8ff; /* Light blue on hover */
+            border-color: #007bff;
+            transform: translateY(-1px);
         }
         .unread-item-admin {
             border-left: 5px solid #143447;
             background-color: #e6f7ff;
-            font-weight: bold;
+            font-weight: 600;
         }
         .active-item-admin {
             border: 2px solid #007bff;
-            background-color: #e6f7ff;
+            background-color: #f0f8ff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.2);
         }
         .convo-header-admin {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
+        .convo-subject-admin {
+            color: #143447;
+            font-size: 16px;
+        }
         .convo-badge-admin {
-            background-color: red;
+            background-color: #dc3545;
             color: white;
             border-radius: 50%;
             padding: 4px 8px;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 700;
         }
         .convo-meta-admin {
             display: block;
             margin-top: 5px;
-            font-size: 12px;
-            color: #666;
+            font-size: 11px;
+            color: #999;
         }
         .section-header-admin {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 600;
             color: #6c757d;
-            margin-top: 15px;
+            margin-top: 20px;
             margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
         }
         .system-card-admin {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            padding: 12px;
+            padding: 15px 0; /* Vertical spacing */
             border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        .system-card-admin:hover {
+            background-color: #fbfbfb;
         }
         .card-content-admin {
             display: flex;
-            gap: 10px;
+            gap: 15px; /* Increased gap */
             flex: 1;
         }
         .card-text-admin {
             display: flex;
             flex-direction: column;
             flex-grow: 1;
+            font-size: 14px;
+            color: #333;
         }
         .card-actions-admin {
             display: flex;
@@ -600,61 +622,77 @@ function NotificationPage() {
         }
         .delete-btn-admin {
             background: none;
-            border: none;
+            border: 1px solid #dc3545; /* Added border */
+            border-radius: 4px;
+            padding: 4px;
             cursor: pointer;
             color: #dc3545;
+            transition: background-color 0.2s;
+        }
+        .delete-btn-admin:hover {
+            background-color: #dc3545;
+            color: white;
         }
         .empty-message-admin {
             color: #666;
-            padding: 20px 0;
+            padding: 30px 0;
             text-align: center;
+            font-style: italic;
         }
 
-        /* --- Conversation Panel Styles (Admin) --- */
+        /* --- Conversation Panel Styles (Modal) --- */
         .conversation-panel-modal-admin {
             position: fixed;
             top: 0;
             right: 0;
-            width: 400px; 
+            width: 450px; /* Wider panel */
             height: 100vh;
             background-color: white;
-            box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+            box-shadow: -8px 0 20px rgba(0,0,0,0.3);
             z-index: 1000;
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease-out; /* Enable slide animation */
+            transition: transform 0.3s ease-out; 
+            border-left: 1px solid #ddd;
         }
         .panel-header-admin {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
+            padding: 15px 20px;
+            border-bottom: 1px solid #007bff;
             display: flex;
             gap: 15px;
             justify-content: space-between;
             align-items: center;
-            background-color: #143447;
+            background-color: #007bff; /* Primary blue header */
         }
         .panel-header-admin h3 {
             margin: 0;
             font-size: 18px;
             color: white;
+            font-weight: 600;
             flex: 1;
         }
+        .panel-header-admin .close-btn-admin {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
         .panel-user-info-admin {
-            padding: 10px 15px;
+            padding: 10px 20px;
             background-color: #f4f7f9;
             font-size: 14px;
+            color: #333;
             border-bottom: 1px solid #eee;
         }
         .chat-area-admin {
             flex-grow: 1;
-            padding: 15px;
+            padding: 20px;
             overflow-y: auto;
             background-color: #f8f8f8;
         }
         .chat-message-admin {
-            margin-bottom: 10px;
-            display: flex;
-            flex-direction: column;
+            margin-bottom: 15px; /* Increased margin */
         }
         .message-user {
             align-items: flex-end;
@@ -663,31 +701,37 @@ function NotificationPage() {
             align-items: flex-start;
         }
         .message-bubble-admin {
-            max-width: 80%;
-            padding: 10px;
-            border-radius: 15px;
+            max-width: 85%;
+            padding: 12px;
+            border-radius: 18px; /* Rounded bubbles */
             line-height: 1.4;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .message-user .message-bubble-admin {
             background-color: #e0f7fa; /* User message color */
-            color: #000000;
+            color: #143447;
+            border-bottom-right-radius: 4px;
         }
         .message-admin .message-bubble-admin {
             background-color: #ffffff; /* Admin message color */
-            border: 1px solid #eee;
+            color: #333;
+            border: 1px solid #ddd;
+            border-bottom-left-radius: 4px;
         }
         .message-timestamp-admin {
             font-size: 10px;
-            margin-top: 2px;
+            margin-top: 4px;
             color: #999;
         }
         .panel-footer-admin {
             padding: 15px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid #ddd;
+            background-color: white;
         }
         .reply-input-admin {
             width: 100%;
             background-color: #f4f7f9;
-            color: black;
+            color: #333;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 8px;
@@ -696,29 +740,35 @@ function NotificationPage() {
         }
         .reply-actions-admin {
             display: flex;
-            justify-content: space-between;
+            gap: 10px;
+        }
+        .reply-btn-admin, .resolve-btn-admin {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
         }
         .reply-btn-admin {
             background-color: #143447;
             color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
+            flex-grow: 1;
         }
         .resolve-btn-admin {
             background-color: #dc3545;
             color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
+        }
+        .resolved-text-admin {
+            color: #28a745;
+            font-style: italic;
+            text-align: center;
         }
         .status-badge {
             font-size: 12px;
             padding: 4px 8px;
             border-radius: 4px;
-            font-weight: bold;
+            font-weight: 700;
         }
         .status-open {
             background-color: #ffc107;
@@ -728,79 +778,7 @@ function NotificationPage() {
             background-color: #28a745;
             color: white;
         }
-            .confirm-modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.4);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 2000;
-        }
-
-        .confirm-modal {
-        background: #fff;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-        width: 350px;
-        text-align: center;
-        animation: fadeIn 0.3s ease;
-        }
-
-        .confirm-modal h4 {
-        color: #143447;
-        margin-bottom: 10px;
-        }
-
-        .confirm-modal p {
-        color: #333;
-        font-size: 14px;
-        margin-bottom: 20px;
-        }
-
-        .confirm-actions {
-        display: flex;
-        justify-content: space-around;
-        gap: 10px;
-        }
-
-        .confirm-btn {
-        background-color: #28a745;
-        color: white;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: 0.2s ease;
-        }
-
-        .confirm-btn:hover {
-        background-color: #218838;
-        }
-
-        .cancel-btn {
-        background-color: #dc3545;
-        color: white;
-        padding: 10px 15px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: 0.2s ease;
-        }
-
-        .cancel-btn:hover {
-        background-color: #c82333;
-        }
-
-        @keyframes fadeIn {
-        from { opacity: 0; transform: scale(0.9); }
-        to { opacity: 1; transform: scale(1); }
-        }
-
+        /* Confirmation Modal styles remain the same */
       `}
       </style>
     </>

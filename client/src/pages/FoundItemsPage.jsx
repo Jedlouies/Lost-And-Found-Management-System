@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import NavigationBar from '../components/NavigationBar';
-// import './styles/FoundItemPage.css'; // REMOVED external CSS import
-import TablesHeader from '../components/TablesHeader';
 import Dropdown from 'react-bootstrap/Dropdown';
 import DropdownButton from 'react-bootstrap/DropdownButton';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -15,8 +13,6 @@ import {
   query, 
   where,
   orderBy,
-  setDoc, 
-  deleteDoc 
 } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { getAuth } from "firebase/auth";
@@ -24,8 +20,7 @@ import FloatingAlert from '../components/FloatingAlert';
 import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
 import Modal from 'react-bootstrap/Modal';
 import BlankHeader from '../components/BlankHeader';
-
-
+import { Spinner } from "react-bootstrap"; // Import Spinner
 
 function FoundItemsPage() {
  //const API = "http://localhost:4000";
@@ -41,13 +36,14 @@ function FoundItemsPage() {
   const [selectedYear, setSelectedYear] = useState("All");
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false); // NEW STATE ADDED
   
 
   const dbRealtime = getDatabase();
 
   const [showConfirm, setShowConfirm] = useState(false);
-const [selectedItemId, setSelectedItemId] = useState(null);
-const [modal, setModal] = useState(false);
+  const [selectedItemId, setSelectedItemId] = useState(null);
+  const [modal, setModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
 
 
@@ -251,11 +247,15 @@ const filteredItems = items.filter(item => {
     }
   }
 
+  // Also filter by Category
+  const matchesCategory = selectedCategory === '' || item.category === selectedCategory;
+
+
   if (selectedYear === "All") {
-    return matchesSearch;
+    return matchesSearch && matchesCategory;
   }
 
-  return matchesSearch && itemYear === selectedYear;
+  return matchesSearch && itemYear === selectedYear && matchesCategory;
 });
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
@@ -270,32 +270,33 @@ const filteredItems = items.filter(item => {
     }
   };
 
+// --- START OF MODIFIED ARCHIVE ITEM FUNCTION ---
 const archiveItem = async (item) => {
+  if (!item.claimedBy || !item.claimedBy.uid) {
+    setAlert({ message: "You cannot archive unclaimed items.", type: "warning" });
+    return; 
+  }
+    
+  setIsArchiving(true); // START LOADING
+  
   try {
-    if (!item.claimedBy || !item.claimedBy.uid) {
-      setAlert({ message: "You cannot archive unclaimed items.", type: "warning" });
-      return; 
-    }
-
+    // 2. Find the document reference in the main collection using its ID
     const itemDocRef = doc(db, "foundItems", item.id); 
-    const archiveDocRef = doc(db, "archivedFoundItems", item.id);
 
-    // NOTE: setDoc and deleteDoc need to be imported
-    // The functions are available in the previous file's imports, ensuring they are present here
-    // import { setDoc, deleteDoc } from 'firebase/firestore'; 
-    await setDoc(archiveDocRef, {
-      ...item,
-      archivedAt: new Date(),
+    // 3. Update the archivedStatus field in the original document
+    await updateDoc(itemDocRef, {
+      archivedStatus: true,
+      archivedAt: new Date().toISOString(), // Add timestamp for archive date
     });
 
-    await deleteDoc(itemDocRef);
-
+    // 4. Show success alert
     setAlert({
       show: true,
-      message: "Item successfully archived!",
+      message: `Item ${item.itemId} successfully archived!`,
       type: "success",
     });
 
+    // 5. Update local state to remove the item from the current view
     setItems((prev) => prev.filter((i) => i.id !== item.id));
 
   } catch (error) {
@@ -305,8 +306,12 @@ const archiveItem = async (item) => {
       message: "Failed to archive item. Please try again.",
       type: "danger",
     });
+  } finally {
+    setIsArchiving(false); // STOP LOADING
   }
 };
+// --- END OF MODIFIED ARCHIVE ITEM FUNCTION ---
+
 
 const styles = {
     foundItemBody: {
@@ -517,11 +522,32 @@ const styles = {
         fontWeight: 'bold',
         border: '1px solid #007bff',
     },
+    globalLoadingOverlay: { // NEW STYLE
+        position: "fixed",
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: "rgba(0,0,0,0.7)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 9999,
+        flexDirection: "column",
+        color: "white",
+        fontSize: "20px",
+        fontWeight: "bold"
+    }
 };
   
 
   return (
     <>
+        {/* GLOBAL LOADING OVERLAY */}
+        {isArchiving && (
+            <div style={styles.globalLoadingOverlay}>
+                <Spinner animation="border" variant="light" style={{ width: "4rem", height: "4rem" }} />
+                <p style={{ marginTop: "15px" }}>Archiving item, please wait...</p>
+            </div>
+        )}
+        
         {verifying && (
         <div style={{
           position: "fixed",
@@ -558,6 +584,7 @@ const styles = {
               <button 
                 className="btn btn-secondary" 
                 onClick={() => setShowConfirm(false)}
+                disabled={isArchiving} // Disable Cancel during processing
               >
                 Cancel
               </button>
@@ -569,8 +596,9 @@ const styles = {
                   }
                   setShowConfirm(false);
                 }}
+                disabled={isArchiving} // Disable Archive during processing
               >
-                Archive
+                {isArchiving ? <Spinner animation="border" size="sm" /> : "Archive"}
               </button>
 
             </Modal.Footer>
@@ -583,6 +611,7 @@ const styles = {
             onClose={() => setAlert(null)}
           />
         )}
+        
 
       <NavigationBar />
       <BlankHeader /> 

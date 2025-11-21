@@ -8,6 +8,8 @@ import NavigationBar from '../components/NavigationBar.jsx'
 import BlankHeader from '../components/BlankHeader.jsx'
 // import UserBlankHeader from '../user_components/UserBlankHeader.jsx' // Not used in this version
 import { useNavigate, useLocation } from 'react-router-dom';
+import UserNavigationBar from '../user_components/UserNavigationBar.jsx';
+import UserBlankHeader from '../user_components/UserBlankHeader.jsx';
 // import UserNavigationBar from '../user_components/UserNavigationBar.jsx'; // Not used in this version
 
 // 🎨 MODERN STYLES DEFINITION
@@ -271,9 +273,9 @@ function UserProfilePage() {
 
     return (
         <>
-            <NavigationBar />
+            <UserNavigationBar />
             <div style={styles.profileBody}>
-                <BlankHeader /> 
+                <UserBlankHeader /> 
 
                 <div style={styles.mainContainer}>
                     
