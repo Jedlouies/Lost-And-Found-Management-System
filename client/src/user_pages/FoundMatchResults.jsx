@@ -1,5 +1,5 @@
 import React from 'react';
-import './styles/FoundMatchResults.css';
+// Removed: import './styles/FoundMatchResults.css'; - styles are now inline
 import UserFoundItemsPage from './UserFoundItemsPage';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from "firebase/auth";
@@ -28,195 +28,506 @@ export default function FoundMatchResults() {
   const handleMatchAnother = (path) => {
     navigate(path)
   }
+  
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text).then(() => {
+      // Simple visual feedback for the user
+      alert(`Transaction ID ${text} copied to clipboard!`); 
+    });
+  };
+
+  const styles = {
+    // General styles for main container and background
+    mainContainer: {
+      minHeight: '100vh',
+      backgroundColor: '#f4f4f4', // Light gray background
+      padding: '20px 0 100px 0',
+      fontFamily: 'Arial, sans-serif',
+    },
+    resultsContainer: {
+      width: '95%',
+      maxWidth: '1200px',
+      margin: '0 auto',
+      padding: '20px',
+    },
+    heading: {
+      color: '#475C6F',
+      fontSize: '28px',
+      fontWeight: '700',
+      marginBottom: '30px',
+      borderBottom: '3px solid #BDDDFC',
+      paddingBottom: '10px',
+    },
+    noMatchContainer: {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      minHeight: "60vh", 
+      width: "100%",
+    },
+    noMatchText: {
+      color: "#475C6F",
+      fontSize: "20px",
+      textAlign: 'center',
+      padding: '20px',
+      backgroundColor: 'white',
+      borderRadius: '12px',
+      boxShadow: '0 4px 8px rgba(0,0,0,0.05)',
+    },
+
+    // Card Styles
+    matchCardGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+        gap: '25px',
+    },
+    matchingCard: {
+      backgroundColor: 'white',
+      borderRadius: '12px',
+      boxShadow: '0 6px 15px rgba(0, 0, 0, 0.1)',
+      padding: '25px',
+      textAlign: 'center',
+      position: 'relative',
+      transition: 'transform 0.2s, box-shadow 0.2s',
+      overflow: 'hidden',
+    },
+    // Rank Number
+    rankNumber: {
+        position: 'absolute',
+        top: '10px',
+        right: '20px',
+        fontSize: '48px',
+        fontWeight: '900',
+        color: '#BDDDFC', // Light primary color
+        zIndex: 1,
+    },
+    // Item Image
+    itemImage: {
+        border: '3px solid #475C6F',
+        width: '120px',
+        height: '120px',
+        objectFit: 'cover',
+        borderRadius: '50%',
+        marginTop: '15px',
+        marginBottom: '15px',
+    },
+    // Item Name
+    itemName: {
+        color: '#475C6F',
+        fontSize: '20px',
+        fontWeight: '700',
+        marginBottom: '20px',
+    },
+
+    // Matching Results Section
+    matchingResults: {
+        textAlign: 'left',
+        marginBottom: '25px',
+    },
+    progressBarFull: {
+        height: '10px',
+        backgroundColor: '#e0e0e0',
+        borderRadius: '5px',
+        marginTop: '5px',
+        overflow: 'hidden',
+    },
+    progressBarPercentage: (score) => ({
+        height: '100%',
+        backgroundColor: score >= 60 ? '#4caf50' : '#f31212ff', // Green for positive match
+        width: `${score}%`, // Directly use score as percentage
+        transition: 'width 0.5s ease-out',
+    }),
+    similarityText: {
+        color: '#475C6F',
+        fontSize: '14px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '5px',
+    },
+    scorePercent: (score) => ({
+        fontWeight: 'bold',
+        color: score >= 60 ? '#4caf50' : '#f31212ff', // Highlight good scores
+    }),
+
+    // Owner/Description Section
+    resultsMore: {
+        textAlign: 'left',
+        paddingTop: '15px',
+        borderTop: '1px solid #eee',
+    },
+    transactionID: {
+        color: '#777',
+        fontSize: '12px',
+        marginBottom: '15px',
+        display: 'flex',
+        alignItems: 'center',
+    },
+    copyIcon: {
+        marginLeft: '5px',
+        cursor: 'pointer',
+        color: '#475C6F',
+    },
+    profileInfo: {
+        backgroundColor: '#e9ecef',
+        borderRadius: '10px',
+        padding: '10px',
+        display: 'flex',
+        alignItems: 'center',
+        marginBottom: '15px',
+    },
+    profileImage: {
+        width: '45px',
+        height: '45px',
+        objectFit: 'cover',
+        borderRadius: '50%',
+        marginRight: '10px',
+    },
+    ownerName: {
+        fontSize: '16px',
+        fontWeight: 'bold',
+        color: '#475C6F',
+        marginBottom: '0px',
+    },
+    ownerCourse: {
+        fontSize: '12px',
+        color: '#6c757d',
+        fontStyle: 'italic',
+    },
+    descriptionQuote: {
+        color: '#475C6F',
+        width: '20px',
+        height: '20px',
+        marginBottom: '5px',
+    },
+    howItemDescription: {
+        color: '#475C6F',
+        fontSize: '13px',
+        height: '60px', // Limit height for consistency
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        marginBottom: '20px',
+        lineHeight: '1.4',
+    },
+
+    // Action Buttons
+    detailsButton: {
+        backgroundColor: '#475C6F',
+        color: 'white',
+        padding: '8px 20px',
+        borderRadius: '8px',
+        border: 'none',
+        cursor: 'pointer',
+        fontWeight: '600',
+        width: '100%',
+        transition: 'background-color 0.2s',
+    },
+    detailsButtonHover: {
+        backgroundColor: '#384d5c',
+    },
+
+    // Footer Buttons
+    footerContainer: {
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        width: '100%',
+        backgroundColor: 'white',
+        borderTop: '1px solid #ddd',
+        padding: '15px 5%',
+        boxShadow: '0 -2px 10px rgba(0,0,0,0.05)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        zIndex: 100,
+    },
+    footerButton: {
+        padding: '12px 25px',
+        borderRadius: '8px',
+        border: 'none',
+        cursor: 'pointer',
+        fontWeight: '600',
+        fontSize: '16px',
+        transition: 'background-color 0.2s',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+    },
+    continueButton: {
+        backgroundColor: '#475C6F',
+        color: 'white',
+    },
+    matchAnotherButton: {
+        backgroundColor: '#BDDDFC',
+        color: '#475C6F',
+        border: '1px solid #475C6F',
+    },
+
+    // Floating Panel (Detail Modal)
+    floatingPanel: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+    },
+    floatingPanelContent: {
+        backgroundColor: 'white',
+        padding: '30px',
+        borderRadius: '15px',
+        width: '90%',
+        maxWidth: '700px',
+        position: 'relative',
+        boxShadow: '0 5px 15px rgba(0,0,0,0.3)',
+        display: 'flex',
+        gap: '20px',
+        textAlign: 'left',
+    },
+    closeButton: {
+        position: 'absolute',
+        top: '10px',
+        right: '10px',
+        background: 'none',
+        border: 'none',
+        fontSize: '20px',
+        cursor: 'pointer',
+        color: '#475C6F',
+    },
+    detailImage: {
+      width: '250px',
+      height: '250px',
+      objectFit: 'cover',
+      borderRadius: '10px',
+    },
+    detailText: {
+        fontSize: '14px',
+        color: '#475C6F',
+        flexGrow: 1,
+    },
+    detailHeading: {
+        color: '#475C6F',
+        fontSize: '22px',
+        marginBottom: '15px',
+        borderBottom: '1px dashed #BDDDFC',
+        paddingBottom: '5px',
+    },
+    detailItem: {
+        marginBottom: '8px',
+    }
+  };
+
 
   return (
     <>
         {selectedItem && (
-        <div className="floating-panel">
-          <div className="floating-panel-content">
-            <button className="close-btn" onClick={() => setSelectedItem(null)}>X</button>
-            
-            <h2>{selectedItem.itemName}</h2>
+        <div style={styles.floatingPanel}>
+          <div style={styles.floatingPanelContent}>
+            <button style={styles.closeButton} onClick={() => setSelectedItem(null)}>
+              &times;
+            </button>
             
             {selectedItem.images?.[0] && (
               <img 
                 src={selectedItem.images[0]} 
-                alt="Item" 
-                style={{ width: "300px", height: "300px", objectFit: "cover", borderRadius: "10px" }} 
+                alt="Lost Item" 
+                style={styles.detailImage} 
               />
             )}
-            <div style={{position: 'absolute', textAlign: 'left', marginTop: '20px', top: '50px', left: '350px', fontSize: '12px', color: 'black'}}>
-            <p><b>Item ID:</b> {selectedItem.itemId}</p>
-            <p><b>Category:</b> {selectedItem.category}</p>
-            <p><b>Location Lost:</b> {selectedItem.locationLost}</p>
-            <p><b>Date Lost:</b> {selectedItem.dateLost 
-              ? new Date(selectedItem.dateFound).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) 
-              : "N/A"}</p>
-            <p><b>Description:</b> {selectedItem.howItemLost || "No description provided"}</p>
+            <div style={styles.detailText}>
+              <h2 style={styles.detailHeading}>{selectedItem.itemName}</h2>
+              
+              <p style={styles.detailItem}><b>Item ID:</b> {selectedItem.itemId}</p>
+              <p style={styles.detailItem}><b>Category:</b> {selectedItem.category}</p>
+              <p style={styles.detailItem}><b>Location Lost:</b> {selectedItem.locationLost}</p>
+              <p style={styles.detailItem}>
+                <b>Date Lost:</b> {selectedItem.dateLost 
+                  ? new Date(selectedItem.dateLost).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) 
+                  : "N/A"}
+              </p>
+              <p style={styles.detailItem}><b>Description:</b> {selectedItem.itemDescription || "No detailed description provided"}</p>
+              <p style={styles.detailItem}><b>How Lost:</b> {selectedItem.howItemLost || "N/A"}</p>
             </div>
           </div>
         </div>
       )}
 
-      <div className='background1'>
+      <div style={styles.mainContainer}>
        
-    <div className="p-6" style={{position: 'absolute',  padding: '20px', backgroundColor: '#D9D9D9', width: '100%', height: '130vh'}}>
-{matches.length === 0 && (
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      height: "80vh", // full vertical center
-      width: "100%",
-    }}
-  >
-    <p style={{ color: "black", fontSize: "20px", textAlign: 'center'}}>
-      No matches found. <br/> You can also clicked the match another for a different description and image.
-    </p>
-  </div>
-)}
-      <h1 style={{position: 'absolute', fontWeight: 'bold', fontSize: '20px'}}>Matching Found Item</h1>
+    <div style={styles.resultsContainer}>
+        <h1 style={styles.heading}>Matching Found Item Results</h1>
 
-
-      {matches.map((matches, index) => {
-        const lostItem = matches.lostItem || {};
-        const posterInfo = lostItem.personalInfo || {};
-        const scores = matches.scores || {};
-        
-        return (
-          
-          <div key={index} className='matching-card'>
-            
-            <p className="text-lg font-bold text-blue-600 mb-2" style={{position: 'relative', color: 'black', marginLeft: '45%', fontSize: '50px', fontWeight: 'bold'}}>
-              {index + 1}
-            </p>
-              <h2 className="text-lg font-semibold mb-1" style={{ color: 'black', fontSize: '24px ', fontWeight: 'bold' }}>
-                {lostItem.itemName || 'Unnamed Item'}
-              </h2>
-             {lostItem.images && lostItem.images.length > 0 && (
-              <img
-                src={lostItem.images[0]}
-                alt="Lost Item"
-                className="images"
-                style={{ border: '2px solid #475C6F', width: '100px', height: '100px', objectFit: 'cover', borderRadius: '200px', marginTop: '20px' }}
-              />
-            )}
-            <div className='matching-results' style={{marginTop: '20px'}}>
-                  <p style={{ color: 'black' }}>
-                    <strong>Image Similarity:</strong> {scores.imageScore || 0}%
-                  </p>
-                  <div className='progress-bar-full'>
-                    <div
-                      className="progress-bar-percentage"
-                      style={{ width: `${(scores.imageScore || 0) * 1.9}px` }}
-                    ></div>
-                  </div>
-                  <br />
-                  <p style={{ color: 'black' }}>
-                    <strong>Name Similarity:</strong> {scores.nameScore || 0}%
-                  </p>
-                  <div className='progress-bar-full'>
-                    <div
-                      className="progress-bar-percentage"
-                      style={{ width: `${(scores.nameScore || 0) * 1.9}px` }}
-                    ></div>
-                  </div>
-                  <br />
-                  <p style={{ color: 'black' }}>
-                    <strong>Description Similarity:</strong> {scores.descriptionScore || 0}%
-                  </p>
-                  <div className='progress-bar-full'>
-                    <div
-                      className="progress-bar-percentage"
-                      style={{ width: `${(scores.descriptionScore || 0) * 1.9}px` }}
-                    ></div>
-                  </div>
-                  <br />
-                  <p style={{ color: 'black' }}>
-                    <strong>Location Similarity:</strong> {scores.locationScore || 0}%
-                  </p>
-                  <div className='progress-bar-full'>
-                    <div
-                      className="progress-bar-percentage"
-                      style={{ width: `${(scores.locationScore || 0) * 1.9}px` }}
-                    ></div>
-                  </div>
-                  <br />
-                  <p className="font-semibold text-blue-700" style={{ color: 'black' }}>
-                    <strong>Overall Match:</strong> {scores.overallScore || 0}%
-                  </p>
-                  <div className='progress-bar-full'>
-                  <div
-                      className="progress-bar-percentage"
-                      style={{ width: `${(scores.overallScore || 0) * 1.9}px` }}
-                    ></div>
-                  </div>
-                  <br />
-                  
-            </div>
-
-            <div className='results-more' style={{marginTop: '-80px'}}>
-              <p className="text-sm text-gray-600 mb-2" style={{ color: 'black', fontSize: '12px'}}>
-                <strong>Transaction ID:</strong> {matches.transactionId}
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-copy" viewBox="0 0 16 16" style={{marginLeft: '5px', cursor: 'pointer'}}>
-                  <path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/>
-                </svg>
-
-              </p>
-
-            
-
-              
-              <div className='matching-profile-info' style={{backgroundColor: '#cbcbcb', borderRadius: '20px', position: 'relative', height: '50px', width: '310px', padding: '5px'}}>
-                  <img src={posterInfo.profileURL} alt="img" style={{position: 'absolute', width: '40px', height: '40px', objectFit: 'cover', borderRadius: '40px'}}/>
-                  <div className='owner-info' style={{ color: 'black', position: 'absolute',   marginLeft: '60px' }}>
-                    <p style={{ color: 'black', fontSize: '20px', fontWeight: 'bold' }}>
-                      {posterInfo.firstName} {posterInfo.lastName}
-                    </p>
-                    <p style={{ color: 'black', fontStyle: 'italic' }}>
-                  {posterInfo.course
-                    ? typeof posterInfo.course === "object"
-                      ? `${posterInfo.course.abbr || ""}`
-                      : "N/A"
-                    : "N/A"}
+        {matches.length === 0 && (
+            <div style={styles.noMatchContainer}>
+                <p style={styles.noMatchText}>
+                    No immediate close matches found. <br/> 
+                    You can still click **Continue** to proceed or **Match Another** to submit a new report.
                 </p>
+            </div>
+        )}
+
+      <div style={styles.matchCardGrid}>
+        {matches.map((match, index) => {
+            const lostItem = match.lostItem || {};
+            const posterInfo = lostItem.personalInfo || {};
+            const scores = match.scores || {};
+            
+            // Format score values
+            const formatScore = (score) => Math.round(score || 0);
+            const overallScore = formatScore(scores.overallScore);
+            const imageScore = formatScore(scores.imageScore);
+            const nameScore = formatScore(scores.nameScore);
+            const descriptionScore = formatScore(scores.descriptionScore);
+            const locationScore = formatScore(scores.locationScore);
 
 
+            return (
+              <div key={index} style={styles.matchingCard}>
+                
+                <p style={styles.rankNumber}>
+                  #{index + 1}
+                </p>
+                <h2 style={styles.itemName}>
+                  {lostItem.itemName || 'Unnamed Lost Item'}
+                </h2>
+                {lostItem.images && lostItem.images.length > 0 && (
+                  <img
+                    src={lostItem.images[0]}
+                    alt="Lost Item"
+                    style={styles.itemImage}
+                  />
+                )}
 
-                  </div>
-                  
-              </div>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-quote" viewBox="0 0 16 16">
-                <path d="M12 12a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1h-1.388q0-.527.062-1.054.093-.558.31-.992t.559-.683q.34-.279.868-.279V3q-.868 0-1.52.372a3.3 3.3 0 0 0-1.085.992 4.9 4.9 0 0 0-.62 1.458A7.7 7.7 0 0 0 9 7.558V11a1 1 0 0 0 1 1zm-6 0a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1H4.612q0-.527.062-1.054.094-.558.31-.992.217-.434.559-.683.34-.279.868-.279V3q-.868 0-1.52.372a3.3 3.3 0 0 0-1.085.992 4.9 4.9 0 0 0-.62 1.458A7.7 7.7 0 0 0 3 7.558V11a1 1 0 0 0 1 1z"/>
-              </svg>
-                <div className='howItemLost'>
-                    <p style={{color: 'black', fontSize: '12px', position: 'absolute',  width: '300px', height: '100px'}}>{lostItem.howItemLost}</p>
+                {/* Similarity Scores */}
+                <div style={styles.matchingResults}>
+                    <p style={styles.similarityText}>
+                        <strong>Overall Match:</strong> 
+                        <span style={styles.scorePercent(overallScore)}>{overallScore}%</span>
+                    </p>
+                    <div style={styles.progressBarFull}>
+                        <div style={styles.progressBarPercentage(overallScore)}></div>
+                    </div>
+                    
+                    <br />
+                    
+                    <p style={styles.similarityText}>
+                        <strong>Image Similarity:</strong> 
+                        <span style={styles.scorePercent(imageScore)}>{imageScore}%</span>
+                    </p>
+                    <div style={styles.progressBarFull}>
+                        <div style={styles.progressBarPercentage(imageScore)}></div>
+                    </div>
+                    
+                    <br />
+                    
+                    <p style={styles.similarityText}>
+                        <strong>Name Match:</strong> 
+                        <span style={styles.scorePercent(nameScore)}>{nameScore}%</span>
+                    </p>
+                    <div style={styles.progressBarFull}>
+                        <div style={styles.progressBarPercentage(nameScore)}></div>
+                    </div>
+                    
+                    <br />
+                    
+                    <p style={styles.similarityText}>
+                        <strong>Description Match:</strong> 
+                        <span style={styles.scorePercent(descriptionScore)}>{descriptionScore}%</span>
+                    </p>
+                    <div style={styles.progressBarFull}>
+                        <div style={styles.progressBarPercentage(descriptionScore)}></div>
+                    </div>
+                    
+                    <br />
+                    
+                    <p style={styles.similarityText}>
+                        <strong>Location Match:</strong> 
+                        <span style={styles.scorePercent(locationScore)}>{locationScore}%</span>
+                    </p>
+                    <div style={styles.progressBarFull}>
+                        <div style={styles.progressBarPercentage(locationScore)}></div>
+                    </div>
                 </div>
-                <div className="matching-card-actions" style={{marginTop: '20%'}}>
-                <button onClick={() => setSelectedItem(lostItem)}>
-                  Details
-                </button>
+
+                {/* Poster Info and Description */}
+                <div style={styles.resultsMore}>
+                    <p style={styles.transactionID}>
+                      <strong>Transaction ID:</strong> {match.transactionId}
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="14" 
+                        height="14" 
+                        fill="currentColor" 
+                        className="bi bi-copy" 
+                        viewBox="0 0 16 16" 
+                        style={styles.copyIcon}
+                        onClick={() => handleCopy(match.transactionId)}
+                      >
+                        <path fillRule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1zM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1z"/>
+                      </svg>
+                    </p>
+
+                    <div style={styles.profileInfo}>
+                        <img src={posterInfo.profileURL} alt="Poster" style={styles.profileImage}/>
+                        <div>
+                            <p style={styles.ownerName}>
+                              {posterInfo.firstName} {posterInfo.lastName}
+                            </p>
+                            <p style={styles.ownerCourse}>
+                              {posterInfo.course && posterInfo.course.abbr || "N/A"}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" className="bi bi-quote" viewBox="0 0 16 16" style={styles.descriptionQuote}>
+                      <path d="M12 12a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1h-1.388q0-.527.062-1.054.093-.558.31-.992t.559-.683q.34-.279.868-.279V3q-.868 0-1.52.372a3.3 3.3 0 0 0-1.085.992 4.9 4.9 0 0 0-.62 1.458A7.7 7.7 0 0 0 9 7.558V11a1 1 0 0 0 1 1zm-6 0a1 1 0 0 0 1-1V8.558a1 1 0 0 0-1-1H4.612q0-.527.062-1.054.094-.558.31-.992.217-.434.559-.683.34-.279.868-.279V3q-.868 0-1.52.372a3.3 3.3 0 0 0-1.085.992 4.9 4.9 0 0 0-.62 1.458A7.7 7.7 0 0 0 3 7.558V11a1 1 0 0 0 1 1z"/>
+                    </svg>
+                    <p style={styles.howItemDescription}>{lostItem.howItemLost}</p>
+                    
+                    <div style={{marginTop: '10px'}}>
+                      <button 
+                        onClick={() => setSelectedItem(lostItem)}
+                        style={styles.detailsButton}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = styles.detailsButtonHover.backgroundColor}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = styles.detailsButton.backgroundColor}
+                      >
+                        View Details
+                      </button>
+                    </div>
+          
+                </div>
+                
               </div>
-      
-              </div>
-              
-              
-          </div>
-           
-        );
-      })}
+            );
+        })}
       </div>
-      <div className='matching-buttons-footer'>
-        <button style={{top: '92%', marginLeft: '5%', marginRight: '10%'}} onClick={handleNavigate}>
+      </div>
+      
+      {/* Footer Buttons */}
+      <div style={styles.footerContainer}>
+        <button 
+          style={{...styles.footerButton, ...styles.continueButton}} 
+          onClick={handleNavigate}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = styles.detailsButtonHover.backgroundColor}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = styles.continueButton.backgroundColor}
+        >
           Continue
         </button>
-        <button style={{top: '92%', marginLeft: '80%'}} className={`${location.pathname === `/users/found-items/procedure/item-details/${user?.uid}` ? 'active' : ''}`} onClick={() => handleMatchAnother(`/users/found-items/procedure/item-details/${user?.uid}`)}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16" style={{marginRight: '10px'}}>
+        <button 
+          style={{...styles.footerButton, ...styles.matchAnotherButton}} 
+          onClick={() => handleMatchAnother(`/users/found-items/procedure/item-details/${user?.uid}`)}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#a7cce2'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = styles.matchAnotherButton.backgroundColor}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" className="bi bi-arrow-repeat" viewBox="0 0 16 16">
             <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41m-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9"/>
-            <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
+            <path fillRule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5 5 0 0 0 8 3M3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9z"/>
           </svg>
-          Match Another
+          Match Another Report
         </button>
       
       </div>

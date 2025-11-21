@@ -265,7 +265,6 @@ function ItemMoreDetailsPage() {
                 <h1 style={styles.titleH1}>{item.itemName}</h1>
                 <p style={styles.itemIdP}>Item ID No. {item.itemId}</p>
 
-                {/* ITEM DESCRIPTION */}
                 <h3 style={styles.detailH3}>Description</h3>
                 <p style={styles.detailP}>
                     {item.itemDescription || "No description provided."}

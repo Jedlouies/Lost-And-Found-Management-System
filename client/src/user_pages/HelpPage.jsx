@@ -210,8 +210,9 @@ function HelpPage() {
   return (
     <>
       <UserNavigationBar />
+              <UserBlankHeader />
+
       <div style={styles.pageBody}>
-        <UserBlankHeader />
         <div style={styles.pageContainer}>
           <h2 style={styles.mainTitle}>SpotSync Help Center</h2>
           <p style={styles.introText}>
