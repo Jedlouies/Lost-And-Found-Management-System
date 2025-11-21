@@ -738,7 +738,7 @@ const formStyles = {
         <div style={formStyles.matchingOverlay}>
           <div style={formStyles.matchingContent}>
             <img src="/Spin_black.gif" alt="Scanning" style={{ width: '60px', height: '60px', marginBottom: '20px', filter: 'invert(1)' }} />
-            <div style={formStyles.matchingText}>Searching for Matches...</div>
+            <div style={formStyles.matchingText}>AI Matching...</div>
             <div style={formStyles.progressContainer}>
               <div style={{ ...formStyles.progressBar, width: `${progress}%` }}></div>
             </div>

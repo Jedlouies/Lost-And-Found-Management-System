@@ -206,26 +206,14 @@ app.post("/api/moderate-image", async (req, res) => {
     res.status(statusCode).json({ error: errorMessage, isSafe: false }); 
   }
 });
-
 app.post("/api/match/found-to-lost", async (req, res) => {
   try {
     const { uidFound } = req.body;
     const foundDoc = await db.collection("foundItems").doc(uidFound).get();
     if (!foundDoc.exists) return res.status(404).json({ error: "Found item not found." });
     const foundItem = foundDoc.data();
-    
-    // Get the UID of the user who posted the FOUND item
-    const foundItemPosterUid = foundItem.uid;
 
-    // Query lost items by category AND exclude items posted by the same user
-    let lostQuery = db.collection("lostItems").where("category", "==", foundItem.category);
-    
-    // Add the filter to exclude the current user's own items
-    if (foundItemPosterUid) {
-        lostQuery = lostQuery.where("uid", "!=", foundItemPosterUid);
-    }
-
-    const lostSnapshot = await lostQuery.get();
+    const lostSnapshot = await db.collection("lostItems").where("category", "==", foundItem.category).get();
     const matches = [];
 
     for (const lostDoc of lostSnapshot.docs) {
@@ -263,18 +251,7 @@ app.post("/api/match/lost-to-found", async (req, res) => {
     if (!lostDoc.exists) return res.status(404).json({ error: "Lost item not found." });
     const lostItem = lostDoc.data();
 
-    // Get the UID of the user who posted the LOST item
-    const lostItemPosterUid = lostItem.uid;
-
-    // Query found items by category AND exclude items posted by the same user
-    let foundQuery = db.collection("foundItems").where("category", "==", lostItem.category);
-
-    // Add the filter to exclude the current user's own items
-    if (lostItemPosterUid) {
-        foundQuery = foundQuery.where("uid", "!=", lostItemPosterUid);
-    }
-    
-    const foundSnapshot = await foundQuery.get();
+    const foundSnapshot = await db.collection("foundItems").where("category", "==", lostItem.category).get();
     const matches = [];
 
     for (const foundDoc of foundSnapshot.docs) {
@@ -310,13 +287,15 @@ app.post("/api/send-email", async (req, res) => {
 
     const wrappedHtml = `
       <div style="font-family: Arial, sans-serif; text-align: center; background-color: #f9f9f9; padding: 20px;">
-                <img 
+        <!-- Header -->
+        <img 
           src="https://server.spotsync.site/Email-Header.png" 
           alt="SpotSync Header" 
           style="max-width: 100%; height: auto; margin-bottom: 20px;" 
         />
 
-                <div style="background: white; padding: 25px; border-radius: 10px; margin: 0 auto; max-width: 600px;">
+        <!-- Dynamic Content -->
+        <div style="background: white; padding: 25px; border-radius: 10px; margin: 0 auto; max-width: 600px;">
           ${html}
         </div>
 
@@ -601,3 +580,4 @@ export {
     calculateMatchScore, 
     checkFoundItems 
 };
+
