@@ -639,7 +639,7 @@ const styles = {
                 
                 <button 
                     onClick={() => handleNavigate(`/admin/found-items/archive/${user?.uid}`)}
-                    style={styles.actionButton}
+                    style={{border: '1px solid #333', backgroundColor: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', fontWeight: '500', color: '#333', height: '40px', borderRadius: '6px', padding: '8px 15px'}}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-archive" viewBox="0 0 16 16" style={{marginRight: '5px'}}>
                     <path d="M0 2a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 1 12.5V5a1 1 0 0 1-1-1zm2 3v7.5A1.5 1.5 0 0 0 3.5 14h9a1.5 1.5 0 0 0 1.5-1.5V5zm13-3H1v2h14zM5 7.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
@@ -650,8 +650,9 @@ const styles = {
                 <span style={{color: '#555'}}>Year:</span>
                 <DropdownButton
                   id="dropdown-academic-year"
+                  variant='light'
                   title={selectedYear === "All" ? "All Years" : selectedYear}
-                  style={{ marginLeft: '0px', height: '40px',  }}
+                  style={{ marginLeft: '0px', height: '40px', borderRadius: '6px', border: '1px solid #333' }}
                 >
                   <Dropdown.Item onClick={() => setSelectedYear("All")}>All Years</Dropdown.Item>
                   <Dropdown.Item onClick={() => setSelectedYear("2022")}>2022</Dropdown.Item>
@@ -663,8 +664,9 @@ const styles = {
                 <span style={{color: '#555'}}>Category:</span>
                 <DropdownButton
                     id="dropdown-category"
+                    variant='light'
                     title={selectedCategory || "Select Category"}
-                    style={{ marginLeft: '0px', height: '40px' }}
+                    style={{ marginLeft: '0px', height: '40px', borderRadius: '6px', border: '1px solid #333' }}
                 >
                     <Dropdown.Item onClick={() => setSelectedCategory("")}>All Categories</Dropdown.Item>
                     <Dropdown.Item onClick={() => setSelectedCategory("Gadgets")}>Gadgets</Dropdown.Item>

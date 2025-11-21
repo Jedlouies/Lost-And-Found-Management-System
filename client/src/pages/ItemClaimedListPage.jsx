@@ -189,6 +189,7 @@ function ItemClaimedListPage() {
       display: 'flex',
       alignItems: 'center',
       marginBottom: '20px',
+      justifyContent: 'space-between',
     },
     filterLabel: {
       marginRight: '10px',
@@ -241,8 +242,9 @@ function ItemClaimedListPage() {
                 <span style={{marginRight: '10px'}}>Academic Year:</span>
                 <DropdownButton
                     id="dropdown-academic-year"
+                    variant='light'
                     title={selectedYear === "All" ? "All Years" : selectedYear}
-                   
+                   style={{border: '1px solid #333', borderRadius: '6px'}}
                     
                 >
                     <Dropdown.Item onClick={() => setSelectedYear("All")}>All</Dropdown.Item>

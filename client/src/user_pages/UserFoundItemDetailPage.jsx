@@ -361,7 +361,18 @@ const handleSubmit = async (e) => {
       body: JSON.stringify({ uidFound: docRef.id }),
     });
 
-    if (!matchResponse.ok) throw new Error("Matching failed");
+    if (!matchResponse.ok) {
+        // IMPROVED ERROR HANDLING: Try to get the specific error from the server
+        let errorBody;
+        try {
+            errorBody = await matchResponse.json();
+        } catch (e) {
+            // Server response was not JSON
+            throw new Error(`Matching failed: Server responded with status ${matchResponse.status}.`);
+        }
+        // Throw the server's detailed error message if available
+        throw new Error(errorBody.error || "Matching failed due to a server error.");
+    }
     const matches = await matchResponse.json();
 
       clearInterval(interval);

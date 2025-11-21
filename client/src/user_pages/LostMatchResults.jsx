@@ -76,17 +76,25 @@ export default function LostMatchResults() {
       boxShadow: '0 4px 8px rgba(0,0,0,0.05)',
     },
 
-    // Card Styles
+    // Card Styles - MODIFIED TO ENSURE 4-COLUMN LAYOUT
     matchCardGrid: {
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '25px',
+        // Sets exactly 4 columns of equal size
+        gridTemplateColumns: 'repeat(4, 1fr)', 
+        gap: '20px', // Adjusted gap for better fit
+        // Added media query for responsiveness on smaller screens
+        '@media (maxWidth: 1024px)': {
+            gridTemplateColumns: 'repeat(2, 1fr)',
+        },
+        '@media (maxWidth: 600px)': {
+            gridTemplateColumns: '1fr',
+        },
     },
     matchingCard: {
       backgroundColor: 'white',
       borderRadius: '12px',
       boxShadow: '0 6px 15px rgba(0, 0, 0, 0.1)',
-      padding: '25px',
+      padding: '15px', // Reduced padding slightly to fit 4 cards
       textAlign: 'center',
       position: 'relative',
       transition: 'transform 0.2s, box-shadow 0.2s',
@@ -96,71 +104,74 @@ export default function LostMatchResults() {
     rankNumber: {
         position: 'absolute',
         top: '10px',
-        right: '20px',
-        fontSize: '48px',
+        right: '15px', // Adjusted position
+        fontSize: '40px', // Reduced size slightly
         fontWeight: '900',
-        color: '#475C6F', // Light primary color
+        color: '#475C6F', 
         zIndex: 1,
     },
     // Item Image
     itemImage: {
         border: '3px solid #475C6F',
-        width: '120px',
-        height: '120px',
+        width: '100px', // Reduced size
+        height: '100px', // Reduced size
         objectFit: 'cover',
         borderRadius: '50%',
-        marginTop: '15px',
-        marginBottom: '15px',
+        marginTop: '10px', // Adjusted margin
+        marginBottom: '10px', // Adjusted margin
     },
     // Item Name
     itemName: {
         color: '#475C6F',
-        fontSize: '20px',
+        fontSize: '18px', // Reduced size
         fontWeight: '700',
-        marginBottom: '20px',
+        marginBottom: '15px', // Adjusted margin
+        height: '40px', // Fixed height for consistency
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
     },
 
     // Matching Results Section
     matchingResults: {
         textAlign: 'left',
-        marginBottom: '25px',
+        marginBottom: '20px', // Adjusted margin
     },
     progressBarFull: {
-        height: '10px',
+        height: '8px', // Reduced height
         backgroundColor: '#e0e0e0',
         borderRadius: '5px',
-        marginTop: '5px',
+        marginTop: '3px',
         overflow: 'hidden',
     },
     progressBarPercentage: (score) => ({
         height: '100%',
         backgroundColor: score >= 60 ? '#4caf50' : '#f31212ff', // Green for positive match
-        width: `${score}%`, // Directly use score as percentage
+        width: `${score}%`,
         transition: 'width 0.5s ease-out',
     }),
     similarityText: {
         color: '#475C6F',
-        fontSize: '14px',
+        fontSize: '12px', // Reduced size
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '5px',
+        marginBottom: '3px',
     },
     scorePercent: (score) => ({
         fontWeight: 'bold',
-        color: score >= 60 ? '#4caf50' : '#f31212ff', // Highlight good scores
+        color: score >= 60 ? '#4caf50' : '#f31212ff',
     }),
 
     // Owner/Description Section
     resultsMore: {
         textAlign: 'left',
-        paddingTop: '15px',
+        paddingTop: '10px', // Adjusted padding
         borderTop: '1px solid #eee',
     },
     transactionID: {
         color: '#777',
-        fontSize: '12px',
-        marginBottom: '15px',
+        fontSize: '10px', // Reduced size
+        marginBottom: '10px', // Adjusted margin
         display: 'flex',
         alignItems: 'center',
     },
@@ -171,44 +182,44 @@ export default function LostMatchResults() {
     },
     profileInfo: {
         backgroundColor: '#e9ecef',
-        borderRadius: '10px',
-        height: '60px',
-        padding: '10px',
+        borderRadius: '8px', // Reduced radius
+        padding: '8px', // Reduced padding
+        height: '50px', // Adjusted height
         display: 'flex',
         alignItems: 'center',
-        marginBottom: '15px',
+        marginBottom: '10px',
     },
     profileImage: {
-        width: '45px',
-        height: '45px',
+        width: '35px', // Reduced size
+        height: '35px', // Reduced size
         objectFit: 'cover',
         borderRadius: '50%',
-        marginRight: '10px',
+        marginRight: '8px',
     },
     ownerName: {
-        fontSize: '16px',
+        fontSize: '14px', // Reduced size
         fontWeight: 'bold',
         color: '#475C6F',
         marginBottom: '0px',
     },
     ownerCourse: {
-        fontSize: '12px',
+        fontSize: '10px', // Reduced size
         color: '#6c757d',
         fontStyle: 'italic',
     },
     descriptionQuote: {
         color: '#475C6F',
-        width: '20px',
-        height: '20px',
+        width: '18px', // Reduced size
+        height: '18px', // Reduced size
         marginBottom: '5px',
     },
     howItemDescription: {
         color: '#475C6F',
-        fontSize: '13px',
-        height: '60px', // Limit height for consistency
+        fontSize: '11px', // Reduced size
+        height: '40px', // Reduced height for consistency
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        marginBottom: '20px',
+        marginBottom: '15px',
         lineHeight: '1.4',
     },
 
@@ -216,8 +227,8 @@ export default function LostMatchResults() {
     detailsButton: {
         backgroundColor: '#475C6F',
         color: 'white',
-        padding: '8px 20px',
-        borderRadius: '8px',
+        padding: '6px 15px', // Reduced padding
+        borderRadius: '6px', // Reduced radius
         border: 'none',
         cursor: 'pointer',
         fontWeight: '600',
@@ -228,44 +239,7 @@ export default function LostMatchResults() {
         backgroundColor: '#384d5c',
     },
 
-    // Footer Buttons
-    footerContainer: {
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        width: '100%',
-        backgroundColor: 'white',
-        borderTop: '1px solid #ddd',
-        padding: '15px 5%',
-        boxShadow: '0 -2px 10px rgba(0,0,0,0.05)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        zIndex: 100,
-    },
-    footerButton: {
-        padding: '12px 25px',
-        borderRadius: '8px',
-        border: 'none',
-        cursor: 'pointer',
-        fontWeight: '600',
-        fontSize: '16px',
-        transition: 'background-color 0.2s',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-    },
-    continueButton: {
-        backgroundColor: '#475C6F',
-        color: 'white',
-    },
-    matchAnotherButton: {
-        backgroundColor: '#BDDDFC',
-        color: '#475C6F',
-        border: '1px solid #475C6F',
-    },
-
-    // Floating Panel (Detail Modal)
+    // Floating Panel (Detail Modal) styles remain largely the same for detail readability
     floatingPanel: {
         position: 'fixed',
         top: 0,
@@ -323,10 +297,10 @@ export default function LostMatchResults() {
         color: '#333',
     },
 
-    // Copied Message Popup
+    // Copied Message Popup styles remain the same
     copiedMessage: {
       position: 'fixed',
-      bottom: '90px', // Adjusted to sit above the footer
+      bottom: '90px', 
       right: '20px',
       background: '#4caf50',
       color: 'white',
@@ -335,7 +309,43 @@ export default function LostMatchResults() {
       boxShadow: '0px 2px 8px rgba(0,0,0,0.2)',
       zIndex: 1001,
       transition: 'opacity 0.3s ease-in-out',
-    }
+    },
+     // Footer Buttons styles remain the same
+    footerContainer: {
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        width: '100%',
+        backgroundColor: 'white',
+        borderTop: '1px solid #ddd',
+        padding: '15px 5%',
+        boxShadow: '0 -2px 10px rgba(0,0,0,0.05)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        zIndex: 100,
+    },
+    footerButton: {
+        padding: '12px 25px',
+        borderRadius: '8px',
+        border: 'none',
+        cursor: 'pointer',
+        fontWeight: '600',
+        fontSize: '16px',
+        transition: 'background-color 0.2s',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+    },
+    continueButton: {
+        backgroundColor: '#475C6F',
+        color: 'white',
+    },
+    matchAnotherButton: {
+        backgroundColor: '#BDDDFC',
+        color: '#475C6F',
+        border: '1px solid #475C6F',
+    },
   };
 
 
