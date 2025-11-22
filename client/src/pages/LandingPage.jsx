@@ -16,7 +16,7 @@ const isAndroidMobile = () => {
 
 function LandingPage() {
 
-    const apkFilePath = 'https://drive.google.com/uc?export=download&id=1uBQd4oAu11yA_ggC0Q1uPM3iNp3sZNO';
+    const apkFilePath = 'https://drive.google.com/uc?export=download&id=1uBQd4oAu11yA_ggC0Q1uPM3iNpT3sZNO';
 
     const backgroundImagePath = '/landing-page-img.png';
     
