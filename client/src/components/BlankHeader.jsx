@@ -505,7 +505,7 @@ useEffect(() => {
           )}
 
           </div>
-           <p onClick={toggleDropDown}>{lastName}</p>
+           <p style={{color: 'white'}} onClick={toggleDropDown}>{lastName}</p>
         </div>
     </div>
     

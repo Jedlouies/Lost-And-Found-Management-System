@@ -502,7 +502,7 @@ async function checkFoundItems() {
       const deadlineMs = createdMs + 24 * 60 * 60 * 1000;
       const timeRemainingMs = deadlineMs - now;
       const hoursElapsed = (now - createdMs) / (1000 * 60 * 60);
-     const hoursRemaining = timeRemainingMs / (1000 * 60 * 60);
+     const hoursRemaining = timeRemainingMs / (1000 * 60 * 60);
 
       let remindersSent = Array.isArray(item.remindersSent) ? item.remindersSent.slice() : [];
 
@@ -520,10 +520,10 @@ async function checkFoundItems() {
                   from: "Spotsync <Onboarding@spotsync.site>",
                   to: item.personalInfo.email,
                   subject: `Reminder: ${t.label}`,
-               html: `<p>${reminderMessage}</p><p>Item: ${item.itemName || "N/A"}</p><p>Posted: ${new Date(createdMs).toISOString()}</p>`,
+               html: `<p>${reminderMessage}</p><p>Item: ${item.itemName || "N/A"}</p><p>Posted: ${new Date(createdMs).toISOString()}</p>`,
                 });
                 console.log(`[checkFoundItems] Email sent for ${id} (${t.key})`);
-           } catch (sendErr) {
+           } catch (sendErr) {
                 console.error(`[checkFoundItems] Email send failed for ${id} (${t.key}):`, sendErr);
                 continue;
               }
@@ -537,7 +537,7 @@ async function checkFoundItems() {
           }
         } catch (innerErr) {
           console.error(`[checkFoundItems] error handling threshold ${t.key} for ${id}:`, innerErr);
-       }
+       }
       }
 
       if (timeRemainingMs <= 0 && item.status === "pending") {
@@ -546,15 +546,19 @@ async function checkFoundItems() {
           await foundRef.update({ status: "cancelled" });
           console.log(`[checkFoundItems] Auto-cancelled found item ${id}`);
 
-          const imRef = db.collection("itemManagement").doc(id);
-         const imDoc = await imRef.get();
-          if (imDoc.exists && imDoc.data().status !== "cancelled") {
-            await imRef.update({ status: "cancelled" });
-            console.log(`[checkFoundItems] itemManagement status updated to "cancelled" for ${id}`);
-          }
+            const manageQuery = db.collection("itemManagement").where("itemId", "==", item.itemId);
+            const manageSnap = await manageQuery.get();
+
+            manageSnap.forEach(async (docSnap) => {
+                if (docSnap.exists) {
+                    await updateDoc(docSnap.ref, { status: "cancelled" });
+                    console.log(`[checkFoundItems] itemManagement status updated to "cancelled" for item ID ${item.itemId}`);
+                }
+            });
+
         } catch (cancelErr) {
           console.error(`[checkFoundItems] Failed to auto-cancel ${id}:`, cancelErr);
-       }
+       }
       }
     }
 
@@ -562,7 +566,6 @@ async function checkFoundItems() {
     console.error("[checkFoundItems] full job error:", err);
   }
 }
-
 checkFoundItems().catch(e => console.error("Initial checkFoundItems error:", e));
 const CHECK_INTERVAL_MS = 5 * 60 * 1000;
 setInterval(checkFoundItems, CHECK_INTERVAL_MS);

@@ -100,9 +100,9 @@ const handleVerifyItem = async (foundDocId, itemName, dbRealtime, setAlert, setI
         }
 
         for (const docSnap of manageSnap.docs) {
-            const manageData = docSnap.data();
             await updateDoc(docSnap.ref, { status: "posted" });
 
+            const manageData = docSnap.data();
             const topMatches = manageData.topMatches || [];
 
             // 1. Notify potential lost item owners
@@ -251,7 +251,6 @@ function DashboardPage() {
     const selectedItem = allPendingItems.find(item => item.itemId === itemIdToSearch);
     
     if (!selectedItem) {
-        // This is the correct error message if the item isn't in the pre-fetched list
         setVerifyError(`No pending found item found with ID: ${itemIdToSearch}`);
         return;
     }
@@ -273,7 +272,6 @@ function DashboardPage() {
         manageSnap.forEach(docSnap => {
             const data = docSnap.data();
             // We rely on the initial fetch for status, but confirm the record exists in management
-            // We don't strictly require a status match here as the main collection guarantees it's pending.
             foundPendingItem = {
                 ...data,
                 id: docSnap.id, 
@@ -931,12 +929,11 @@ useEffect(() => {
                                 onMouseLeave={(e) => { if (!isVerifying) e.currentTarget.style.backgroundColor = '#475C6F'; }}
                             >
                                 {isVerifying ? <Spinner animation="border" size="sm" /> : 
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-patch-check" viewBox="0 0 16 16">
-                                        <path fillRule="evenodd" d="M10.354 6.707a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 9.293l2.646-2.647a.5.5 0 0 1 .708 0z"/>
-                                        <path d="M10.273 2.651a.5.5 0 0 1 .457.135l1.529 1.529a.5.5 0 0 1 .135.457l-.372 2.115c.348.096.69.245 1.01.442l.334-.167a.5.5 0 0 1 .457.135l2.4 2.4a.5.5 0 0 1 0 .708l-2.4 2.4a.5.5 0 0 1-.457.135l-.334-.167a7.5 7.5 0 0 1-1.01.442l.372 2.115a.5.5 0 0 1-.135.457l-1.529 1.529a.5.5 0 0 1-.457.135l-2.115-.372a7.5 7.5 0 0 1-.442 1.01l.167.334a.5.5 0 0 1-.135.457l-2.4 2.4a.5.5 0 0 1-.708 0l-2.4-2.4a.5.5 0 0 1-.135-.457l.334-.167a7.5 7.5 0 0 1-1.01-.442l-.372 2.115a.5.5 0 0 1-.457.135l-1.529-1.529a.5.5 0 0 1-.135-.457l.372-2.115a7.5 7.5 0 0 1-.442-1.01l-.167-.334a.5.5 0 0 1-.457-.135l-2.4-2.4a.5.5 0 0 1 0-.708l2.4-2.4a.5.5 0 0 1 .457-.135l.334.167a7.5 7.5 0 0 1 1.01-.442l-.372-2.115a.5.5 0 0 1 .135-.457l1.529-1.529a.5.5 0 0 1 .457-.135l2.115.372a7.5 7.5 0 0 1 1.01-.442l-.167-.334a.5.5 0 0 1 .135-.457zM8 12.995a5 5 0 0 0 5-5 5 5 0 0 0-5-5 5 5 0 0 0-5 5 5 5 0 0 0 5 5"/>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-search" viewBox="0 0 16 16">
+                                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
                                     </svg>
                                 }
-                                Verify
+                                Search
                             </button>
                         </form>
                         

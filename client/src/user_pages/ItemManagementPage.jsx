@@ -17,7 +17,7 @@ import { Spinner } from "react-bootstrap";
 // import './styles/ItemManagementPage.css'; // Assuming this is kept
 
 
-// 🎨 MODERN UI STYLES DEFINITION
+// 🎨 MODERN UI STYLES DEFINITION (UPDATED statusCell logic)
 const styles = {
     foundItemBody: {
       backgroundColor: '#f4f4f4',
@@ -194,12 +194,14 @@ const styles = {
     statusCell: (status) => {
         let color = '#333';
         let background = '#eee';
-        const normStatus = status?.toLowerCase();
+        // Normalize the status string for consistent style checking
+        const normStatus = status?.toLowerCase() || '';
         
         if (normStatus === 'pending') { color = '#f90'; background = '#fff3e0'; }
-        else if (normStatus === 'cancelled') { color = '#dc3545'; background = '#f8d7da'; }
         else if (normStatus === 'posted') { color = '#007d3bff'; background = '#a9f4ccff'; }
-        // 'claimed' status falls back to default styling
+        else if (normStatus === 'claimed') { color = '#6f42c1'; background = '#e6e6fa'; }
+        // CRITICAL FIX: Generalized check for cancellation status (matches 'cancelled', 'canceled', 'Canceled', etc.)
+        else if (normStatus.includes('cancel')) { color = '#dc3545'; background = '#f8d7da'; } 
 
         return {
             padding: '4px 8px',
@@ -223,6 +225,12 @@ const styles = {
         backgroundColor: rate >= 75 ? '#28a745' : rate >= 50 ? '#ffc107' : '#dc3545',
         transition: 'width 0.3s',
     })
+};
+
+// Helper function to capitalize the first letter of a string
+const capitalizeStatus = (status) => {
+    if (!status) return 'N/A';
+    return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
 };
 
 
@@ -249,7 +257,7 @@ useEffect(() => {
 
     setLoading(true);
     
-    // Only fetch items belonging to the current user
+    // Note: This collection listener is tied to the current user's ID
     const q = query(
       collection(db, 'itemManagement'),
       where("uid", "==", currentUser.uid),
@@ -260,12 +268,14 @@ useEffect(() => {
       (snapshot) => {
         const managementItems = snapshot.docs.map(doc => {
           const data = doc.data();
-          // Normalized item data structure based on the original component's usage
+          
+          // Normalized item data structure
+          // Status read directly from itemManagement
           const dateSubmitted = data.dateSubmitted?.toDate ? data.dateSubmitted.toDate().toISOString() : data.dateSubmitted;
           const matchingRate = Math.round(data.highestMatchingRate || 0);
 
           return {
-            id: data.itemId,
+            id: data.itemId, 
             itemId: data.itemId,
             itemName: data.itemName || 'Unnamed',
             images: data.images || [],
@@ -274,7 +284,7 @@ useEffect(() => {
             location: data.locationFound || data.locationLost ||'N/A',
             category: data.category || 'N/A',
             claimStatus: data.claimStatus || 'unclaimed',
-            status: data.status || 'N/A',   
+            status: data.status || 'N/A', // <-- Use raw status from DB
             highestMatchingRate: matchingRate,
             ...data
           };
@@ -358,7 +368,6 @@ const filteredItems = items.filter(item => {
         <div style={styles.foundItemContainer}>
           <h1 style={styles.headerH1}>Item Management</h1>
 
-          {/* --- SEARCH, FILTER & ACTION ROW --- */}
           <div style={styles.filterRow}>
             
             <div style={styles.searchBar}>
@@ -424,7 +433,7 @@ const filteredItems = items.filter(item => {
                   </tr>
                 ) : displayedItems.length > 0 ? (
                   displayedItems.map((item, index) => {
-                    const normalizedStatus = item.status?.toLowerCase() || "";
+                    // Status is used AS IS from the itemManagement data
                     const submittedDate = item.dateSubmitted ? new Date(item.dateSubmitted).toLocaleDateString() : 'N/A';
 
                     return (
@@ -454,9 +463,9 @@ const filteredItems = items.filter(item => {
                               : item.location || "N/A"}
                         </td>
                         <td style={styles.tableDataCell}>
-                          {/* FIX 3: Status cell now only styles posted, cancelled, pending */}
-                          <span style={styles.statusCell(normalizedStatus)}>
-                            {item.status}
+                          <span style={styles.statusCell(item.status)}>
+                            {/* FIX: Apply capitalization for display */}
+                            {capitalizeStatus(item.status)}
                           </span>
                         </td>
                         <td style={styles.tableDataCell}>
