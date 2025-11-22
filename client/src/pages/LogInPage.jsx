@@ -43,7 +43,7 @@ function LogInPage() {
 
 
     try {
-      const userCredential = await login(studentId, password); 
+      const userCredential = await login(studentId, password); // Correctly uses Student ID
 
       await new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
@@ -130,6 +130,7 @@ function LogInPage() {
       }
 
       try {
+          // This logic correctly uses the studentIndex for password reset
           const studentDocRef = doc(db, 'studentIndex', forgotId.trim());
           const studentDocSnap = await getDoc(studentDocRef);
 

@@ -4,9 +4,9 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { signInAnonymously } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore"; // Ensure doc, getDoc are imported
 import createVerificationCode from "../components/createVerificationCode.jsx";
-import VerificationModal from "../components/VerificationModal"; // Assuming this path is correct
+import VerificationModal from "../components/VerificationModal"; 
 import 'bootstrap-icons/font/bootstrap-icons.css'; 
 
 // Combined logic from CreateAccount component
@@ -25,7 +25,7 @@ function SignInPage() {
   const contactNumberRef = useRef();
   const emailRef = useRef();
   const passwordRef = useRef();
-  const passwordConfirmRef = useRef(); // Kept for reference consistency
+  const passwordConfirmRef = useRef(); 
   
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -102,6 +102,7 @@ function SignInPage() {
   async function finalizeSignup() {
     try {
       // 1. Create the user account (sign up)
+      // NOTE: signup function in AuthContext already creates the user and the studentIndex entry.
       await signup(
         pendingUserData.email,
         pendingUserData.password,
@@ -112,8 +113,10 @@ function SignInPage() {
       );
       
       // 2. Auto-login the newly created user
+      // FIX: Use Email and Password for immediate auto-login as Firebase Auth works on Email/Password,
+      // which is the most reliable way to log in right after creation.
       const userCredential = await login(
-        pendingUserData.studentId, 
+        pendingUserData.email, // <--- CHANGED FROM studentId TO email
         pendingUserData.password
       );
       
