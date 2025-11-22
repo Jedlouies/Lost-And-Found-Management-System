@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { signInAnonymously } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { doc, getDoc } from "firebase/firestore"; // Ensure doc, getDoc are imported
+import { doc, getDoc } from "firebase/firestore"; 
 import createVerificationCode from "../components/createVerificationCode.jsx";
 import VerificationModal from "../components/VerificationModal"; 
 import 'bootstrap-icons/font/bootstrap-icons.css'; 
@@ -102,7 +102,7 @@ function SignInPage() {
   async function finalizeSignup() {
     try {
       // 1. Create the user account (sign up)
-      // NOTE: signup function in AuthContext already creates the user and the studentIndex entry.
+      // NOTE: signup function in AuthContext is what creates the user and the studentIndex entry in Firestore.
       await signup(
         pendingUserData.email,
         pendingUserData.password,
@@ -113,10 +113,10 @@ function SignInPage() {
       );
       
       // 2. Auto-login the newly created user
-      // FIX: Use Email and Password for immediate auto-login as Firebase Auth works on Email/Password,
-      // which is the most reliable way to log in right after creation.
+      // FIX: Using Email and Password for auto-login is the most reliable way right after account creation 
+      // since the Auth user exists via email. This bypasses potential race conditions with the Firestore studentIndex lookup.
       const userCredential = await login(
-        pendingUserData.email, // <--- CHANGED FROM studentId TO email
+        pendingUserData.email, // <--- CHANGED FROM studentId TO email FOR RELIABILITY
         pendingUserData.password
       );
       
