@@ -36,11 +36,11 @@ function UserSettingsPage() {
   const [email, setEmail] = useState(localStorage.getItem('email') || '');
   const [contactNumber, setContactNumber] = useState(localStorage.getItem('contactNumber') || '');
   const [bio, setBio] = useState('');
-  const [designation, setDesignation] = useState('');
+  const [designation, setDesignation] = useState('1');
   const [gender, setGender] = useState('');
-  const [yearsOfService, setYearsOfService] = useState('');
+  const [yearsOfService, setYearsOfService] = useState('1');
   const [updatingProfile, setUpdatingProfile] = useState(false);
-  const [educationalAttainment, setEducationalAttainment] = useState('');
+  const [educationalAttainment, setEducationalAttainment] = useState('1');
   const [address, setAddress] = useState('');
     const [updatingProfileInfo, setUpdatingProfileInfo] = useState(false);
 
