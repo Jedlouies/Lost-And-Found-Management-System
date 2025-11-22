@@ -1,8 +1,8 @@
-  import React, { useState, useEffect, useRef } from "react"; 
-  import { db } from "../firebase";
-  import { getDocs, collection, query, where } from "firebase/firestore";
+import React, { useState, useEffect, useRef } from "react"; 
+import { db } from "../firebase";
+import { getDocs, collection, query, where } from "firebase/firestore";
 
-  import {
+import {
     getDatabase,
     ref,
     push,
@@ -13,16 +13,17 @@
     onValue,
     get,
     update,
-  } from "firebase/database";
+} from "firebase/database";
 
-  import { useAuth } from "../context/AuthContext"; 
-  import { getAuth } from "firebase/auth"; 
-  import FloatingAlert from "../components/FloatingAlert";
+import { useAuth } from "../context/AuthContext"; 
+import { getAuth } from "firebase/auth"; 
+import FloatingAlert from "../components/FloatingAlert";
 
-  const dbRealtime = getDatabase();
-  const MAX_OPEN_CONVERSATIONS = 5;
+const dbRealtime = getDatabase();
+const MAX_OPEN_CONVERSATIONS = 5;
 
-  function ConversationView({ conversation, onClose, onReply, onBackToList }) {
+// --- ConversationView Component ---
+function ConversationView({ conversation, onClose, onReply, onBackToList }) {
     const [replyText, setReplyText] = useState("");
     const [sending, setSending] = useState(false);
     const { currentUser } = useAuth();
@@ -74,10 +75,13 @@
         await onReply(conversation.id, replyText);
         setReplyText("");
       } catch (error) {
+        // Error handling inside onReply handles UI alerts, here we just catch the throw
       } finally {
         setSending(false);
       }
     };
+
+    // Styling logic relies on embedded CSS from the main component's return block.
 
     return (
       <div className="conversation-view-panel">
@@ -89,8 +93,8 @@
           <button onClick={onClose} className="close-btn">&times;</button>
         </div>
         <div className="status-container">
-          <span>Status: <span style={{ color: conversation.status === 'open' ? 'orange' : 'green', fontWeight: 'bold' }}>{conversation.status.toUpperCase()}</span></span>
-          <span className="last-activity">Last: {new Date(conversation.lastMessageAt).toLocaleTimeString()}</span>
+          <span>Status: <span style={{ color: conversation.status === 'open' ? '#FF9800' : '#4CAF50', fontWeight: 'bold' }}>{conversation.status.toUpperCase()}</span></span>
+          <span className="last-activity">Last: {new Date(conversation.lastMessageAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
         </div>
         <div className="chat-area" ref={chatAreaRef}>
           {messages.length === 0 ? (
@@ -99,13 +103,10 @@
             messages.map((msg) => (
               <div key={msg.id} className={`message-row ${msg.from === 'user' ? 'user' : 'admin'}`}>
                 <div className="message-bubble">
-                  <span className="message-sender">{msg.from === 'user' ? 'You' : 'Admin'}:</span>
+                  {/* Removed explicit sender name from inside the bubble for cleaner look */}
                   <p className="message-text">{msg.text}</p>
                   <span className="message-timestamp">
-                    {new Date(msg.timestamp).toLocaleString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
+                    {new Date(msg.timestamp).toLocaleTimeString('en-US', {
                         hour: '2-digit',
                         minute: '2-digit',
                         hour12: true
@@ -124,21 +125,21 @@
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder="Type your reply..."
                 className="reply-input"
-                rows="2"
+                rows="1" // Start with 1 row, expand with CSS
                 disabled={sending}
               />
               <button onClick={handleSendReply} disabled={!replyText.trim() || sending} className="send-button">
                 {sending ? (
-                    <div className="spinner"></div> 
+                    <div className="spinner-small send-spinner"></div> 
                 ) : (
                     <svg 
                         xmlns="http://www.w3.org/2000/svg" 
-                        width="16" 
-                        height="16" 
+                        width="18" 
+                        height="18" 
                         fill="currentColor" 
                         viewBox="0 0 16 16"
                     >
-                        <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.5 9.75a.75.75 0 0 1 .124-1.33L15.314.036a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.155 2.113 6.636 10.07Z"/>
+                        <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124L3.178 10.375 1.488 9.77a.75.75 0 0 1 .124-1.33L15.314.036a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.155 2.113 6.636 10.07Z"/>
                     </svg>
                 )}
               </button>
@@ -149,9 +150,10 @@
         </div>
       </div>
     );
-  }
+}
 
-  export default function MessageAdminButton({ onSendSuccess, onSendError }) {
+// --- Main MessageAdminButton Component ---
+export default function MessageAdminButton({ onSendSuccess, onSendError }) {
     const { currentUser } = useAuth();
     const [alertState, setAlertState] = useState({ message: "", type: "info", visible: false });
     const userName = currentUser?.firstName && currentUser?.lastName ? `${currentUser.firstName} ${currentUser.lastName}` : currentUser?.email || "Unknown User";
@@ -242,7 +244,7 @@
             setSelectedConversation(localNewConvo); setIsViewConvoModalOpen(true);
         } catch (error) { console.error("Error starting new conversation:", error); handleError(error.message || "Failed to start conversation."); } finally { setLoading(false); }
     };
-    const handleUserReply = async (convoId, text) => { /* ... Keep handleUserReply logic ... */
+    const handleUserReply = async (convoId, text) => { 
         if (!currentUser?.uid) { handleError("User not authenticated."); throw new Error("User not authenticated."); }
         if (!text.trim()) return;
         const userUid = currentUser.uid; const messagesRef = ref(dbRealtime, `userConversations/${userUid}/conversations/${convoId}/messages`); const convoRef = ref(dbRealtime, `userConversations/${userUid}/conversations/${convoId}`);
@@ -336,7 +338,7 @@
             ) : (
               <div className="modal-content list-modal" onClick={(e) => e.stopPropagation()}>
                 <div className="list-header">
-                  <h3>Your Conversations ({openConversationCount} Open)</h3>
+                  <h3> Conversations ({openConversationCount} Open)</h3>
                   <button onClick={closeViewModal} className="close-btn list-close-btn">&times;</button>
                 </div>
                 <div className="convo-list-container">
@@ -360,7 +362,7 @@
                           <span className="convo-meta">
                             <span style={{ 
                                 fontWeight: 'bold', 
-                                color: convoStatus === 'open' ? 'green' : 'red'
+                                color: convoStatus === 'open' ? '#FF9800' : '#4CAF50' // Updated colors inline for clarity
                             }}>
                               {convoStatus.toUpperCase()}
                             </span>
@@ -376,7 +378,7 @@
                 <div className="list-footer">
                   {openConversationCount < MAX_OPEN_CONVERSATIONS && (
                       <button className="start-new-button" onClick={() => { setIsViewConvoModalOpen(false); setTimeout(handleOpenNewConvoModal, 100); }}>
-                        + Raise a concern ({openConversationCount}/{MAX_OPEN_CONVERSATIONS})
+                        + Raise a concern 
                       </button>
                   )}
                 </div>
@@ -385,17 +387,19 @@
           </div>
         )}
 
+        {/* --- INLINE STYLES FOR MODERN CHAT UI --- */}
         <style jsx global>{`
+          /* === 1. Floating Action Button (FAB) === */
           .fab {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            width: 60px;
-            height: 60px;
+            width: 55px;
+            height: 55px;
             border-radius: 50%;
-            background-color: #143447; /* Dark blue */
+            background-color: #007AFF; /* Bright Blue */
             color: white;
-            font-size: 28px;
+            font-size: 24px;
             border: none;
             cursor: pointer;
             box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
@@ -403,12 +407,16 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            transition: transform 0.2s;
+          }
+          .fab:hover {
+              transform: scale(1.05);
           }
           .fab-badge {
             position: absolute;
             top: -5px;
             right: -5px;
-            background-color: red;
+            background-color: #FF0000; /* Red */
             color: white;
             border-radius: 50%;
             width: 22px;
@@ -418,15 +426,17 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            border: 1px solid white;
+            border: 2px solid white;
           }
+
+          /* === 2. Modal Overlays & Containers === */
           .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: rgba(0, 0, 0, 0.6);
+            background-color: rgba(0, 0, 0, 0.7);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -434,63 +444,77 @@
           }
           .modal-content {
             background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
             width: 90%;
-            max-width: 400px; /* Max width for new convo modal */
+            max-width: 450px;
             display: flex;
             flex-direction: column;
-            gap: 10px; /* Space between elements */
           }
           .modal-content h3 {
             margin-top: 0;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             color: #143447;
-            border-bottom: 1px solid #eee;
+            font-weight: 700;
+            border-bottom: 2px solid #f0f0f0;
             padding-bottom: 10px;
           }
+
+          /* === 3. New Conversation Form Styles === */
           .modal-content label {
             font-weight: 600;
             font-size: 0.9em;
             color: #333;
+            margin-top: 10px;
           }
           .modal-content input,
           .modal-content textarea {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
             font-size: 1em;
             margin-bottom: 5px; 
             box-sizing: border-box; 
             resize: vertical; 
             background-color: #f9f9f9;
             color: #333;
+            transition: border-color 0.2s;
           }
-          .modal-content textarea {
-              min-height: 80px;
+          .modal-content input:focus,
+          .modal-content textarea:focus {
+              border-color: #007AFF;
+              box-shadow: 0 0 0 1px #007AFF;
+              background-color: white;
           }
           .button-container {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
-            margin-top: 15px;
+            margin-top: 20px;
           }
           .modal-content button {
-            padding: 8px 16px;
-            border-radius: 6px;
+            padding: 10px 18px;
+            border-radius: 8px;
             border: none;
             cursor: pointer;
             font-weight: 600;
+            transition: background-color 0.2s;
           }
           .cancel-button {
             background-color: #e5e5ea;
-            color: #007AFF;
+            color: #555;
+          }
+          .cancel-button:hover {
+              background-color: #d1d1d6;
           }
           .send-button {
             background-color: #007AFF;
             color: white;
+          }
+          .send-button:hover:not(:disabled) {
+            background-color: #005bb5;
           }
           .send-button:disabled {
             background-color: #AECBFA;
@@ -504,11 +528,16 @@
             height: 14px;
             animation: spin 1s linear infinite;
           }
+          .spinner-small.send-spinner {
+              border-color: rgba(255, 255, 255, 0.4);
+              border-top-color: white;
+          }
 
+          /* === 4. Conversation List Modal === */
           .modal-content.list-modal {
-            max-width: 500px;
+            max-width: 450px;
             padding: 0;
-            max-height: 80vh;
+            max-height: 85vh; /* Taller list */
             display: flex; 
             flex-direction: column;
             overflow: hidden; 
@@ -517,73 +546,66 @@
               display: flex;
               justify-content: space-between;
               align-items: center;
-              padding: 15px;
+              padding: 15px 20px;
               border-bottom: 1px solid #eee;
-              background-color: #f9f9f9;
-              flex-shrink: 0; /* Prevent header from shrinking */
+              background-color: #143447; /* Dark Header */
+              color: white;
+              flex-shrink: 0;
           }
           .list-header h3 {
-              border-bottom: none;
-              padding-bottom: 0;
+              color: white;
               margin-bottom: 0;
-              flex-grow: 1;
           }
           .list-close-btn {
-              background: none;
-              border: none;
-              font-size: 24px;
-              color: #555;
-              padding: 0 5px;
-              cursor: pointer;
+              color: white;
           }
           .convo-list-container {
               overflow-y: auto; 
               flex-grow: 1; 
               padding: 0; 
+              background-color: white;
           }
           .convo-list-item {
               display: flex;
               justify-content: space-between;
               align-items: center;
-              padding: 12px 15px; /* Add padding here */
-              border-bottom: 1px solid #f0f0f0;
+              padding: 15px 20px;
+              border-bottom: 1px solid #f5f5f5;
               cursor: pointer;
               transition: background-color 0.2s;
           }
-          .convo-list-item:hover { background-color: #f5f5f5; }
+          .convo-list-item:hover { background-color: #f0f0f0; }
+          .convo-list-item.unread { background-color: #f1f8ff; font-weight: 600; border-left: 5px solid #007AFF; padding-left: 15px; } /* Highlight unread */
+          .convo-list-item.resolved { opacity: 0.7; color: #666; font-style: italic; }
           .convo-info { display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; margin-right: 10px; }
           .convo-subject { font-size: 1em; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-          .convo-subject.unread-subject { font-weight: bold; }
-          .convo-meta { font-size: 0.8em; color: #666; margin-top: 3px; }
-          .convo-list-item.unread { background-color: #eef7ff; }
-          .convo-list-item.resolved { opacity: 1; color: #ff0000ff; }
-          .convo-badge { background-color: #007AFF; color: white; border-radius: 50%; min-width: 20px; height: 20px; padding: 0 6px; font-size: 12px; font-weight: bold; display: flex; justify-content: center; align-items: center; }
+          .convo-subject.unread-subject { color: #143447; }
+          .convo-meta { font-size: 0.8em; color: #888; margin-top: 3px; }
+          .convo-badge { background-color: #FF0000; color: white; border-radius: 50%; min-width: 22px; height: 22px; padding: 0 6px; font-size: 12px; font-weight: bold; display: flex; justify-content: center; align-items: center; }
 
           .empty-list {
               text-align: center;
               color: #999;
               padding: 30px 15px;
+              font-style: italic;
           }
           .list-footer {
-              padding: 10px 15px; /* Padding for the footer */
+              padding: 15px 20px;
               border-top: 1px solid #eee;
-              background-color: #f9f9f9;
-              flex-shrink: 0; /* Prevent footer from shrinking */
+              background-color: white;
+              flex-shrink: 0;
           }
           .start-new-button {
-            display: block;
-            background-color: #007AFF;
+            background-color: #4CAF50;
             color: white;
             padding: 10px 15px;
-            border: none;
             border-radius: 6px;
-            /* Remove margin: 15px; */
             cursor: pointer;
-            text-align: center;
             font-weight: 600;
-            width: 100%; /* Make button full width in footer */
+            width: 100%;
           }
 
+          /* === 5. Conversation View (Full Screen on Mobile/Larger Panel) === */
           .modal-content-full {
               width: 100%;
               height: 100%;
@@ -591,36 +613,146 @@
               border-radius: 0;
               box-shadow: none;
               padding: 0;
-              position: relative;
-              display: flex; /* Make it flex for ConversationView */
-              flex-direction: column; /* Stack ConversationView vertically */
           }
-
-          .conversation-view-panel { display: flex; flex-direction: column; height: 100%; background-color: #f0f2f5; position: relative; }
-          .back-button { position: absolute; top: 10px; left: 10px; background-color: rgba(0,0,0,0.5); color: white; border: none; border-radius: 6px; padding: 5px 10px; cursor: pointer; z-index: 10; font-size: 0.9em; }
-          .conversation-view-panel .panel-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: white; border-bottom: 1px solid #eee; flex-shrink: 0;}
-          .conversation-view-panel .panel-header h3 { margin: 0; font-size: 1.1em; color: #143447; flex-grow: 1; margin-right: 10px; padding-left: 80px; text-align: center; }
-          .conversation-view-panel .close-btn { background: none; border: none; font-size: 24px; color: #555; cursor: pointer; padding: 0 5px; }
-          .conversation-view-panel .status-container { display: flex; justify-content: space-between; padding: 8px 15px; background-color: #f9f9f9; border-bottom: 1px solid #eee; font-size: 0.85em; color: #333; flex-shrink: 0;}
-          .conversation-view-panel .last-activity { color: #666; }
-          .conversation-view-panel .chat-area { flex-grow: 1; overflow-y: auto; padding: 15px; background-color: #e5ddd5; }
-          .conversation-view-panel .empty-chat { text-align: center; color: #777; padding: 20px; }
-          .conversation-view-panel .message-row { display: flex; margin-bottom: 10px; }
+          .conversation-view-panel { 
+              display: flex; 
+              flex-direction: column; 
+              height: 100%; 
+              background-color: #f0f2f5; 
+              position: relative; 
+          }
+          .back-button { 
+              position: absolute; 
+              top: 15px; 
+              left: 15px; 
+              background-color: #143447; 
+              color: white; 
+              border: none; 
+              border-radius: 6px; 
+              padding: 8px 15px; 
+              cursor: pointer; 
+              z-index: 10; 
+              font-size: 0.9em; 
+              font-weight: 600;
+          }
+          .conversation-view-panel .panel-header { 
+              display: flex; 
+              justify-content: space-between; 
+              align-items: center; 
+              padding: 15px; 
+              background-color: #143447; /* Dark Header */
+              color: white;
+              border-bottom: 1px solid #005bb5; 
+              flex-shrink: 0;
+          }
+          .conversation-view-panel .panel-header h3 { 
+              margin: 0; 
+              font-size: 1.2em; 
+              color: white; 
+              flex-grow: 1; 
+              margin-right: 10px; 
+              padding-left: 100px; /* Space for back button */
+              text-align: center; 
+          }
+          .conversation-view-panel .close-btn { 
+              color: white; 
+              font-size: 30px; 
+          }
+          .conversation-view-panel .status-container { 
+              display: flex; 
+              justify-content: space-between; 
+              padding: 10px 20px; 
+              background-color: #e9ecef; /* Light Gray Status Bar */
+              border-bottom: 1px solid #ccc; 
+              font-size: 0.9em; 
+              color: #495057; 
+              flex-shrink: 0;
+          }
+          
+          /* Chat Area */
+          .conversation-view-panel .chat-area { 
+              flex-grow: 1; 
+              overflow-y: auto; 
+              padding: 20px; 
+              background-color: #f0f2f5; /* WhatsApp-like background */
+              background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%226%22%20height%3D%226%22%20viewBox%3D%220%200%206%206%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22%23cccccc%22%20fill-opacity%3D%220.2%22%3E%3Cpath%20d%3D%22M3%200H0v3h3V0z%22%2F%3E%3Cpath%20d%3D%22M3%203H0v3h3V3z%22%2F%3E%3Cpath%20d%3D%22M6%200H3v3h3V0z%22%2F%3E%3Cpath%20d%3D%22M6%203H3v3h3V3z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E');
+          }
+          .conversation-view-panel .message-row { display: flex; margin-bottom: 15px; }
           .conversation-view-panel .message-row.user { justify-content: flex-end; }
           .conversation-view-panel .message-row.admin { justify-content: flex-start; }
-          .conversation-view-panel .message-bubble { min-width: 10%; max-width: 75%; padding: 20px 20px; border-radius: 12px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); position: relative; word-wrap: break-word; }
-          .conversation-view-panel .message-row.user .message-bubble { background-color: #dcf8c6; border-top-right-radius: 2px; }
-          .conversation-view-panel .message-row.admin .message-bubble { background-color: white; border-top-left-radius: 2px; }
-          .conversation-view-panel .message-sender { font-weight: bold; font-size: 0.9em; margin-bottom: 3px; display: block; color: #007AFF; }
-          .conversation-view-panel .message-row.user .message-sender { color: #143447; }
-          .conversation-view-panel .message-text { font-size: 0.95em; line-height: 1.4; color: #333; margin: 0; padding-bottom: 15px; }
-          .conversation-view-panel .message-timestamp { font-size: 0.7em; color: #777; position: absolute; bottom: 5px; right: 10px; }
-          .conversation-view-panel .panel-footer { padding: 10px 15px; background-color: #f0f0f0; border-top: 1px solid #ccc; flex-shrink: 0;}
-          .conversation-view-panel .reply-input-container { display: flex; align-items: flex-end; gap: 10px; }
-          .conversation-view-panel .reply-input { flex-grow: 1; resize: none; border: 1px solid #ccc; border-radius: 18px; padding: 8px 12px; min-height: 36px; max-height: 100px; font-size: 0.95em; background-color: white; box-sizing: border-box; color: black; }
-          .conversation-view-panel .send-button { background-color: #007AFF; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 1.2em; flex-shrink: 0; }
-          .conversation-view-panel .send-button:disabled { background-color: #AECBFA; cursor: not-allowed; }
-          .conversation-view-panel .resolved-text { text-align: center; color: green; font-weight: 600; padding: 10px 0; }
+          .conversation-view-panel .message-bubble { 
+              min-width: 100px; 
+              max-width: 80%; 
+              padding: 10px 12px 25px 12px; /* Extra padding bottom for timestamp */
+              border-radius: 10px; 
+              box-shadow: 0 1px 1px rgba(0,0,0,0.1); 
+              position: relative; 
+              word-wrap: break-word; 
+          }
+          .conversation-view-panel .message-row.user .message-bubble { 
+              background-color: #DCF8C6; /* Light Green (User) */
+              border-bottom-right-radius: 2px;
+          }
+          .conversation-view-panel .message-row.admin .message-bubble { 
+              background-color: white; 
+              border-bottom-left-radius: 2px;
+          }
+          .conversation-view-panel .message-text { 
+              font-size: 0.95em; 
+              line-height: 1.4; 
+              color: #333; 
+              margin: 0; 
+          }
+          .conversation-view-panel .message-timestamp { 
+              font-size: 0.7em; 
+              color: #777; 
+              position: absolute; 
+              bottom: 5px; 
+              right: 10px; 
+              white-space: nowrap;
+          }
+
+          /* Footer/Reply Area */
+          .conversation-view-panel .panel-footer { 
+              padding: 10px 20px; 
+              background-color: white; 
+              border-top: 1px solid #ccc; 
+              flex-shrink: 0;
+          }
+          .conversation-view-panel .reply-input-container { 
+              display: flex; 
+              align-items: flex-end; 
+              gap: 10px; 
+          }
+          .conversation-view-panel .reply-input { 
+              flex-grow: 1; 
+              resize: none; 
+              border: 1px solid #ddd; 
+              border-radius: 20px; 
+              padding: 8px 15px; 
+              min-height: 38px; 
+              max-height: 100px; 
+              font-size: 0.95em; 
+              background-color: #f9f9f9; 
+              box-sizing: border-box; 
+              color: black;
+              line-height: 1.4;
+          }
+          .conversation-view-panel .send-button { 
+              background-color: #007AFF; 
+              color: white; 
+              border: none; 
+              border-radius: 50%; 
+              width: 40px; 
+              height: 40px; 
+              display: flex; 
+              justify-content: center; 
+              align-items: center; 
+              cursor: pointer; 
+              font-size: 1.2em; 
+              flex-shrink: 0;
+              padding-left: 3px; /* Adjust icon centering */
+          }
 
           @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -629,4 +761,4 @@
         `}</style>
       </>
     );
-  }
+}
