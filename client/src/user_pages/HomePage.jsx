@@ -422,7 +422,7 @@ useEffect(() => {
 
   const recentFoundItems = [...foundItems]
     .filter(item => item.claimStatus !== "claimed")
-    .filter(item => item.status !== "pending" && item.status !== "canceled")
+    .filter(item => item.status === "posted" && item.status !== "canceled")
     .filter(item => item.archivedStatus !== true) 
     .sort((a, b) => new Date(b.dateFound) - new Date(a.dateFound))
     .slice(0, 20);

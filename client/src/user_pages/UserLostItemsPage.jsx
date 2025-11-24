@@ -460,7 +460,6 @@ function UserLostItemsPage() {
 
   const filteredLostItems = [...lostItems]
     .filter(item => item.claimStatus !== "claimed")
-    .filter(item => item.status === "posted")
     .filter(item => item.archivedStatus !== true)
     .filter(item => {
       const matchesSearch = item.itemName?.toLowerCase().includes(searchQuery.toLowerCase());
