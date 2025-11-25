@@ -437,39 +437,49 @@ function TransactionPage() {
 
                         <div style={styles.scoreCard}>
                             <h4 style={styles.scoreTitle}>Match Analysis</h4>
-                            <div style={{width: '90%'}}>
-                                
-                                {Object.entries(selectedMatch.scores || {}).map(([key, value]) => {
-                                    if (key === 'imageScore' || key === 'descriptionScore' || key === 'nameScore' || key === 'locationScore' || key === 'categoryScore' || key === 'overallScore') {
-                                        const label = key.replace(/([A-Z])/g, ' $1').replace('Score', ' Rate').trim();
-                                        const percentage = value != null ? Math.round(value) : 0;
-                                        
-                                        
-                                        const labelColor = key === 'overallScore' ? '#007bff' : '#333';
-                                        const barColor = '#28a745'; // Green for all bars
-                                        
-                                        return (
-                                            <div key={key} style={styles.scoreRow}>
-                                                <span style={{...styles.scoreRate, color: labelColor}}>
-                                                    {capitalizeFirstLetter(label)}: {percentage}%
-                                                </span>
-                                                <div style={styles.progressBarFull}>
-                                                    <div
-                                                        style={{
-                                                            ...styles.progressBarPercentage,
-                                                            width: `${percentage}%`,
-                                                            backgroundColor: barColor,
-                                                        }}
-                                                    ></div>
+                            <div style={{ width: '90%' }}>
+
+                                {Object.entries(selectedMatch.scores || {})
+                                    // 1. Sort the entries to push 'overallScore' to the bottom
+                                    .sort((a, b) => {
+                                        if (a[0] === 'overallScore') return 1; // Move a to the end
+                                        if (b[0] === 'overallScore') return -1; // Move b to the end
+                                        return 0; // Keep others in original order
+                                    })
+                                    // 2. Map through the sorted entries
+                                    .map(([key, value]) => {
+                                        if (key === 'imageScore' || key === 'descriptionScore' || key === 'nameScore' || key === 'locationScore' || key === 'categoryScore' || key === 'overallScore') {
+                                            
+                                            const label = key.replace(/([A-Z])/g, ' $1').replace('Score', ' Rate').trim();
+                                            const percentage = value != null ? Math.round(value) : 0;
+
+                                            // Make Overall Score blue, others standard dark grey
+                                            const labelColor = key === 'overallScore' ? '#007bff' : '#333';
+                                            
+                                            // Make Overall Score progress bar blue, others green
+                                            const barColor = key === 'overallScore' ? '#007bff' : '#28a745';
+
+                                            return (
+                                                <div key={key} style={styles.scoreRow}>
+                                                    <span style={{ ...styles.scoreRate, color: labelColor }}>
+                                                        {capitalizeFirstLetter(label)}: {percentage}%
+                                                    </span>
+                                                    <div style={styles.progressBarFull}>
+                                                        <div
+                                                            style={{
+                                                                ...styles.progressBarPercentage,
+                                                                width: `${percentage}%`,
+                                                                backgroundColor: barColor,
+                                                            }}
+                                                        ></div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    }
-                                    return null;
-                                })}
+                                            );
+                                        }
+                                        return null;
+                                    })}
                             </div>
                         </div>
-
                         {/* 3. FOUND ITEM CARD (Right) */}
                         <div style={styles.itemCard}>
                             <h2 style={{...styles.itemTitle, color: '#000000ff'}}>Found Item</h2>

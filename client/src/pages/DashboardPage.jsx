@@ -526,15 +526,12 @@ useEffect(() => {
         width: '100%',
     },
     addInfoPanel: {
-      backgroundColor: '#fff3cd', 
-      border: '1px solid #ffecb5',
       borderRadius: '8px',
       padding: '15px',
       marginTop: '15px',
       transition: 'opacity 0.3s ease, transform 0.3s ease',
       opacity: 0,
       transform: 'translateY(20px)',
-      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
     },
     addInfoPanelShow: {
         opacity: 1,
@@ -869,12 +866,10 @@ useEffect(() => {
                     {showVerifyInput ? 'Hide Verification' : 'Verify Item'}
                 </button>
             
-                 {/* Empty div to balance flex layout when input is hidden */}
                  {!showVerifyInput && <div style={{flexGrow: 1, maxWidth: '600px', height: '45px'}} />}
 
             </div>
             
-            {/* --- VERIFY INPUT CONTAINER (CONDITIONAL) --- */}
             <div style={{
                 ...styles.verifyContainer, 
                 ...(showVerifyInput ? styles.verifyContainerVisible : styles.verifyContainerHidden)

@@ -393,12 +393,12 @@ const API = "https://server.spotsync.site";
             console.log("📧 Email API response:", emailData);
 
             if (!emailRes.ok) {
-              console.error(`❌ Failed to send email to ${match.foundItem?.personalInfo?.email}:`, emailData);
+              console.error(` Failed to send email to ${match.foundItem?.personalInfo?.email}:`, emailData);
             } else {
-              console.log(`✅ Email successfully sent to ${match.foundItem?.personalInfo?.email}`);
+              console.log(` Email successfully sent to ${match.foundItem?.personalInfo?.email}`);
             }
           } catch (err) {
-            console.error(`⚠️ Error sending email to ${match.foundItem?.personalInfo?.email}:`, err);
+            console.error(`Error sending email to ${match.foundItem?.personalInfo?.email}:`, err);
           }
 
 

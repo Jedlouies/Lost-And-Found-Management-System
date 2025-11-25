@@ -259,13 +259,8 @@ const styles = {
         width: '100%',
         paddingBottom: '10px',
     },
-    searchFilterWrapper: {
-        display: 'flex',
-        gap: '15px',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-    },
-    actionGroupRight: { // NEW style for grouping Post button and Saved icon
+    
+    actionGroupRight: {
         display: 'flex',
         alignItems: 'center',
         gap: '15px',

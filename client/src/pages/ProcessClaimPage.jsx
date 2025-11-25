@@ -292,25 +292,94 @@ function ProcessClaimPage() {
       Object.entries(obj).map(([k, v]) => [k, v === undefined ? null : v])
     );
 
-const stopScanner = async () => {
-  try {
-    if (scannerRef.current) {
-      await scannerRef.current.stop();
-      scannerRef.current.destroy();
-      scannerRef.current = null;
-    }
+// --- 1. ROBUST STOP FUNCTION ---
+  const stopScanner = async () => {
+    try {
+      // Kill the QR Scanner instance first
+      if (scannerRef.current) {
+        await scannerRef.current.stop();
+        scannerRef.current.destroy();
+        scannerRef.current = null;
+      }
 
-    if (videoRef.current?.srcObject) {
-      videoRef.current.srcObject.getTracks().forEach((track) => track.stop());
-      videoRef.current.srcObject = null;
-    }
+      // Kill the Video Stream
+      if (videoRef.current && videoRef.current.srcObject) {
+        const tracks = videoRef.current.srcObject.getTracks();
+        tracks.forEach((track) => track.stop()); // Stop hardware light
+        videoRef.current.srcObject = null;       // Unlink stream
+      }
+    } catch (err) {
+      console.warn("Error stopping scanner:", err);
+    }
+  };
 
-    await new Promise((res) => setTimeout(res, 200));
-  } catch (err) {
-    console.warn("Error stopping scanner:", err);
-  }
-};
+  // --- 2. CAMERA SETUP LOGIC ---
+  useEffect(() => {
+    const isCapturePhotoActive = !capturedImage;
+    const isScanIDActive = !!capturedImage && !qrResult;
 
+    // Do nothing if we don't have a ref or a selected device
+    if (!videoRef.current || !selectedDeviceId) return;
+
+    // If we are in confirmation (Step 3), shut everything down
+    if (!isCapturePhotoActive && !isScanIDActive) {
+      stopScanner();
+      return;
+    }
+
+    const startCamera = async (enableScanning) => {
+      // 1. Clean up any existing streams forcefully
+      await stopScanner();
+
+      try {
+        // 2. Strict Constraints: Force the specific ID
+        const constraints = {
+          video: {
+            deviceId: { exact: selectedDeviceId } // 'exact' is crucial
+          }
+        };
+
+        // 3. Get the stream manually
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+        // 4. Attach to video element
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          // Ensure it plays only when ready
+          await videoRef.current.play();
+        }
+
+        // 5. Initialize QR Scanner only if needed (Step 2)
+        if (enableScanning) {
+          // Pass the ALREADY PLAYING video element to QrScanner
+          const scanner = new QrScanner(videoRef.current, handleScan, {
+            highlightScanRegion: true,
+            highlightCodeOutline: true,
+          });
+          scannerRef.current = scanner;
+          await scanner.start();
+        } else {
+          scannerRef.current = null;
+        }
+
+      } catch (err) {
+        console.error("Camera error:", err);
+        setAlert({ message: "Failed to start selected camera.", type: "error" });
+      }
+    };
+
+    // Trigger the logic based on the active step
+    if (isCapturePhotoActive) {
+      startCamera(false); // Step 1: Just video
+    } else if (isScanIDActive) {
+      startCamera(true);  // Step 2: Video + Scan
+    }
+
+    return () => {
+      stopScanner();
+    };
+  }, [selectedDeviceId, capturedImage, qrResult]); 
+  // ^ The effect re-runs whenever selectedDeviceId changes
   // Resize/compress base64 image
   const resizeBase64Img = (base64, maxWidth = 400, maxHeight = 400, quality = 0.7) => {
     return new Promise((resolve) => {
@@ -371,65 +440,79 @@ const stopScanner = async () => {
   }, [selectedDeviceId]);
 
   // Setup scanner or camera stream
-useEffect(() => {
-  const isCapturePhotoActive = !capturedImage;
-  const isScanIDActive = !!capturedImage && !qrResult;
-  
-  if (!videoRef.current || !selectedDeviceId) return;
+// --- 2. CAMERA SETUP LOGIC (Keep this one) ---
+  useEffect(() => {
+    const isCapturePhotoActive = !capturedImage;
+    const isScanIDActive = !!capturedImage && !qrResult;
 
-  // Stop everything if we are in the confirmation step
-  if (!isCapturePhotoActive && !isScanIDActive) {
+    // Do nothing if we don't have a ref or a selected device
+    if (!videoRef.current || !selectedDeviceId) return;
+
+    // If we are in confirmation (Step 3), shut everything down
+    if (!isCapturePhotoActive && !isScanIDActive) {
       stopScanner();
       return;
-  }
-    
-  const setupStream = async (isScanner) => {
-    await stopScanner();
-    
-    // Start camera stream for capture or scanning
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { deviceId: selectedDeviceId, facingMode: 'environment' }
-        });
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
+    }
 
-        if (isScanner) {
-            const scanner = new QrScanner(videoRef.current, handleScan, {
-                highlightScanRegion: true,
-                highlightCodeOutline: true,
-            });
-            scannerRef.current = scanner;
-            await scanner.start();
-        } else {
-             scannerRef.current = null;
+    const startCamera = async (enableScanning) => {
+      // 1. Clean up any existing streams forcefully
+      await stopScanner();
+
+      try {
+        // 2. Strict Constraints: Force the specific ID
+        const constraints = {
+          video: {
+            deviceId: { exact: selectedDeviceId }, // This forces the switch
+            facingMode: 'environment' // Optional preference
+          }
+        };
+
+        // 3. Get the stream manually
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+        // 4. Attach to video element
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          // Ensure it plays only when ready
+          await videoRef.current.play();
         }
 
-    } catch (err) {
-      console.error("Camera stream/Scanner init error:", err);
-      setAlert({ message: "Unable to start camera.", type: "error" });
-    }
-  };
-    
-  if (isCapturePhotoActive) {
-      // Step 1: Capture Photo (Stream only)
-      setupStream(false);
-  } else if (isScanIDActive) {
-      // Step 2: Scan ID (Stream + Scanner)
-      setupStream(true);
-  }
+        // 5. Initialize QR Scanner only if needed (Step 2)
+        if (enableScanning) {
+          // Pass the ALREADY PLAYING video element to QrScanner
+          const scanner = new QrScanner(videoRef.current, handleScan, {
+            highlightScanRegion: true,
+            highlightCodeOutline: true,
+          });
+          scannerRef.current = scanner;
+          await scanner.start();
+        } else {
+          scannerRef.current = null;
+        }
 
-  return () => stopScanner();
-}, [selectedDeviceId, capturedImage, qrResult]); // Dependency updated
+      } catch (err) {
+        console.error("Camera error:", err);
+        setAlert({ message: "Failed to start selected camera.", type: "error" });
+      }
+    };
 
-const handleCameraSwitch = async (newDeviceId) => {
-  const allDevices = await navigator.mediaDevices.enumerateDevices();
-  const videoDevices = allDevices.filter(d => d.kind === "videoinput");
-  setDevices(videoDevices);
+    // Trigger the logic based on the active step
+    if (isCapturePhotoActive) {
+      startCamera(false); // Step 1: Just video
+    } else if (isScanIDActive) {
+      startCamera(true);  // Step 2: Video + Scan
+    }
 
-  await stopScanner();
-  localStorage.setItem("preferredCamera", newDeviceId);
-  setSelectedDeviceId(newDeviceId);
+    return () => {
+      // Cleanup when unmounting or when dependencies change (switching cameras)
+      stopScanner();
+    };
+  }, [selectedDeviceId, capturedImage, qrResult]);
+
+const handleCameraSwitch = (newDeviceId) => {
+  // Just update state; the useEffect will handle the stop/start logic
+  setSelectedDeviceId(newDeviceId);
+  localStorage.setItem("preferredCamera", newDeviceId);
 };
 
   // Capture still image
@@ -790,7 +873,7 @@ const StepIndicator = ({ isCaptureStep, isScanStep, isConfirmStep }) => {
                         <h3>Step 1: Capture Claimant Photo </h3>
 
                         <div style={styles.cameraContainer}>
-                            <video ref={videoRef} autoPlay playsInline muted style={styles.video} />
+                            <video ref={videoRef}  autoPlay playsInline muted style={styles.video} />
                         </div>
                         
                         <button style={styles.captureButton} onClick={capturePhoto}>
@@ -843,7 +926,7 @@ const StepIndicator = ({ isCaptureStep, isScanStep, isConfirmStep }) => {
                         <h3>Step 2: Scan Claimant ID (QR) </h3>
                         
                         <div style={styles.cameraContainer}>
-                            <video ref={videoRef} autoPlay playsInline muted style={styles.video} />
+                            <video ref={videoRef}   autoPlay playsInline muted style={styles.video} />
                         </div>
 
                         <div style={styles.cameraControls}>

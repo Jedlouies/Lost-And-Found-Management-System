@@ -528,10 +528,21 @@ const styles = {
                     style={{ marginLeft: '0px', height: '40px', border: '1px solid #333', borderRadius: '6px' }}
                 >
                     <Dropdown.Item onClick={() => setSelectedCategory("")}>All Categories</Dropdown.Item>
-                    <Dropdown.Item onClick={() => setSelectedCategory("Gadgets")}>Gadgets</Dropdown.Item>
-                    <Dropdown.Item onClick={() => setSelectedCategory("IDs")}>IDs</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSelectedCategory("Electronics")}>Electronics</Dropdown.Item>
                     <Dropdown.Item onClick={() => setSelectedCategory("Accessories")}>Accessories</Dropdown.Item>
-                    <Dropdown.Item onClick={() => setSelectedCategory("Other")}>Other</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSelectedCategory("Clothing & Apparel")}>Clothing & Apparel</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSelectedCategory("Bags & Luggage")}>Bags & Luggage</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSelectedCategory("Documents & IDs")}>Documents & IDs</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSelectedCategory("Books & Stationery")}>Books & Stationery</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSelectedCategory("Household Items")}>Household Items</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSelectedCategory("Sports & Fitness")}>Sports & Fitness</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSelectedCategory("Health & Personal Care")}>Health & Personal Care</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSelectedCategory("Toys & Games")}>Toys & Games</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSelectedCategory("Food & Beverages")}>Food & Beverages</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSelectedCategory("Automotive")}>Automotive Items</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSelectedCategory("Musical Instruments")}>Musical Instruments</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSelectedCategory("Pet Items")}>Pet Items</Dropdown.Item>
+                    <Dropdown.Item onClick={() => setSelectedCategory("Others")}>Others</Dropdown.Item>
                 </DropdownButton>
 
             </div>
