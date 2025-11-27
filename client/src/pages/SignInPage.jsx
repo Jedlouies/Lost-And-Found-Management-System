@@ -9,12 +9,11 @@ import createVerificationCode from "../components/createVerificationCode.jsx";
 import VerificationModal from "../components/VerificationModal"; 
 import 'bootstrap-icons/font/bootstrap-icons.css'; 
 
-// Combined logic from CreateAccount component
 function SignInPage() {
   const navigate = useNavigate();
   const API = "https://server.spotsync.site";
 
-  const { signup, login } = useAuth();
+  const { signup } = useAuth(); // Removed 'login' since we don't need it here anymore
 
   const handleLogin = () => { navigate("/log-in"); };
 
@@ -99,10 +98,11 @@ function SignInPage() {
     setLoading(false);
   }
 
+  // --- FIX APPLIED HERE ---
   async function finalizeSignup() {
     try {
-      // 1. Create the user account (sign up)
-      // NOTE: signup function in AuthContext is what creates the user and the studentIndex entry in Firestore.
+      // 1. Create the user account 
+      // When this completes successfully, Firebase AUTOMATICALLY signs the user in.
       await signup(
         pendingUserData.email,
         pendingUserData.password,
@@ -112,48 +112,29 @@ function SignInPage() {
         pendingUserData.studentId
       );
       
-      // 2. Auto-login the newly created user
-      // FIX: Using Email and Password for auto-login is the most reliable way right after account creation 
-      // since the Auth user exists via email. This bypasses potential race conditions with the Firestore studentIndex lookup.
-      const userCredential = await login(
-        pendingUserData.email, // <--- CHANGED FROM studentId TO email FOR RELIABILITY
-        pendingUserData.password
-      );
-      
-      const user = userCredential.user;
-      
-      // 3. Fetch user data, set local storage, and navigate
-      const userDocSnap = await getDoc(doc(db, 'users', user.uid));
-      
-      if (userDocSnap.exists()) {
-          const userData = userDocSnap.data();
-          const role = userData.role;
+      // 2. Get the current user directly from Auth
+      // We use auth.currentUser because the signup process established the session.
+      const user = auth.currentUser;
 
-          // Set required data in localStorage
-          localStorage.setItem('role', userData.role || 'user'); 
-          localStorage.setItem('firstName', userData.firstName || '');
-          localStorage.setItem('lastName', userData.lastName || '');
-          localStorage.setItem('uid', user.uid); 
-          localStorage.setItem('email', userData.email || ''); 
-          localStorage.setItem('profileURL', userData.profileURL || '');
-
-          // Redirect based on role
-          if (role === 'admin') {
-              navigate(`/dashboard/${user.uid}`);
-          } else { 
-              navigate(`/home/${user.uid}`);
-          }
-
-      } else {
-          // Fallback: If data fetch fails, redirect to manual login
-          console.error('User document missing after auto-login. Redirecting to manual login.');
-          navigate("/log-in"); 
+      if (!user) {
+         // Fallback just in case something weird happened with the session
+         throw new Error("Account created, but automatic sign-in failed.");
       }
+      
+      // 3. Set LocalStorage immediately (Optimistic)
+      localStorage.setItem('role', 'user'); 
+      localStorage.setItem('firstName', pendingUserData.firstName);
+      localStorage.setItem('lastName', pendingUserData.lastName);
+      localStorage.setItem('uid', user.uid); 
+      localStorage.setItem('email', pendingUserData.email); 
+      localStorage.setItem('profileURL', ''); 
+
+      // 4. Navigate to Home
+      navigate(`/home/${user.uid}`);
 
     } catch (err) {
-      console.error("Auto-login/Signup error:", err);
-      // If auto-login fails, redirect to manual login
-      setError("Account created, but automatic login failed. Please log in manually.");
+      console.error("Signup error:", err);
+      setError("Account created, but there was an issue loading the home page. Please log in manually.");
       navigate("/log-in");
     }
   }
@@ -322,161 +303,184 @@ function SignInPage() {
 }
 
 const styles = {
-    // Main Layout & Card
-    signInBody: {
-        background: 'linear-gradient(135deg, #475C6F 0%, #1c2c36 100%)',
-        minHeight: '120vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    formContainer: {
-        display: 'flex',
-        borderRadius: '15px',
-        overflow: 'hidden',
-        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
-        maxWidth: '900px',
-        width: '90%',
-        minHeight: '500px',
-    },
-    cardImage: {
-        flex: 1,
-        // MODIFIED: White background with centered logo, scaled to fit
-        background: 'url("/spotsync-logo.png") no-repeat center center / 80% auto #FFFFFF',
-        backgroundSize: 'contain',
-        display: 'block',
-        minWidth: '300px',
-    },
-    accountCard: {
-        flex: 1,
-        backgroundColor: '#1f2937', // Dark background for contrast
-        padding: '20px',
-        minWidth: '350px',
-    },
-    cardBody: {
-        padding: '25px',
-    },
-    heading: {
-        color: '#BDDDFC', // Light blue heading
-        textAlign: 'center',
-        marginBottom: '25px',
-        fontSize: '2em',
-        fontWeight: '700',
-    },
-    // Form Inputs
-    inputGroup: {
-        marginBottom: '15px',
-        display: 'flex',
-        width: '100%',
-    },
-    inputField: {
-        width: '100%',
-        padding: '12px 15px',
-        borderRadius: '8px',
-        border: '1px solid #475C6F',
-        backgroundColor: '#374151',
-        color: 'white',
-        fontSize: '1em',
-        boxSizing: 'border-box',
-    },
-    // Password Toggle & Match
-    passwordInputWrapper: {
-        position: 'relative',
-        display: 'flex', 
-        alignItems: 'center', 
-        width: '100%', 
-    },
-    passwordToggleIcon: {
-        position: 'absolute',
-        right: '15px',
-        cursor: 'pointer',
-        color: '#BDDDFC',
-        fontSize: '1.2em',
-        zIndex: 2,
-    },
-    passwordMatchIcon: {
-        position: 'absolute',
-        right: '45px', 
-        color: 'green', 
-        fontSize: '1.2em',
-        zIndex: 2,
-    },
-    capsLockWarning: {
-        color: '#ffc107',
-        marginTop: '5px',
-        fontSize: '0.8em',
-        textAlign: 'left',
-        paddingLeft: '5px',
-    },
-    // Buttons and Links
-    mainButton: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '10px',
-        backgroundColor: '#BDDDFC', // Primary action color
-        color: '#1f2937',
-        padding: '12px 20px',
-        border: 'none',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        width: '100%', 
-        fontSize: '1em',
-        fontWeight: '600',
-        marginTop: '20px', 
-        transition: 'background-color 0.2s',
-    },
-    mainButtonHover: {
-        backgroundColor: '#a8c8e8',
-    },
-    mainButtonDisabled: {
-        backgroundColor: '#a8c8e8', 
-        cursor: 'not-allowed',
-        opacity: 0.8,
-    },
-    loadingIcon: {
-        width: '20px', 
-        height: '20px',
-    },
-    loginLink: {
-        textAlign: 'center',
-        marginTop: '15px',
-        fontSize: '0.9em',
-        color: '#BDDDFC',
-    },
-    loginLinkStrong: {
-        color: 'white',
-        cursor: 'pointer',
-        textDecoration: 'underline',
-    },
-    guestLink: {
-        marginTop: '15px',
-        fontWeight: '500',
-        cursor: 'pointer',
-        textAlign: 'center',
-        color: 'white',
-        fontSize: '0.9em',
-        opacity: 0.8,
-        transition: 'opacity 0.2s',
-        padding: '12px 20px',
-        border: '1px solid #374151',
-        borderRadius: '8px',
-        backgroundColor: '#475C6F',
-        width: '100%',
-    },
-    // Guest Overlay
-    guestOverlay: {
-        position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
-        backgroundColor: "rgba(0,0,0,0.8)", display: "flex", flexDirection: "column",
-        justifyContent: "center", alignItems: "center", zIndex: 9999,
-        color: "white", fontSize: "1.2em", fontWeight: '600',
-    },
-    guestLoadingImage: { 
-        width: "50px", 
-        height: "50px", 
-        marginBottom: "20px", 
-        filter: 'invert(1)', // Ensure spin gif is visible on dark overlay
-    },
-};
+  signInBody: {
+    background: 'linear-gradient(135deg, #475C6F 0%, #1c2c36 100%)',
+    minHeight: '120vh',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 
+  formContainer: {
+    display: 'flex',
+    borderRadius: '15px',
+    overflow: 'hidden',
+    boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+    maxWidth: '900px',
+    width: '90%',
+    minHeight: '500px',
+  },
+
+  cardImage: {
+    flex: 1,
+    background: 'url("/spotsync-logo.png") no-repeat center center / 80% auto #FFFFFF',
+    backgroundSize: 'contain',
+    display: 'block',
+    minWidth: '300px',
+  },
+
+  accountCard: {
+    flex: 1,
+    backgroundColor: '#1f2937',
+    padding: '20px',
+    minWidth: '350px',
+  },
+
+  cardBody: {
+    padding: '25px',
+  },
+
+  heading: {
+    color: '#BDDDFC',
+    textAlign: 'center',
+    marginBottom: '25px',
+    fontSize: '2em',
+    fontWeight: '700',
+  },
+
+  inputGroup: {
+    marginBottom: '15px',
+    display: 'flex',
+    width: '100%',
+  },
+
+  inputField: {
+    width: '100%',
+    padding: '12px 15px',
+    borderRadius: '8px',
+    border: '1px solid #475C6F',
+    backgroundColor: '#374151',
+    color: 'white',
+    fontSize: '1em',
+    boxSizing: 'border-box',
+  },
+
+  passwordInputWrapper: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    width: '100%',
+  },
+
+  passwordToggleIcon: {
+    position: 'absolute',
+    right: '15px',
+    cursor: 'pointer',
+    color: '#BDDDFC',
+    fontSize: '1.2em',
+    zIndex: 2,
+  },
+
+  passwordMatchIcon: {
+    position: 'absolute',
+    right: '45px',
+    color: 'green',
+    fontSize: '1.2em',
+    zIndex: 2,
+  },
+
+  capsLockWarning: {
+    color: '#ffc107',
+    marginTop: '5px',
+    fontSize: '0.8em',
+    textAlign: 'left',
+    paddingLeft: '5px',
+  },
+
+  mainButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '10px',
+    backgroundColor: '#BDDDFC',
+    color: '#1f2937',
+    padding: '12px 20px',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    width: '100%',
+    fontSize: '1em',
+    fontWeight: '600',
+    marginTop: '20px',
+    transition: 'background-color 0.2s',
+  },
+
+  mainButtonHover: {
+    backgroundColor: '#a8c8e8',
+  },
+
+  mainButtonDisabled: {
+    backgroundColor: '#a8c8e8',
+    cursor: 'not-allowed',
+    opacity: 0.8,
+  },
+
+  loadingIcon: {
+    width: '20px',
+    height: '20px',
+  },
+
+  loginLink: {
+    textAlign: 'center',
+    marginTop: '15px',
+    fontSize: '0.9em',
+    color: '#BDDDFC',
+  },
+
+  loginLinkStrong: {
+    color: 'white',
+    cursor: 'pointer',
+    textDecoration: 'underline',
+  },
+
+  guestLink: {
+    marginTop: '15px',
+    fontWeight: '500',
+    cursor: 'pointer',
+    textAlign: 'center',
+    color: 'white',
+    fontSize: '0.9em',
+    opacity: 0.8,
+    transition: 'opacity 0.2s',
+    padding: '12px 20px',
+    border: '1px solid #374151',
+    borderRadius: '8px',
+    backgroundColor: '#475C6F',
+    width: '100%',
+  },
+
+  guestOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100vw",
+    height: "100vh",
+    backgroundColor: "rgba(0,0,0,0.8)",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 9999,
+    color: "white",
+    fontSize: "1.2em",
+    fontWeight: '600',
+  },
+
+  guestLoadingImage: {
+    width: "50px",
+    height: "50px",
+    marginBottom: "20px",
+    filter: 'invert(1)',
+  },
+};
 export default SignInPage;

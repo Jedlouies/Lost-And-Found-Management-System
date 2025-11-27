@@ -52,6 +52,8 @@ function UserSettingsPage() {
   const [checkingPassword, setCheckingPassword] = useState(false);
   const [course, setCourse] = useState('');
   const [section, setSection] = useState('');
+const [courseSearch, setCourseSearch] = useState('');
+const [showCourseDropdown, setShowCourseDropdown] = useState(false)
 
    const [cropperOpen, setCropperOpen] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState(null);
@@ -228,6 +230,13 @@ const handleChangePassword = async () => {
   setChangingPassword(false);
 };
 
+useEffect(() => {
+  if (selectedCourse) {
+    // This ensures the input shows "BSIT - Bachelor of..." instead of being empty on load
+    setCourseSearch(`${selectedCourse.abbr} - ${selectedCourse.name}`);
+  }
+}, [selectedCourse]);
+
 async function sendVerificationEmail(userData, code) {
   await fetch(`${API}/api/send-email`, {
     method: "POST",
@@ -342,71 +351,75 @@ const handleConfirmPassword = async () => {
 };
 
 const handleUpdate = async () => {
-  if (!currentUser) return;
+  if (!currentUser) return;
 
-  try {
-    
-    let updatedProfileURL = profileURL;
-    if (profileImage) {
-      updatedProfileURL = await uploadImage(profileImage, `users/${currentUser.uid}`, "profileURL");
-      setProfileURL(updatedProfileURL);
-    }
+  // STRICT CHECK: If no valid course is selected, stop the save
+  if (!selectedCourse) {
+    setAlert({ message: "Please select a valid course from the list.", type: "error" });
+    return;
+  }
 
-    let updatedCoverURL = coverURL;
-    if (coverImage) {
-      updatedCoverURL = await uploadImage(coverImage, `users/${currentUser.uid}`, "coverURL");
-      setCoverURL(updatedCoverURL);
-    }
+  try {
+    let updatedProfileURL = profileURL;
+    if (profileImage) {
+      updatedProfileURL = await uploadImage(profileImage, `users/${currentUser.uid}`, "profileURL");
+      setProfileURL(updatedProfileURL);
+    }
 
-    const courseToSave = selectedCourse ? { abbr: selectedCourse.abbr, name: selectedCourse.name } : null;
+    let updatedCoverURL = coverURL;
+    if (coverImage) {
+      updatedCoverURL = await uploadImage(coverImage, `users/${currentUser.uid}`, "coverURL");
+      setCoverURL(updatedCoverURL);
+    }
 
-    const updatedData = {
-      firstName,
-      lastName,
-      bio,
-      middleName,
-      email,
-      contactNumber,
+    // Prepare course object (Only allows the valid selected object)
+    const courseToSave = { abbr: selectedCourse.abbr, name: selectedCourse.name };
+
+    const updatedData = {
+      firstName,
+      lastName,
+      bio,
+      middleName,
+      email,
+      contactNumber,
       yearLevel,
-      coverURL: updatedCoverURL,
-      profileURL: updatedProfileURL,
-      designation: 'Student',
-      educationalAttainment: '1',
-      course: courseToSave,
-      gender,
-      yearsOfService: '1',
-      address,
-      section,
-    };
+      coverURL: updatedCoverURL,
+      profileURL: updatedProfileURL,
+      designation: 'Student',
+      educationalAttainment: '1',
+      course: courseToSave, 
+      gender,
+      yearsOfService: '1',
+      address,
+      section,
+    };
 
-    await updateUserInfo(currentUser.uid, updatedData);
-    
-    await updateRelatedItemInfo(currentUser.uid, updatedData);
-    
-    localStorage.setItem('firstName', firstName);
-    localStorage.setItem('lastName', lastName);
-    localStorage.setItem('middleName', middleName);
-    localStorage.setItem('email', email);
-    localStorage.setItem('contactNumber', contactNumber);
-    localStorage.setItem('bio', bio);
-    localStorage.setItem('gender', gender);
-    localStorage.setItem('section', section);
-    localStorage.setItem('address', address);
+    await updateUserInfo(currentUser.uid, updatedData);
+    await updateRelatedItemInfo(currentUser.uid, updatedData);
+
+    // Save to LocalStorage
+    localStorage.setItem('firstName', firstName);
+    localStorage.setItem('lastName', lastName);
+    localStorage.setItem('middleName', middleName);
+    localStorage.setItem('email', email);
+    localStorage.setItem('contactNumber', contactNumber);
+    localStorage.setItem('bio', bio);
+    localStorage.setItem('gender', gender);
+    localStorage.setItem('section', section);
+    localStorage.setItem('address', address);
     localStorage.setItem('yearLevel', yearLevel);
-    localStorage.setItem('course', JSON.stringify(courseToSave)); // FIX: JSON.stringify
-    localStorage.setItem('designation', updatedData.designation);
-    localStorage.setItem('educationalAttainment', updatedData.educationalAttainment);
-    localStorage.setItem('yearsOfService', updatedData.yearsOfService);
+    localStorage.setItem('course', JSON.stringify(courseToSave));
+    localStorage.setItem('designation', updatedData.designation);
+    localStorage.setItem('educationalAttainment', updatedData.educationalAttainment);
+    localStorage.setItem('yearsOfService', updatedData.yearsOfService);
 
+    setAlert({ message: "Profile Information Updated!", type: "success" });
 
-    setAlert({ message: "Profile Information Updated!", type: "success" });
-
-  } catch (err) {
-    console.error("Error updating profile:", err);
-    setAlert({ message: "Failed", type: "error" });
-  }
-};
-  useEffect(() => {
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    setAlert({ message: "Failed", type: "error" });
+  }
+};  useEffect(() => {
     const fetchUserImages = async () => {
       if (!currentUser) return;
 
@@ -528,6 +541,15 @@ const handleUpdate = async () => {
     }
     setUploadingCover(false);
   };
+
+// Filter the list based on Abbreviation OR Name
+const filteredCourses = courseList.filter((c) => {
+  const searchTerm = courseSearch.toLowerCase();
+  return (
+    c.abbr.toLowerCase().includes(searchTerm) ||
+    c.name.toLowerCase().includes(searchTerm)
+  );
+});
     
     const styles = {
         foundItemBody: {
@@ -699,7 +721,35 @@ const handleUpdate = async () => {
             cursor: 'pointer',
             color: '#4a4a4a',
             // Note: Cannot easily replicate :hover effects inline
-        }
+        },
+        dropdownWrapper: {
+    position: 'relative',
+    flex: 1, // This ensures it takes up the same space the <select> used to
+  },
+  dropdownList: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    border: '1px solid #e0e0e0',
+    borderRadius: '0 0 6px 6px',
+    maxHeight: '200px', // Limits height so it scrolls
+    overflowY: 'auto',
+    zIndex: 1000, // Ensures it floats ON TOP of fields below it
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+    marginTop: '-5px',
+  },
+  dropdownItem: {
+    padding: '10px 15px',
+    cursor: 'pointer',
+    borderBottom: '1px solid #f0f0f0',
+    fontSize: '0.9rem',
+    color: '#333',
+  },
+  dropdownItemHover: {
+    backgroundColor: '#f9f9f9',
+  }
     };
 
   return (
@@ -829,12 +879,19 @@ const handleUpdate = async () => {
           <Form.Group controlId="passwordInput">
             <Form.Label>Enter Password</Form.Label>
             <Form.Control
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoFocus
-            />
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleConfirmPassword();
+                    }
+                }}
+                autoFocus
+                />
+
           </Form.Group>
         </Modal.Body>
 
@@ -967,23 +1024,77 @@ const handleUpdate = async () => {
                 </select>
               </div>
               
-              <select
-                style={styles.formSelect}
-                value={selectedCourse ? selectedCourse.abbr : ""}
-                onChange={(e) => {
-                  const found = courseList.find(c => c.abbr === e.target.value);
-                  setSelectedCourse(found || null);
-                }}
-              >
-                <option value="">Select Course</option>
-                {courseList.map((c) => (
-                  <option key={c.abbr} value={c.abbr}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              {/* PASTE THIS BLOCK */}
+                <div style={styles.dropdownWrapper}>
+                <input
+                    // FIXED: Added width: '100%' because it is inside a div now.
+                    // FIXED: Added color: '#333' to ensure text is visible against background.
+                    style={{...styles.formInput, width: '100%', color: '#333'}} 
+                    placeholder="Search Course (e.g., BSIT)"
+                    value={courseSearch}
+                    onChange={(e) => {
+                    setCourseSearch(e.target.value);
+                    setShowCourseDropdown(true);
+                    
+                    // Strict Mode: clear selection if text differs from the saved object
+                    if (selectedCourse && e.target.value !== `${selectedCourse.abbr} - ${selectedCourse.name}`) {
+                        setSelectedCourse(null); 
+                    }
+                    }}
+                    onFocus={() => setShowCourseDropdown(true)}
+                    onBlur={() => {
+                    setTimeout(() => {
+                        setShowCourseDropdown(false);
 
-              <textarea style={styles.formTextarea} placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} />
+                        // STRICT VALIDATION LOGIC
+                        const match = courseList.find(c => 
+                        `${c.abbr} - ${c.name}` === courseSearch || 
+                        c.abbr.toLowerCase() === courseSearch.toLowerCase()
+                        );
+
+                        if (match) {
+                        setSelectedCourse(match);
+                        setCourseSearch(`${match.abbr} - ${match.name}`);
+                        } else {
+                        // If invalid, revert or clear
+                        if (!selectedCourse) {
+                            setCourseSearch('');
+                            setSelectedCourse(null);
+                        } else {
+                            setCourseSearch(`${selectedCourse.abbr} - ${selectedCourse.name}`);
+                        }
+                        }
+                    }, 200);
+                    }}
+                />
+
+                {showCourseDropdown && (
+                    <div style={styles.dropdownList}>
+                    {filteredCourses.length > 0 ? (
+                        filteredCourses.map((c) => (
+                        <div
+                            key={c.abbr}
+                            style={styles.dropdownItem}
+                            onMouseDown={() => {
+                            setSelectedCourse(c);
+                            setCourseSearch(`${c.abbr} - ${c.name}`);
+                            setShowCourseDropdown(false);
+                            }}
+                            onMouseEnter={(e) => e.target.style.backgroundColor = '#f0f0f0'}
+                            onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                        >
+                            <strong>{c.abbr}</strong> - {c.name}
+                        </div>
+                        ))
+                    ) : (
+                        <div style={{ padding: '10px', color: '#999', fontSize: '0.9rem' }}>
+                        No course found
+                        </div>
+                    )}
+                    </div>
+                )}
+                </div>              
+<textarea style={styles.formTextarea} placeholder='Bio' value={bio} onChange={(e) => setBio(e.target.value)} />
               
               <div style={styles.formRow}>
                 <input placeholder='Section' style={{...styles.formInput, width: '100%'}} value={section} onChange={(e) => setSection(e.target.value)} />    

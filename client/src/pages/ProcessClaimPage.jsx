@@ -1,1067 +1,513 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import QrScanner from "qr-scanner";
 import NavigationBar from "../components/NavigationBar";
 import BlankHeader from "../components/BlankHeader";
+import FloatingAlert from "../components/FloatingAlert";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { Spinner } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+
+// Firebase Imports
 import { db } from "../firebase";
 import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  updateDoc,
-  addDoc,
-  setDoc,
+  collection, query, where, getDocs, doc, updateDoc, addDoc, setDoc
 } from "firebase/firestore";
-import FloatingAlert from "../components/FloatingAlert";
 import {
-  getDatabase,
-  ref,
-  push,
-  set,
-  serverTimestamp as rtdbServerTimestamp,
+  getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp
 } from "firebase/database";
-import { useAuth } from "../context/AuthContext";
-import { Modal, Button, Form, Spinner } from "react-bootstrap";
-import "bootstrap/dist/css/bootstrap.min.css"; 
 
-// 🎨 MODERN STYLES DEFINITION (Adjusted for camera container fill)
+// --- STYLES & THEME ---
+const theme = {
+  primary: '#0d6efd',
+  success: '#198754',
+  text: '#212529',
+  muted: '#6c757d',
+  bg: '#f8f9fa',
+  white: '#ffffff',
+  border: '#dee2e6'
+};
+
 const styles = {
-    // --- LAYOUT CONTAINERS ---
-    processClaimBody: {
-        backgroundColor: '#f8f9fa',
-        minHeight: '100vh',
-        padding: '20px 0',
-    },
-    mainContainer: {
-        maxWidth: '1200px',
-        width: '95%',
-        margin: '20px auto',
-        padding: '30px',
-        backgroundColor: '#ffffff',
-        borderRadius: '16px',
-        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
-        fontFamily: "'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-    },
-    title: {
-        fontSize: '2rem',
-        color: '#343a40',
-        marginBottom: '20px',
-        borderBottom: '2px solid #eee',
-        paddingBottom: '10px',
-    },
-    contentGrid: {
-        display: 'grid',
-        // Force 1.5fr (controls) and 2fr (results) column layout
-        gridTemplateColumns: window.innerWidth > 992 ? '1.5fr 2fr' : '1fr', 
-        gap: '40px',
-        alignItems: 'start',
-        minHeight: '60vh', 
-    },
+  pageWrapper: {
+    backgroundColor: theme.bg,
+    minHeight: '100vh',
+    paddingBottom: '40px'
+  },
+  container: {
+    maxWidth: '1000px',
+    margin: '0 auto',
+    padding: '0 20px',
+  },
+  header: {
+    padding: '30px 0',
+    textAlign: 'center',
+  },
+  card: {
+    backgroundColor: theme.white,
+    borderRadius: '16px',
+    boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+    overflow: 'hidden',
+    padding: '30px',
+    transition: 'all 0.3s ease'
+  },
+  stepperBox: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: '30px',
+    gap: '15px'
+  },
+  stepDot: (active, completed) => ({
+    width: '40px',
+    height: '40px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 'bold',
+    backgroundColor: completed ? theme.success : active ? theme.primary : '#e9ecef',
+    color: completed || active ? theme.white : theme.muted,
+    border: active ? `3px solid ${theme.primary}40` : 'none',
+    transition: 'all 0.3s ease'
+  }),
+  videoWrapper: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: '600px',
+    aspectRatio: '4/3',
+    backgroundColor: '#000',
+    borderRadius: '12px',
+    overflow: 'hidden',
+    margin: '0 auto 20px auto',
+    boxShadow: '0 8px 16px rgba(0,0,0,0.2)'
+  },
+  video: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover'
+  },
+  overlay: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '70%',
+    height: '60%',
+    border: '4px dashed rgba(255, 255, 255, 0.8)',
+    borderRadius: '12px',
+    boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
+    pointerEvents: 'none'
+  },
+  detailRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '12px 0',
+    borderBottom: `1px solid ${theme.border}`
+  },
+  label: { fontWeight: '600', color: theme.muted, fontSize: '0.9rem' },
+  value: { fontWeight: '500', color: theme.text },
+  btnPrimary: {
+    backgroundColor: theme.primary,
+    color: 'white',
+    border: 'none',
+    padding: '12px 24px',
+    borderRadius: '8px',
+    fontWeight: '600',
+    width: '100%',
+    cursor: 'pointer',
+    marginTop: '20px'
+  },
+  btnSecondary: {
+    backgroundColor: 'transparent',
+    color: theme.muted,
+    border: `1px solid ${theme.border}`,
+    padding: '10px 20px',
+    borderRadius: '8px',
+    fontWeight: '500',
+    marginTop: '10px',
+    cursor: 'pointer',
+    width: '100%'
+  }
+};
+
+// --- CUSTOM HOOK: Camera & Scanning Logic ---
+const useCameraScanner = (onScanSuccess) => {
+  const videoRef = useRef(null);
+  const scannerRef = useRef(null);
+  const [devices, setDevices] = useState([]);
+  const [activeDeviceId, setActiveDeviceId] = useState(null);
+  const [streamError, setStreamError] = useState(null);
+
+  // 1. Load Devices
+  useEffect(() => {
+    const getDevices = async () => {
+      try {
+        const all = await navigator.mediaDevices.enumerateDevices();
+        const videoInput = all.filter(d => d.kind === 'videoinput');
+        setDevices(videoInput);
+        if (videoInput.length > 0) setActiveDeviceId(videoInput[0].deviceId);
+      } catch (err) {
+        setStreamError("Could not list camera devices.");
+      }
+    };
+    getDevices();
+  }, []);
+
+  // 2. Start Stream & Scanner
+  useEffect(() => {
+    if (!activeDeviceId) return;
+
+    let localScanner;
     
-    // --- STEP INDICATOR STYLES (Kept from previous) ---
-    stepContainer: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '30px',
-        padding: '10px 0',
-        width: '100%',
-    },
-    stepItem: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        position: 'relative',
-        flex: 1,
-    },
-    stepCircle: (isActive, isComplete) => ({
-        width: '40px',
-        height: '40px',
-        borderRadius: '50%',
-        backgroundColor: isComplete ? '#28a745' : isActive ? '#007bff' : '#ccc',
-        color: 'white',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontWeight: 'bold',
-        fontSize: '1.2rem',
-        zIndex: 10,
-        boxShadow: isActive ? '0 0 10px rgba(0, 123, 255, 0.5)' : 'none',
-        transition: 'all 0.3s',
-    }),
-    stepLabel: (isActive, isComplete) => ({
-        marginTop: '8px',
-        fontSize: '0.9rem',
-        fontWeight: isActive || isComplete ? '600' : '400',
-        color: isActive ? '#007bff' : isComplete ? '#28a745' : '#6c757d',
-        textAlign: 'center',
-    }),
-    stepLine: (isComplete) => ({
-        position: 'absolute',
-        top: '20px',
-        height: '2px',
-        backgroundColor: isComplete ? '#28a745' : '#ccc',
-        zIndex: 5,
-    }),
-
-    scanCard: {
-        padding: '20px',
-        backgroundColor: '#f9f9f9',
-        borderRadius: '12px',
-        boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.05)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '15px',
-        alignItems: 'center',
-        height: '100%', 
-    },
-    cameraContainer: { 
-        width: '40%',
-        aspectRatio: '4/3', 
-        borderRadius: '8px',
-        overflow: 'hidden',
-        border: '3px solid #007bff',
-        marginBottom: '10px',
-        flexGrow: 1,
-    },
-    video: {
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover',
-    },
-    cameraControls: {
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
-        marginBottom: '10px',
-    },
-    captureButton: {
-        padding: '12px 20px',
-        backgroundColor: '#28a745', 
-        color: 'white',
-        border: 'none',
-        borderRadius: '8px',
-        fontSize: '1rem',
-        fontWeight: '600',
-        cursor: 'pointer',
-        transition: 'background-color 0.3s',
-    },
-    
-    // FIX: Captured Image Preview Style
-    capturedImage: {
-        width: '100%',
-        maxWidth: '250px', // Adjusted size for better visibility
-        height: 'auto',
-        objectFit: 'contain', 
-        border: '3px solid #475C6F',
-        borderRadius: '8px',
-        margin: '10px 0',
-    },
-    qrResultBox: {
-        width: '100%',
-        padding: '15px',
-        backgroundColor: '#e6f7ff',
-        borderRadius: '10px',
-        border: '1px solid #b3e0ff',
-    },
-    resultText: {
-        margin: '5px 0',
-        fontSize: '0.9rem',
-        color: '#333',
-    },
-    resultLabel: {
-        fontWeight: 'bold',
-        color: '#007bff',
-    },
-
-    // --- RIGHT COLUMN: USER DATA & ACTION (Step 3) ---
-    dataCard: {
-        padding: '25px',
-        backgroundColor: '#ffffff',
-        borderRadius: '12px',
-        border: '1px solid #eee',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
-        height: '100%', // Fill the grid cell
-    },
-    userHeader: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '15px',
-        paddingBottom: '10px',
-        borderBottom: '1px solid #eee',
-    },
-    avatar: {
-        width: '60px',
-        height: '60px',
-        borderRadius: '50%',
-        objectFit: 'cover',
-        backgroundColor: '#007bff',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white',
-        fontSize: '18px',
-        fontWeight: 'bold',
-    },
-    detailGrid: {
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '15px 30px',
-    },
-    detailItem: {
-        fontSize: '0.95rem',
-        color: '#555',
-    },
-    detailKey: {
-        fontWeight: 'bold',
-        color: '#343a40',
-        marginRight: '5px',
-    },
-    completeButton: {
-        padding: '15px 30px',
-        backgroundColor: '#007bff', // Blue for final action
-        color: 'white',
-        border: 'none',
-        borderRadius: '10px',
-        fontSize: '1.1rem',
-        fontWeight: '700',
-        cursor: 'pointer',
-        marginTop: '20px',
-        transition: 'background-color 0.3s',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-};
-
-// --- Profile Avatar Helper ---
-const ProfileAvatar = ({ userData }) => {
-    const size = 60;
-    const baseStyle = {
-        ...styles.avatar,
-        width: size,
-        height: size,
-        borderRadius: '50%',
-    };
-
-    if (userData?.isGuest) {
-        return <div style={{...baseStyle, backgroundColor: '#6c757d', fontSize: '12px'}}>Guest</div>;
-    } else if (userData?.profileURL) {
-        return <img src={userData.profileURL} alt="profile" style={{...baseStyle, objectFit: 'cover'}} />;
-    } else {
-        const initials = `${userData?.firstName?.[0] || ""}${userData?.lastName?.[0] || ""}`.toUpperCase();
-        return <div style={baseStyle}>{initials}</div>;
-    }
-};
-
-function ProcessClaimPage() {
- //const API = "http://localhost:4000"; 
- const API = "https://server.spotsync.site";
-  const [capturedImage, setCapturedImage] = useState(null);
-  const [qrResult, setQrResult] = useState(null);
-  const [userData, setUserData] = useState(null);
-  const { currentUser } = useAuth();
-
-  const [devices, setDevices] = useState([]);
-  const [selectedDeviceId, setSelectedDeviceId] = useState(null);
-
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const scannerRef = useRef(null);
-
-  const [loading, setLoading] = useState(false);
-  const { matchId } = useParams();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const matchData = location.state?.match || null;
-  const matchDocId = matchId || matchData?.id;
-
-  const [alert, setAlert] = useState(null);
-
-  const notificationsRef = collection(db, "notifications");
-  const transactionId = matchDocId || `TXN-${Date.now()}`;
-  const dbRealtime = getDatabase();
-
-  const sanitizeData = (obj) =>
-    Object.fromEntries(
-      Object.entries(obj).map(([k, v]) => [k, v === undefined ? null : v])
-    );
-
-// --- 1. ROBUST STOP FUNCTION ---
-  const stopScanner = async () => {
-    try {
-      // Kill the QR Scanner instance first
-      if (scannerRef.current) {
-        await scannerRef.current.stop();
+    const startCamera = async () => {
+      if(scannerRef.current) {
+        scannerRef.current.stop();
         scannerRef.current.destroy();
-        scannerRef.current = null;
       }
 
-      // Kill the Video Stream
-      if (videoRef.current && videoRef.current.srcObject) {
-        const tracks = videoRef.current.srcObject.getTracks();
-        tracks.forEach((track) => track.stop()); // Stop hardware light
-        videoRef.current.srcObject = null;       // Unlink stream
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { deviceId: { exact: activeDeviceId }, width: 1280, height: 720 }
+        });
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          // Init QR Scanner specifically attached to this video element
+          localScanner = new QrScanner(videoRef.current, (result) => {
+             if(result?.data) onScanSuccess(result.data);
+          }, { 
+            highlightScanRegion: true, 
+            highlightCodeOutline: true 
+          });
+          
+          scannerRef.current = localScanner;
+          await localScanner.start();
+        }
+      } catch (err) {
+        console.error("Camera Start Error", err);
+        setStreamError("Camera failed to start. Check permissions.");
+      }
+    };
+
+    startCamera();
+
+    return () => {
+      if (localScanner) {
+        localScanner.stop();
+        localScanner.destroy();
+      }
+      if (videoRef.current?.srcObject) {
+        videoRef.current.srcObject.getTracks().forEach(t => t.stop());
+      }
+    };
+  }, [activeDeviceId, onScanSuccess]);
+
+  // 3. Helper: Capture Photo
+  const takePhoto = useCallback(() => {
+    if (!videoRef.current) return null;
+    const canvas = document.createElement("canvas");
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    canvas.getContext("2d").drawImage(videoRef.current, 0, 0);
+    return canvas.toDataURL("image/jpeg", 0.8);
+  }, []);
+
+  return { videoRef, devices, activeDeviceId, setActiveDeviceId, takePhoto, streamError };
+};
+
+// --- SUB-COMPONENT: Step Indicator ---
+const StepWizard = ({ currentStep }) => (
+  <div style={styles.stepperBox}>
+    {[0, 1, 2].map(s => (
+      <div key={s} style={styles.stepDot(currentStep === s, currentStep > s)}>
+        {currentStep > s ? '✓' : s + 1}
+      </div>
+    ))}
+  </div>
+);
+
+// --- MAIN COMPONENT ---
+function ProcessClaimPage() {
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { matchId } = useParams();
+
+  // Route State
+  const matchData = location.state?.match || null;
+  const matchDocId = matchId || matchData?.id;
+
+  // Local State
+  const [step, setStep] = useState(0); // 0: Capture, 1: Scan, 2: Finalize
+  const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState(null);
+  
+  // Data State
+  const [claimantPhoto, setClaimantPhoto] = useState(null);
+  const [scannedQRData, setScannedQRData] = useState(null);
+  const [userData, setUserData] = useState(null);
+
+  // --- Handlers ---
+
+  // Handle QR Scan (Passed to hook)
+  const handleQRDetected = useCallback(async (text) => {
+    if (step !== 1) return; // Only process if in scanning step
+
+    // Parse Data
+    const tokens = text.split(/\s+/);
+    const idNumber = tokens.find(t => /^\d+$/.test(t)); // Simple regex for ID
+    
+    if (!idNumber) {
+      setAlert({ type: 'warning', message: "QR format unrecognized. Try again." });
+      return;
+    }
+
+    // Fetch User
+    try {
+      setLoading(true);
+      const q = query(collection(db, "users"), where("studentId", "==", idNumber));
+      const snap = await getDocs(q);
+      
+      if (!snap.empty) {
+        const user = snap.docs[0].data();
+        setUserData({ id: snap.docs[0].id, ...user });
+        setScannedQRData({ raw: text, idNumber });
+        setAlert({ type: 'success', message: "ID Verified Successfully!" });
+        setStep(2); // Move to final step
+      } else {
+        setAlert({ type: 'error', message: "Student ID not found in database." });
       }
     } catch (err) {
-      console.warn("Error stopping scanner:", err);
+      console.error(err);
+      setAlert({ type: 'error', message: "Database read error." });
+    } finally {
+      setLoading(false);
+    }
+  }, [step]);
+
+  // Use Custom Hook
+  const { videoRef, devices, activeDeviceId, setActiveDeviceId, takePhoto, streamError } = useCameraScanner(handleQRDetected);
+
+  const handleCapture = () => {
+    const photo = takePhoto();
+    if (photo) {
+      setClaimantPhoto(photo);
+      setStep(1); // Move to Scan step
     }
   };
 
-  // --- 2. CAMERA SETUP LOGIC ---
-  useEffect(() => {
-    const isCapturePhotoActive = !capturedImage;
-    const isScanIDActive = !!capturedImage && !qrResult;
+  const handleReset = () => {
+    setStep(0);
+    setClaimantPhoto(null);
+    setScannedQRData(null);
+    setUserData(null);
+  };
 
-    // Do nothing if we don't have a ref or a selected device
-    if (!videoRef.current || !selectedDeviceId) return;
+  // Logic: Notifications
+  const sendNotification = async (uid, msg) => {
+    if (!uid) return;
+    const refPath = ref(getDatabase(), `notifications/${uid}`);
+    await set(push(refPath), {
+      message: msg,
+      timestamp: rtdbServerTimestamp(),
+      type: "transaction",
+      read: false,
+    });
+  };
 
-    // If we are in confirmation (Step 3), shut everything down
-    if (!isCapturePhotoActive && !isScanIDActive) {
-      stopScanner();
-      return;
-    }
+  // Logic: Database Updates
+  const finalizeTransaction = async () => {
+    if (!matchData || !userData) return;
+    setLoading(true);
 
-    const startCamera = async (enableScanning) => {
-      // 1. Clean up any existing streams forcefully
-      await stopScanner();
+    const transactionId = matchDocId || `TXN-${Date.now()}`;
+    const timestamp = new Date().toISOString();
 
-      try {
-        // 2. Strict Constraints: Force the specific ID
-        const constraints = {
-          video: {
-            deviceId: { exact: selectedDeviceId } // 'exact' is crucial
-          }
-        };
+    const sanitize = (d) => JSON.parse(JSON.stringify(d)); // Quick Deep Clean
 
-        // 3. Get the stream manually
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    const finalOwnerData = sanitize({
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        email: userData.email,
+        contactNumber: userData.contactNumber,
+        address: userData.address,
+        uid: userData.id,
+        idNumber: scannedQRData.idNumber
+    });
 
-        // 4. Attach to video element
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          // Ensure it plays only when ready
-          await videoRef.current.play();
-        }
+    try {
+      const updates = [];
 
-        // 5. Initialize QR Scanner only if needed (Step 2)
-        if (enableScanning) {
-          // Pass the ALREADY PLAYING video element to QrScanner
-          const scanner = new QrScanner(videoRef.current, handleScan, {
-            highlightScanRegion: true,
-            highlightCodeOutline: true,
-          });
-          scannerRef.current = scanner;
-          await scanner.start();
-        } else {
-          scannerRef.current = null;
-        }
-
-      } catch (err) {
-        console.error("Camera error:", err);
-        setAlert({ message: "Failed to start selected camera.", type: "error" });
+      // 1. Update Lost Item (if exists)
+      if (matchData.lostItem?.itemId) {
+        const q = query(collection(db, "lostItems"), where("itemId", "==", matchData.lostItem.itemId));
+        updates.push(getDocs(q).then(snap => {
+          if(!snap.empty) updateDoc(doc(db, "lostItems", snap.docs[0].id), { claimStatus: "claimed" });
+        }));
       }
-    };
 
-    // Trigger the logic based on the active step
-    if (isCapturePhotoActive) {
-      startCamera(false); // Step 1: Just video
-    } else if (isScanIDActive) {
-      startCamera(true);  // Step 2: Video + Scan
-    }
-
-    return () => {
-      stopScanner();
-    };
-  }, [selectedDeviceId, capturedImage, qrResult]); 
-  // ^ The effect re-runs whenever selectedDeviceId changes
-  // Resize/compress base64 image
-  const resizeBase64Img = (base64, maxWidth = 400, maxHeight = 400, quality = 0.7) => {
-    return new Promise((resolve) => {
-      let img = new Image();
-      img.src = base64;
-      img.onload = () => {
-        let canvas = document.createElement("canvas");
-        let ctx = canvas.getContext("2d");
-
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > maxWidth) {
-            height *= maxWidth / width;
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width *= maxHeight / height;
-            height = maxHeight;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        ctx.drawImage(img, 0, 0, width, height);
-
-        resolve(canvas.toDataURL("image/jpeg", quality));
-      };
-    });
-  };
-
-  // Enumerate available cameras
-  useEffect(() => {
-    const updateDevices = async () => {
-      try {
-        const allDevices = await navigator.mediaDevices.enumerateDevices();
-        const videoDevices = allDevices.filter((d) => d.kind === "videoinput");
-        setDevices(videoDevices);
-
-        const saved = localStorage.getItem("preferredCamera");
-        if (saved && videoDevices.find((d) => d.deviceId === saved)) {
-          setSelectedDeviceId(saved);
-        } else if (!selectedDeviceId && videoDevices.length > 0) {
-          setSelectedDeviceId(videoDevices[0].deviceId);
-        }
-      } catch (err) {
-        console.error("Device enumeration error:", err);
-      }
-    };
-
-    updateDevices();
-    navigator.mediaDevices.ondevicechange = updateDevices;
-    return () => {
-      navigator.mediaDevices.ondevicechange = null;
-    };
-  }, [selectedDeviceId]);
-
-  // Setup scanner or camera stream
-// --- 2. CAMERA SETUP LOGIC (Keep this one) ---
-  useEffect(() => {
-    const isCapturePhotoActive = !capturedImage;
-    const isScanIDActive = !!capturedImage && !qrResult;
-
-    // Do nothing if we don't have a ref or a selected device
-    if (!videoRef.current || !selectedDeviceId) return;
-
-    // If we are in confirmation (Step 3), shut everything down
-    if (!isCapturePhotoActive && !isScanIDActive) {
-      stopScanner();
-      return;
-    }
-
-    const startCamera = async (enableScanning) => {
-      // 1. Clean up any existing streams forcefully
-      await stopScanner();
-
-      try {
-        // 2. Strict Constraints: Force the specific ID
-        const constraints = {
-          video: {
-            deviceId: { exact: selectedDeviceId }, // This forces the switch
-            facingMode: 'environment' // Optional preference
+      // 2. Update Found Item
+      if (matchData.foundItem?.itemId) {
+        const q = query(collection(db, "foundItems"), where("itemId", "==", matchData.foundItem.itemId));
+        updates.push(getDocs(q).then(snap => {
+          if(!snap.empty) {
+            updateDoc(doc(db, "foundItems", snap.docs[0].id), {
+              claimStatus: "claimed",
+              claimedBy: finalOwnerData,
+              claimantPhoto: claimantPhoto
+            });
           }
-        };
-
-        // 3. Get the stream manually
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-
-        // 4. Attach to video element
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          // Ensure it plays only when ready
-          await videoRef.current.play();
-        }
-
-        // 5. Initialize QR Scanner only if needed (Step 2)
-        if (enableScanning) {
-          // Pass the ALREADY PLAYING video element to QrScanner
-          const scanner = new QrScanner(videoRef.current, handleScan, {
-            highlightScanRegion: true,
-            highlightCodeOutline: true,
-          });
-          scannerRef.current = scanner;
-          await scanner.start();
-        } else {
-          scannerRef.current = null;
-        }
-
-      } catch (err) {
-        console.error("Camera error:", err);
-        setAlert({ message: "Failed to start selected camera.", type: "error" });
+        }));
       }
-    };
 
-    // Trigger the logic based on the active step
-    if (isCapturePhotoActive) {
-      startCamera(false); // Step 1: Just video
-    } else if (isScanIDActive) {
-      startCamera(true);  // Step 2: Video + Scan
+      // 3. Add to History Collections
+      const historyPayload = {
+        itemId: matchData.foundItem.itemId,
+        itemName: matchData.foundItem.itemName,
+        dateClaimed: timestamp,
+        owner: finalOwnerData,
+        claimantPhoto: claimantPhoto,
+        processedBy: currentUser?.uid
+      };
+
+      updates.push(addDoc(collection(db, "claimedItems"), historyPayload));
+      updates.push(addDoc(collection(db, "claimHistory"), { ...historyPayload, status: 'completed' }));
+
+      // 4. Update Match Doc
+      if (matchDocId) {
+        updates.push(setDoc(doc(db, "matches", matchDocId), { claimStatus: "claimed" }, { merge: true }));
+      }
+
+      // 5. Notifications
+      updates.push(sendNotification(currentUser?.uid, `Transaction ${transactionId} Completed.`));
+      updates.push(sendNotification(matchData.lostItem?.uid, `Your item ${matchData.lostItem?.itemName} has been claimed.`));
+
+      await Promise.all(updates);
+
+      setAlert({ type: 'success', message: "Transaction Completed!" });
+      setTimeout(() => navigate(`/admin/item-claimed-list/${currentUser?.uid}`), 1500);
+
+    } catch (e) {
+      console.error(e);
+      setAlert({ type: 'error', message: "Transaction failed. Please try again." });
+    } finally {
+      setLoading(false);
     }
+  };
 
-    return () => {
-      // Cleanup when unmounting or when dependencies change (switching cameras)
-      stopScanner();
-    };
-  }, [selectedDeviceId, capturedImage, qrResult]);
-
-const handleCameraSwitch = (newDeviceId) => {
-  // Just update state; the useEffect will handle the stop/start logic
-  setSelectedDeviceId(newDeviceId);
-  localStorage.setItem("preferredCamera", newDeviceId);
-};
-
-  // Capture still image
-  const capturePhoto = async () => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (video && canvas) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const rawImage = canvas.toDataURL("image/png");
-      const compressedImage = await resizeBase64Img(rawImage);
-      setCapturedImage(compressedImage);
+  // --- RENDER ---
+  return (
+    <>
+      <NavigationBar />
+      <BlankHeader />
+      
+      <div style={styles.pageWrapper}>
+        {alert && <FloatingAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
         
-        // Auto advance to next step (Step 2: Scan ID)
-        stopScanner();
-    }
-  };
+        <div style={styles.container}>
+          <div style={styles.header}>
+            <h2>Claim Verification</h2>
+            <p style={{color: theme.muted}}>Follow the steps to verify identity and process the item return.</p>
+          </div>
 
-  // Handle QR scan
-  const handleScan = async (result) => {
-    if (!result?.data || qrResult) return;
+          <StepWizard currentStep={step} />
 
-    // Stop scanner after successful scan
-    await stopScanner();
+          <div style={styles.card}>
+            
+            {/* --- STEP 0 & 1: CAMERA VIEW --- */}
+            {(step === 0 || step === 1) && (
+              <div style={{textAlign: 'center'}}>
+                <h4 style={{marginBottom: '20px'}}>
+                  {step === 0 ? "Step 1: Capture Photo" : "Step 2: Scan ID Badge"}
+                </h4>
+                
+                {streamError ? (
+                   <div className="alert alert-danger">{streamError}</div>
+                ) : (
+                  <div style={styles.videoWrapper}>
+                    <video ref={videoRef} autoPlay playsInline muted style={styles.video} />
+                    {step === 1 && <div style={styles.overlay}><p style={{color: 'white', marginTop: '110%', textShadow: '0 2px 4px #000'}}>Align QR Code</p></div>}
+                  </div>
+                )}
 
-    setAlert({ message: "QR Code Scanned!", type: "success" });
+                <div style={{maxWidth: '300px', margin: '0 auto'}}>
+                  <select 
+                    className="form-select mb-3" 
+                    onChange={(e) => setActiveDeviceId(e.target.value)} 
+                    value={activeDeviceId || ''}
+                  >
+                    {devices.map(d => <option key={d.deviceId} value={d.deviceId}>{d.label || 'Camera'}</option>)}
+                  </select>
 
-    const text = result.data;
-    const tokens = text.split(/\s+/);
-
-    let fullnameParts = [];
-    let idNumber = "";
-    let courseParts = [];
-    let phase = "name";
-
-    for (let token of tokens) {
-      if (/^\d+$/.test(token)) {
-        idNumber = token;
-        phase = "course";
-      } else {
-        if (phase === "name") fullnameParts.push(token);
-        else if (phase === "course") courseParts.push(token);
-      }
-    }
-
-    const parsedResult = {
-      fullname: fullnameParts.join(" "),
-      idNumber,
-      course: courseParts.join(" "),
-    };
-
-    setQrResult(parsedResult);
-
-    // Lookup user in Firestore
-    try {
-      const q = query(collection(db, "users"), where("studentId", "==", idNumber));
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        querySnapshot.forEach((docSnap) => {
-          setUserData({ id: docSnap.id, ...docSnap.data() });
-        });
-      } else {
-        setUserData(null);
-        setAlert({ message: "No user found with this ID Number.", type: "error" });
-      }
-    } catch (err) {
-      console.error("Firestore fetch error:", err);
-      setAlert({ message: "Database Error Occurred.", type: "error" });
-    }
-    
-    // Auto advance to next step (Step 3: Confirm) is handled by state change (setUserData)
-  };
-
-  // Notify user via Realtime DB (kept existing logic)
-  const notifyUser = async (uid, message) => {
-    if (!uid) return;
-    const notifRef = ref(dbRealtime, `notifications/${uid}`);
-    const newNotifRef = push(notifRef);
-    await set(newNotifRef, {
-      message,
-      timestamp: rtdbServerTimestamp(),
-      type: "transaction",
-      read: false,
-    });
-  };
-
-  // Finalize Claim (kept existing logic)
-  const finalizeClaim = async () => {
-    if (!matchData || !userData || !capturedImage) {
-      setAlert({ message: "Please capture a photo and scan a valid ID first.", type: "warning" });
-      return;
-    }
-
-    setLoading(true);
-    try {
-    // --- Update lost item ---
-    if (matchData.lostItem?.itemId) {
-      const lostQuery = query(
-        collection(db, "lostItems"),
-        where("itemId", "==", matchData.lostItem.itemId)
-      );
-      const lostSnap = await getDocs(lostQuery);
-
-      if (!lostSnap.empty) {
-        const lostDocId = lostSnap.docs[0].id;
-        await updateDoc(doc(db, "lostItems", lostDocId), {
-          claimStatus: "claimed",
-          foundBy: matchData.foundItem.personalInfo || null,
-        });
-      }
-    }
-
-    // --- Update found item ---
-    if (matchData.foundItem?.itemId) {
-      const foundQuery = query(
-        collection(db, "foundItems"),
-        where("itemId", "==", matchData.foundItem.itemId)
-      );
-      const foundSnap = await getDocs(foundQuery);
-
-      if (!foundSnap.empty) {
-        const foundDocId = foundSnap.docs[0].id;
-        await updateDoc(doc(db, "foundItems", foundDocId), {
-          claimStatus: "claimed",
-          claimedBy: sanitizeData({
-            firstName: userData.firstName,
-            lastName: userData.lastName,
-            middleName: userData.middleName || "",
-            email: userData.email,
-            contactNumber: userData.contactNumber,
-            address: userData.address,
-            birthdate: userData.birthdate,
-            course: userData.course,
-            section: userData.section,
-            yearLevel: userData.yearLevel,
-            profileURL: userData.profileURL,
-            uid: userData.id,
-          }),
-          claimantPhoto: capturedImage,
-        });
-      }
-    }
-
-    // --- Update match record ---
-    if (matchDocId) {
-      const matchDocRef = doc(db, "matches", matchDocId);
-      await setDoc(matchDocRef, { claimStatus: "claimed" }, { merge: true });
-    }
-
-    // --- Save to claimedItems ---
-    await addDoc(collection(db, "claimedItems"), {
-      itemId: matchData.foundItem.itemId,
-      images: matchData.foundItem.images,
-      itemName: matchData.foundItem.itemName || "",
-      dateClaimed: new Date().toISOString(),
-      founder: matchData.foundItem.personalInfo || null,
-      owner: sanitizeData({
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        middleName: userData.middleName || "",
-        email: userData.email,
-        contactNumber: userData.contactNumber,
-        address: userData.address,
-        birthdate: userData.birthdate,
-        course: userData.course,
-        section: userData.section,
-        yearLevel: userData.yearLevel,
-        profileURL: userData.profileURL,
-        uid: userData.id,
-      }),
-      ownerActualFace: capturedImage,
-    });
-
-    // --- Save to claimHistory ---
-    await addDoc(collection(db, "claimHistory"), {
-      itemId: matchData.foundItem.itemId,
-      itemName: matchData.foundItem.itemName || "",
-      dateClaimed: new Date().toISOString(),
-      founder: matchData.foundItem.personalInfo || null,
-      owner: sanitizeData({
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        middleName: userData.middleName || "",
-        email: userData.email,
-        contactNumber: userData.contactNumber,
-        address: userData.address,
-        birthdate: userData.birthdate,
-        course: userData.course,
-        section: userData.section,
-        yearLevel: userData.yearLevel,
-        profileURL: userData.profileURL,
-        uid: userData.id,
-      }),
-      claimantPhoto: capturedImage,
-      userAccount: currentUser?.uid || "system",
-      status: "completed",
-    });
-
-    // --- Notifications and Emails ---
-      
-    await notifyUser(currentUser?.uid, `<b>Transaction ID: ${matchData.transactionId}</b> — Claim processed.`);
-    await notifyUser(matchData.lostItem?.uid, ` Hello <b>"${matchData.lostItem?.personalInfo?.firstName}"!</b>  Your lost item <b>"${matchData.lostItem?.itemName}"</b> has been successfully claimed.`);
-    await notifyUser(matchData.foundItem?.uid, `Thank you <b>"${matchData.foundItem?.personalInfo?.firstName}"!</b>  The item you reported found <b>"${matchData.foundItem?.itemName}"</b> has been successfully claimed.`);
-
-      
-      // Email logic starts here 
-      try {
-                  const emailResUser = await fetch(`${API}/api/send-email`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      to: String(currentUser?.email),
-                      subject: "Claim Processed",
-                      html: `<b>Transaction ID: ${matchData.transactionId}</b> — Claim processed by admin.`
-                    })
-                  });
-                  const emailDataUser = await emailResUser.json();
-                  console.log("Email response for user:", emailDataUser);
-                  if (!emailResUser.ok) {
-                    console.error("Failed to send email to user:", emailDataUser);
-                  } else {
-                    console.log("Email successfully sent to user:", email);
-                  }
-                } catch (emailErrorUser) {
-                  console.error("Error sending email to user:", emailErrorUser);
-                }
-
-                // Email to Lost Item Reporter (Owner)
-                try {
-                  const emailResLost = await fetch(`${API}/api/send-email`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      to: String(matchData.lostItem?.personalInfo?.email),
-                      subject: "Item Claimed",
-                      html: `Your lost item "${matchData.lostItem?.itemName}" has been claimed.`
-                    })
-                  });
-                  const emailDataLost = await emailResLost.json();
-                  console.log("Email response for lost item owner:", emailDataLost);
-                  if (!emailResLost.ok) {
-                    console.error("Failed to send email to lost owner:", emailDataLost);
-                  } else {
-                    console.log("Email successfully sent to lost owner:", matchData.lostItem?.personalInfo?.email);
-                  }
-                } catch (emailErrorLost) {
-                  console.error("Error sending email to lost owner:", emailErrorLost);
-                }
-
-                // Email to Found Item Reporter (Founder)
-                try {
-                  const emailResFound = await fetch(`${API}/api/send-email`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      to: String(matchData.foundItem?.personalInfo?.email),
-                      subject: "Item Claimed",
-                      html: `The item you reported found, "${matchData.foundItem?.itemName}", has been claimed.`
-                    })
-                  });
-                  const emailDataFound = await emailResFound.json();
-                  console.log("Email response for found item reporter:", emailDataFound);
-                  if (!emailResFound.ok) {
-                    console.error("Failed to send email to found reporter:", emailDataFound);
-                  } else {
-                    console.log("Email successfully sent to found reporter:", matchData.foundItem?.personalInfo?.email);
-                  }
-                } catch (emailErrorFound) {
-                  console.error("Error sending email to found reporter:", emailErrorFound);
-                }
-
-      setAlert({ message: "Claim finalized and notifications sent!", type: "success" });
-      navigate(`/admin/item-claimed-list/${currentUser?.uid || userData.id}`);
-    } catch (err) {
-      console.error("Error finalizing claim:", err);
-      setAlert({ message: "Error finalizing claim.", type: "error" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-const handleReset = async () => {
-    await stopScanner();
-    setCapturedImage(null);
-    setQrResult(null);
-    setUserData(null);
-    // The useEffect will automatically restart the camera stream for Step 1.
-};
-
-// --- CALCULATE CURRENT VIEW STATE ---
-const isCaptureStep = !capturedImage; // Step 1: Capture photo (Active if no photo yet)
-const isScanStep = !!capturedImage && !qrResult; // Step 2: Scan ID (Active if photo exists but no QR result)
-const isConfirmStep = !!capturedImage && !!qrResult && !!userData; // Step 3: Confirm
-
-// --- STEP INDICATOR COMPONENT ---
-const StepIndicator = ({ isCaptureStep, isScanStep, isConfirmStep }) => {
-    
-    // Logic for completion:
-    const isStep1Complete = !isCaptureStep;
-    const isStep2Complete = !isScanStep && isStep1Complete;
-    
-    const steps = [
-        { id: 1, label: 'Capture Photo', active: isCaptureStep, complete: isStep1Complete },
-        { id: 2, label: 'Scan ID', active: isScanStep, complete: isStep2Complete },
-        { id: 3, label: 'Confirm & Finalize', active: isConfirmStep, complete: isConfirmStep },
-    ];
-
-    return (
-        <div style={styles.stepContainer}>
-            {steps.map((step, index) => (
-                <div key={step.id} style={{...styles.stepItem, position: 'relative'}}>
-                    {/* Line connecting previous step */}
-                    {index > 0 && (
-                        <div style={{
-                            ...styles.stepLine(steps[index - 1].complete), 
-                            width: 'calc(100% - 40px)', 
-                            left: '-50%', 
-                            right: 'auto',
-                            transform: 'translateX(20px)', // Center line between steps
-                            width: '100%'
-                        }} />
-                    )}
-
-                    <div style={styles.stepCircle(step.active, step.complete)}>
-                        {step.complete ? '✓' : step.id}
-                    </div>
-                    <span style={styles.stepLabel(step.active, step.complete)}>
-                        {step.label}
-                    </span>
+                  {step === 0 && (
+                    <button style={styles.btnPrimary} onClick={handleCapture}>
+                      Capture Claimant Photo
+                    </button>
+                  )}
+                  
+                  {step === 1 && (
+                    <p className="text-muted">Scanning for QR code automatically...</p>
+                  )}
                 </div>
-            ))}
+              </div>
+            )}
+
+            {/* --- STEP 2: SUMMARY & SUBMIT --- */}
+            {step === 2 && userData && (
+              <div>
+                <h4 style={{marginBottom: '25px', color: theme.success, textAlign: 'center'}}>
+                   Verification Successful
+                </h4>
+
+                <div className="row">
+                  <div className="col-md-4 text-center">
+                    <p style={styles.label}>Captured Photo</p>
+                    <img src={claimantPhoto} alt="Claimant" style={{width: '100%', borderRadius: '8px', border: '3px solid #eee'}} />
+                  </div>
+
+                  <div className="col-md-8">
+                    <div style={{backgroundColor: '#f1f3f5', padding: '20px', borderRadius: '12px'}}>
+                      <h5 style={{color: theme.primary, marginBottom: '15px'}}>{userData.firstName} {userData.lastName}</h5>
+                      
+                      <div style={styles.detailRow}>
+                        <span style={styles.label}>Student ID</span>
+                        <span style={styles.value}>{scannedQRData.idNumber}</span>
+                      </div>
+                      <div style={styles.detailRow}>
+                        <span style={styles.label}>Course / Section</span>
+                        <span style={styles.value}>{userData.course?.abbr || userData.course} - {userData.section}</span>
+                      </div>
+                      <div style={styles.detailRow}>
+                        <span style={styles.label}>Email</span>
+                        <span style={styles.value}>{userData.email}</span>
+                      </div>
+                      <div style={styles.detailRow}>
+                        <span style={styles.label}>Item Being Claimed</span>
+                        <span style={styles.value}>{matchData?.foundItem?.itemName || "Unknown Item"}</span>
+                      </div>
+                    </div>
+
+                    <button 
+                      style={{...styles.btnPrimary, opacity: loading ? 0.7 : 1}} 
+                      onClick={finalizeTransaction}
+                      disabled={loading}
+                    >
+                      {loading ? <Spinner animation="border" size="sm" /> : "Confirm & Process Claim"}
+                    </button>
+                    
+                    <button style={styles.btnSecondary} onClick={handleReset} disabled={loading}>
+                      Cancel / Start Over
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
         </div>
-    );
-};
-// ------------------------------------
-
-
-  return (
-    <>
-      <NavigationBar />
-      <BlankHeader />
-      
-      <div style={styles.processClaimBody}>
-        {alert && <FloatingAlert message={alert.message} type={alert.type} onClose={() => setAlert(null)} />}
-        
-        <div style={styles.mainContainer}>
-          <h1 style={styles.title}>Claim Verification</h1>
-
-            {/* STEP INDICATOR (Visible always) */}
-            <StepIndicator isCaptureStep={isCaptureStep} isScanStep={isScanStep} isConfirmStep={isConfirmStep} />
-          
-          <div style={styles.contentGrid}>
-
-                {isCaptureStep && (
-                    <div style={{...styles.scanCard, gridColumn: '1 / -1'}}>
-                        <h3>Step 1: Capture Claimant Photo </h3>
-
-                        <div style={styles.cameraContainer}>
-                            <video ref={videoRef}  autoPlay playsInline muted style={styles.video} />
-                        </div>
-                        
-                        <button style={styles.captureButton} onClick={capturePhoto}>
-                            Capture Photo
-                        </button>
-                                                <div style={styles.cameraControls}>
-                            <label style={{ color: "#343a40", fontWeight: "600", fontSize: '0.9rem' }}>Select Camera:</label>
-                            <select 
-                                style={{padding: '8px', borderRadius: '6px', border: '1px solid #ccc'}}
-                                value={selectedDeviceId || ""} 
-                                onChange={(e) => handleCameraSwitch(e.target.value)}
-                            >
-                                {devices.map((device, idx) => (
-                                    <option key={idx} value={device.deviceId}>
-                                        {device.label || `Camera ${idx + 1}`}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <p style={{color: '#6c757d', fontSize: '0.9rem'}}>Take a clear photo of the claimant's face for record purposes.</p>
-                        
-                        {capturedImage && (
-                            <div style={{textAlign: 'center'}}>
-                                <p style={{fontWeight: '600', color: '#333'}}>Captured Face Preview</p>
-                                <img src={capturedImage} alt="Captured" style={styles.capturedImage} />
-                            </div>
-                        )}
-                        <button 
-                            onClick={handleReset} 
-                            style={{
-                                padding: '8px 15px', 
-                                backgroundColor: 'transparent', 
-                                color: '#dc3545', 
-                                border: '1px solid #dc3545', 
-                                borderRadius: '6px',
-                                fontSize: '0.9rem',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Reset
-                        </button>
-                        <canvas ref={canvasRef} style={{ display: "none" }} />
-                    </div>
-                )}
-
-
-                {isScanStep && (
-                    <div style={{...styles.scanCard, gridColumn: '1 / -1'}}>
-                        <h3>Step 2: Scan Claimant ID (QR) </h3>
-                        
-                        <div style={styles.cameraContainer}>
-                            <video ref={videoRef}   autoPlay playsInline muted style={styles.video} />
-                        </div>
-
-                        <div style={styles.cameraControls}>
-                            <label style={{ color: "#343a40", fontWeight: "600", fontSize: '0.9rem' }}>Select Camera:</label>
-                            <select 
-                                style={{padding: '8px', borderRadius: '6px', border: '1px solid #ccc'}}
-                                value={selectedDeviceId || ""} 
-                                onChange={(e) => handleCameraSwitch(e.target.value)}
-                            >
-                                {devices.map((device, idx) => (
-                                    <option key={idx} value={device.deviceId}>
-                                        {device.label || `Camera ${idx + 1}`}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <p style={{color: '#6c757d', fontSize: '0.9rem'}}>Hold the claimant's QR ID steady in front of the camera.</p>
-                        
-                        {qrResult && (
-                            <div style={styles.qrResultBox}>
-                                <p style={styles.resultText}><span style={styles.resultLabel}>Status:</span> ID Scanned! Proceeding to Step 3...</p>
-                            </div>
-                        )}
-                        
-                        <button 
-                            onClick={handleReset} 
-                            style={{
-                                padding: '8px 15px', 
-                                backgroundColor: 'transparent', 
-                                color: '#dc3545', 
-                                border: '1px solid #dc3545', 
-                                borderRadius: '6px',
-                                fontSize: '0.9rem',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            Reset All Steps
-                        </button>
-                    </div>
-                )}
-
-
-                {isConfirmStep && (
-                    <>
-                        {/* Display Scanned/Captured info (Left Column) */}
-                        <div style={styles.scanCard}>
-                            <h3 style={{color: '#28a745'}}>Verification Details</h3>
-                            
-                            <p style={{fontWeight: '600', color: '#333'}}>Claimant Photo Preview</p>
-                            {capturedImage && (
-                                <img src={capturedImage} alt="Captured" style={styles.capturedImage} />
-                            )}
-                            
-                            {qrResult && (
-                                <div style={styles.qrResultBox}>
-                                    <p style={styles.resultText}><span style={styles.resultLabel}>Fullname:</span> {qrResult.fullname}</p>
-                                    <p style={styles.resultText}><span style={styles.detailKey}>ID Number:</span> {qrResult.idNumber}</p>
-                                    <p style={styles.resultText}><span style={styles.detailKey}>Course:</span> {qrResult.course}</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Matched User Data and Finalize (Right Column) */}
-                        <div style={styles.dataCard}>
-                            <h3>Step 3: Finalize Claim</h3>
-
-                            {userData ? (
-                                <>
-                                    {/* User Header */}
-                                    <div style={styles.userHeader}>
-                                        <ProfileAvatar userData={userData} />
-                                        <div style={{lineHeight: '1.2'}}>
-                                            <p style={{ margin: 0, fontWeight: 'bold', color: '#007bff' }}>
-                                                {userData.firstName} {userData.lastName}
-                                            </p>
-                                            <p style={{ margin: 0, fontSize: '0.9rem', color: '#555' }}>
-                                                {userData.course?.abbr || userData.designation || 'N/A'}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Matched Data Details */}
-                                    <div style={styles.detailGrid}>
-                                        <p style={styles.detailItem}><span style={styles.detailKey}>ID Number:</span> {qrResult?.idNumber || 'N/A'}</p>
-                                        <p style={styles.detailItem}><span style={styles.detailKey}>Year Level:</span> {userData.yearLevel || 'N/A'}</p>
-                                        <p style={styles.detailItem}><span style={styles.detailKey}>Section:</span> {userData.section || 'N/A'}</p>
-                                        <p style={styles.detailItem}><span style={styles.detailKey}>Contact:</span> {userData.contactNumber || 'N/A'}</p>
-                                        <p style={styles.detailItem}><span style={styles.detailKey}>Gender:</span> {userData.gender || 'N/A'}</p>
-                                        <p style={styles.detailItem}><span style={styles.detailKey}>Birthdate:</span> {userData.birthdate || 'N/A'}</p>
-                                        <p style={{...styles.detailItem, gridColumn: '1 / -1'}}><span style={styles.detailKey}>Address:</span> {userData.address || 'N/A'}</p>
-                                        <p style={{...styles.detailItem, gridColumn: '1 / -1'}}><span style={styles.detailKey}>Email:</span> {userData.email || 'N/A'}</p>
-                                    </div>
-                                    
-                                    {/* Transaction ID Display */}
-                                    <p style={{fontSize: '0.9rem', marginTop: '15px', color: '#555'}}>
-                                        **Transaction ID:** <strong style={{color: '#343a40'}}>{transactionId}</strong>
-                                    </p>
-
-
-                                    {/* Finalize Button */}
-                                    <button 
-                                        onClick={finalizeClaim} 
-                                        disabled={loading || !qrResult || !capturedImage || !userData} 
-                                        style={styles.completeButton}
-                                    >
-                                        {loading ? <Spinner animation="border" size="sm" /> : "Complete & Finalize Claim"}
-                                    </button>
-                                    <button 
-                                        onClick={handleReset} 
-                                        style={{
-                                            padding: '8px 15px', 
-                                            backgroundColor: 'transparent', 
-                                            color: '#dc3545', 
-                                            border: '1px solid #dc3545', 
-                                            borderRadius: '6px',
-                                            fontSize: '0.9rem',
-                                            cursor: 'pointer',
-                                            width: '100%',
-                                            marginTop: '10px'
-                                        }}
-                                    >
-                                        Go Back/Reset
-                                    </button>
-                                </>
-                            ) : (
-                                <p style={{color: '#dc3545', fontWeight: '500'}}>Scan the claimant's QR ID and capture their photo to view details and finalize the claim.</p>
-                            )}
-                        </div>
-                    </>
-                )}
-          </div>
-        </div>
-      </div>
-    </>
-  );
+      </div>
+    </>
+  );
 }
 
 export default ProcessClaimPage;

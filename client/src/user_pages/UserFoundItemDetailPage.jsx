@@ -598,6 +598,7 @@ const formStyles = {
     boxSizing: 'border-box',
     WebkitAppearance: 'none',
     backgroundColor: 'white',
+    colorScheme: 'light',
   },
   // Location/Category Wrapper for relative positioning
   dropdownWrapper: {

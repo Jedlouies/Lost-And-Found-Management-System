@@ -618,8 +618,8 @@ const API = "https://server.spotsync.site";
       color: '#475C6F',
       boxSizing: 'border-box',
       WebkitAppearance: 'none',
+      colorScheme: 'light',
     },
-    // Location/Category Wrapper for relative positioning
     dropdownWrapper: {
         position: 'relative', 
         flex: '1', // Takes up remaining space
