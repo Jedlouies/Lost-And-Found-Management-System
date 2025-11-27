@@ -15,7 +15,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 // import { auth } from '../firebase'; // No longer needed here
 
 export default function LostHeader({ userData }) {
-  // ✅ MODIFIED: Get the new logout function from context
   const { currentUser, logout } = useAuth();
   const router = useRouter();
   const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -27,7 +26,6 @@ export default function LostHeader({ userData }) {
   };
 
   const isProfileComplete = () => {
-    // Customize your completion criteria
     return (
       userData &&
       userData.firstName &&
@@ -45,27 +43,23 @@ export default function LostHeader({ userData }) {
     );
   };
 
-  // ✅ MODIFIED: Use the context's logout function
   const handleLogout = async () => {
     try {
       await logout(); // This will sign out and clear session
       setDropdownVisible(false);
-      // No router.replace needed. AuthContext will handle the state change.
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
   const handlePostPress = () => {
-    // Only navigate if profile is complete
     if (isProfileComplete()) {
-      router.push('/');
+      router.push('/UserLostProcedureScreen');
     }
   };
 
   return (
     <View style={styles.headerContainer}>
-      {/* Post Button and Message */}
       <View style={styles.postSection}>
         <TouchableOpacity
           style={[
@@ -75,7 +69,7 @@ export default function LostHeader({ userData }) {
           onPress={handlePostPress}
           disabled={!isProfileComplete()}
         >
-          <Text style={{ color: '#143447', fontWeight: 'bold' }} onPress={() => {router.push('/UserLostProcedureScreen')}}>Post</Text>
+          <Text style={{ color: '#143447', fontWeight: 'bold' }} >Post</Text>
         </TouchableOpacity>
 
         {!isProfileComplete() && (

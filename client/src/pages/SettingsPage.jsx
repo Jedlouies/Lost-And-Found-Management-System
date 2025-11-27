@@ -728,6 +728,14 @@ function SettingsPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault(); // Prevents default form submission issues
+                  if (!checkingPassword) {
+                    handleConfirmPassword();
+                  }
+                }
+              }}
             />
           </Form.Group>
         </Modal.Body>

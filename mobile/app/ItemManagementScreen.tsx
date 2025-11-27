@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   SafeAreaView,
   View,
@@ -11,15 +11,15 @@ import {
   ActivityIndicator,
   Modal,
   Alert,
+  BackHandler, 
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router'; 
 import { db } from '../firebase';
 import { collection, onSnapshot, query, where, doc, updateDoc, getDocs, getDoc, Timestamp } from 'firebase/firestore'; 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import BlankHeader from '../components/BlankHeader';
 import BottomNavBar from '../components/BottomNavBar';
-import { useExitOnBack } from '@/hooks/useExitonBack';
 
 interface Item {
   id: string;
@@ -85,7 +85,18 @@ function ItemManagementScreen() {
   const { currentUser } = useAuth();
   const router = useRouter();
 
-  useExitOnBack();
+  // --- FIX: Correct Way to Remove Listener ---
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        router.replace('/home-screen');
+        return true; 
+      };
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => subscription.remove(); // Correct way
+    }, [router])
+  );
+  // -------------------------------------------
 
   const [items, setItems] = useState<Item[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -212,9 +223,7 @@ function ItemManagementScreen() {
       <BlankHeader userData={userData} />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Item Management</Text>
-        <TouchableOpacity onPress={() => setBulkMode(!bulkMode)}>
-            <MaterialCommunityIcons name={bulkMode ? "close-box-multiple" : "check-box-multiple-outline"} size={28} color="#007AFF" />
-        </TouchableOpacity>
+        
       </View>
       
       <View style={styles.filtersContainer}>

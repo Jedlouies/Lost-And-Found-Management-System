@@ -10,7 +10,7 @@ import { Spinner } from 'react-bootstrap';
 import BlankHeader from '../components/BlankHeader';
 import UserBlankHeader from '../user_components/UserBlankHeader';
 
-// 🎨 MODERN UI STYLES DEFINITION (COPIED FROM FoundItemsPage.jsx)
+// 🎨 MODERN UI STYLES DEFINITION 
 const styles = {
     pageBody: {
         backgroundColor: '#f4f7f9',
@@ -239,7 +239,7 @@ const styles = {
         width: "100%",
     },
     postButton: (disabled) => ({
-        backgroundColor: disabled ? "#ccc" : "#143447", // Red for Lost, gray if disabled
+        backgroundColor: disabled ? "#ccc" : "#143447", 
         cursor: disabled ? "not-allowed" : "pointer",
         borderRadius: "8px",
         border: "none",
@@ -251,7 +251,7 @@ const styles = {
         gap: "5px",
         transition: "background-color 0.2s",
     }),
-    actionRow: { // NEW style for the single horizontal row
+    actionRow: { 
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -268,10 +268,9 @@ const styles = {
 };
 
 const ItemCard = ({ item, navigate, toggleSave, isSaved }) => {
-    // NOTE: For Lost Items, the 'personalInfo' field holds the owner/reporter.
     const person = item.personalInfo;
     const initials = `${person?.firstName?.[0] || ''}${person?.lastName?.[0] || ''}`.toUpperCase();
-    const description = item.howItemLost; // Use howItemLost for Lost Items
+    const description = item.howItemLost; 
     
     const renderAvatar = () => {
         const baseAvatarStyle = {
@@ -294,7 +293,7 @@ const ItemCard = ({ item, navigate, toggleSave, isSaved }) => {
         <div style={styles.itemCard}>
             <div
                 onClick={() =>
-                    navigate(`/users/lost-items/more-details/${item.id}`, { // Navigate to lost item details
+                    navigate(`/users/lost-items/more-details/${item.id}`, { 
                         state: { type: "lost", item },
                     })
                 }
@@ -320,7 +319,6 @@ const ItemCard = ({ item, navigate, toggleSave, isSaved }) => {
                                 {item.isGuest ? 'Guest Reporter' : `${person?.firstName || 'Unknown'} ${person?.lastName || ''}`.trim()}
                             </strong>
                             <br />
-                            {/* Display course abbreviation from personalInfo for Lost Item Reporter */}
                             <span style={{color: '#143447'}}>{person?.course?.abbr}</span> 
                         </div>
                     </div>
@@ -369,20 +367,15 @@ function UserLostItemsPage() {
   const [showModal, setShowModal] = useState(false);
   const [loadingLost, setLoadingLost] = useState(true);
   
-  
-  
-
   const navigate = useNavigate();
 
-  // --- BEGIN: MOVED AUTH/PROFILE COMPLETENESS LOGIC ---
   const requiredFields = ["firstName", "lastName", "email", "contactNumber", "address", "course", "gender", "section"];
   const hasEmptyFields = userData
     ? requiredFields.some((field) => {
         const value = userData[field];
-        // Check if value is undefined, null, or whitespace/empty string
         return value === undefined || value === null || (typeof value === 'string' && value.trim() === "");
       })
-    : true; // Default to true if userData is null (i.e., still loading)
+    : true; 
 
   useEffect(() => {
     const fetchData = async () => {
@@ -394,9 +387,7 @@ function UserLostItemsPage() {
     };
     fetchData();
   }, [currentUser]);
-  // --- END: MOVED AUTH/PROFILE COMPLETENESS LOGIC ---
 
-  // FIX: Use onSnapshot for real-time updates of lost items
   useEffect(() => {
     setLoadingLost(true);
 
@@ -465,7 +456,6 @@ function UserLostItemsPage() {
 
   return (
     <>
-      {/* --- SAVED ITEMS MODAL (Remains identical) --- */}
       {showModal && (
         <div
           style={{
@@ -558,10 +548,8 @@ function UserLostItemsPage() {
           
           <div style={styles.controlPanel}>
             
-            {/* Single Row Container */}
             <div style={styles.actionRow}>
                 
-                {/* 1. Search and Category (Left Group) */}
                 <div style={styles.searchFilterWrapper}>
                     <input
                       type="text"
@@ -589,16 +577,30 @@ function UserLostItemsPage() {
                         <option value="Health & Personal Care">Health & Personal Care</option>
                         <option value="Toys & Games">Toys & Games</option>
                         <option value="Food & Beverages">Food & Beverages</option>
-                        <option value="Automotive">Automotive Items</option>
+                        <option value="Automotive Items">Automotive Items</option>
                         <option value="Musical Instruments">Musical Instruments</option>
                         <option value="Pet Items">Pet Items</option>
                         <option value="Others">Others</option>
                     </select>
                 </div>
 
-                {/* 2. Post Button and Saved Icon (Right Group) */}
                 <div style={styles.actionGroupRight}>
                     
+                    {/* VISIBLE WARNING IF PROFILE IS INCOMPLETE */}
+                    {hasEmptyFields && (
+                      <span style={{ 
+                          color: '#dc3545', 
+                          fontSize: '13px', 
+                          fontWeight: '600', 
+                          maxWidth: '120px', 
+                          textAlign: 'right', 
+                          lineHeight: '1.2',
+                          marginRight: '5px' 
+                      }}>
+                          You must complete your profile to post
+                      </span>
+                    )}
+
                     <button
                         onClick={() => {
                             if (!hasEmptyFields) {

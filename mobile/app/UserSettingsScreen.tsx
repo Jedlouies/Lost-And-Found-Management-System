@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from 'react';
+import React, { use, useEffect, useState, useCallback } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -12,38 +12,50 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
+  BackHandler, // Added
 } from 'react-native';
-import { useAuth } from '../context/AuthContext'; // Adjust path
+import { useAuth } from '../context/AuthContext'; 
+import { useRouter, useFocusEffect } from 'expo-router'; // Added useFocusEffect
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase'; // Adjust path
+import { db } from '../firebase'; 
 import { getAuth, reauthenticateWithCredential, EmailAuthProvider, updatePassword, User } from "firebase/auth";
 import * as ImagePicker from 'expo-image-picker';
-import { MaterialCommunityIcons } from '@expo/vector-icons'; // Import icons
+import { MaterialCommunityIcons } from '@expo/vector-icons'; 
 
-// Custom component imports
 import VerificationModal from '../components/VerificationModal';
 import createVerificationCode from '../utils/createVerificationCode';
 import BlankHeader from '../components/BlankHeader';
 import BottomNavBar from '../components/BottomNavBar';
-import { useExitOnBack } from '../hooks/useExitonBack'
+// Removed: useExitOnBack
 
-
-// Define placeholder color
 const PLACEHOLDER_COLOR = "#A9A9A9";
 
-// --- Type Definitions ---
 interface Course {
   abbr: string;
   name: string;
 }
 
-// --- Main Screen Component ---
 function UserSettingsScreen() {
   const { currentUser } = useAuth();
   const API = "https://server.spotsync.site";
+  const router = useRouter(); 
 
-  useExitOnBack();
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        router.replace('/home-screen');
+        return true;
+      };
 
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => {
+        if (subscription?.remove) {
+          subscription.remove();
+        } 
+      };
+    }, [router])
+  );
   const [profileImage, setProfileImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [coverImage, setCoverImage] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [profileURL, setProfileURL] = useState('');

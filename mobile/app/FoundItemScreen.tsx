@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,18 +11,17 @@ import {
   Modal,
   Image,
   SafeAreaView,
+  BackHandler,
+  ScrollView, // Ensure this is imported
 } from 'react-native';
 import { useAuth } from '../context/AuthContext'; 
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router'; 
 import { collection, doc, getDocs, setDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import FoundHeader from '../components/FoundHeader'; 
 import BottomNavBar from '../components/BottomNavBar'; 
-
 import { useOfflineNotifier } from '../hooks/useOfflineNotifier'; 
-import { useExitOnBack } from '../hooks/useExitonBack'
-
 
 const ItemCard = ({ item, isSaved, onSaveToggle, onCardPress }) => {
   const reporter = item.personalInfo;
@@ -39,7 +38,13 @@ const ItemCard = ({ item, isSaved, onSaveToggle, onCardPress }) => {
         source={item.images && item.images.length > 0 ? { uri: item.images[0] } : require('../assets/images/favicon.png')}
         style={styles.itemImage}
       />
-      <TouchableOpacity style={styles.saveButton} onPress={() => onSaveToggle(item)}>
+      <TouchableOpacity 
+        style={styles.saveButton} 
+        onPress={(e) => {
+          e && e.stopPropagation && e.stopPropagation();
+          onSaveToggle(item);
+        }}
+      >
         <MaterialCommunityIcons name={isSaved ? "star" : "star-outline"} size={28} color={isSaved ? "#FFD700" : "white"} />
       </TouchableOpacity>
       <View style={styles.cardDetails}>
@@ -73,7 +78,20 @@ export default function FoundItemsScreen() {
   const router = useRouter();
   const { currentUser } = useAuth();
 
-  useExitOnBack();
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        router.replace('/home-screen');
+        return true; 
+      };
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => {
+        if (subscription?.remove) {
+             subscription.remove();
+        }
+      };
+    }, [router])
+  );
 
   const { notifyOffline, OfflinePanelComponent } = useOfflineNotifier();
   
@@ -85,10 +103,11 @@ export default function FoundItemsScreen() {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showSavedModal, setShowSavedModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-
   const [isRemoving, setIsRemoving] = useState(null);
 
-  const categories = ["Electronics", "Accessories", "Clothing", "Bags", "Documents", "Stationery", "Others"];
+  const categories = ["Electronics", "Accessories", "Clothing & Apparel", "Bags & Luggage", "Documents & IDs", "Books & Stationery",
+    "Household Items", "Sports & Fitness", "Health & Personal Care", "Toys & Games", "Food & Beverages", 
+    "Automotive Items", "Musical Instruments", "Pet Items", "Others"];
 
   useEffect(() => {
     if (!currentUser) return;
@@ -96,7 +115,6 @@ export default function FoundItemsScreen() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
         const userDocRef = doc(db, "users", currentUser.uid);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
@@ -111,13 +129,11 @@ export default function FoundItemsScreen() {
         setSavedItems(savedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       } catch (error) {
         console.error("Error fetching data:", error.code, error.message);
-        
         if (error.code === 'unavailable' || error.code === 'auth/network-request-failed') {
           notifyOffline(fetchData); 
         } else {
           Alert.alert("Error", "Failed to load item data.");
         }
-        
       } finally {
         setLoading(false);
       }
@@ -133,6 +149,7 @@ export default function FoundItemsScreen() {
 
     try {
       if (isCurrentlySaved) {
+        setIsRemoving(item.id);
         await deleteDoc(ref);
         setSavedItems(prev => prev.filter(saved => saved.id !== item.id));
       } else {
@@ -145,6 +162,8 @@ export default function FoundItemsScreen() {
       } else {
         Alert.alert("Error", "Could not save item.");
       }
+    } finally {
+        setIsRemoving(null);
     }
   };
 
@@ -206,10 +225,10 @@ export default function FoundItemsScreen() {
         />
       )}
       
-<Modal visible={showSavedModal} transparent={true} animationType="fade">
+      {/* Saved Items Modal */}
+      <Modal visible={showSavedModal} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Saved Items</Text>
               <TouchableOpacity style={styles.modalCloseButton} onPress={() => setShowSavedModal(false)}>
@@ -225,7 +244,6 @@ export default function FoundItemsScreen() {
                 const dateTimestamp = item[dateKey]; 
                 
                 let formattedDate = 'N/A';
-
                 if (dateTimestamp && typeof dateTimestamp.seconds === 'number') {
                     formattedDate = new Date(dateTimestamp.seconds * 1000).toLocaleDateString();
                 } else if (item.savedAt && typeof item.savedAt.seconds === 'number') {
@@ -242,14 +260,9 @@ export default function FoundItemsScreen() {
                     />
                     <View style={styles.savedItemDetails}>
                       <Text style={styles.savedItemName} numberOfLines={1}>{item.itemName}</Text>
-                      <Text style={styles.savedItemCategory}>
-                        Category: {item.category || 'N/A'}
-                      </Text>
-                      <Text style={styles.savedItemDate}>
-                        Reported: {formattedDate}
-                      </Text>
+                      <Text style={styles.savedItemCategory}>Category: {item.category || 'N/A'}</Text>
+                      <Text style={styles.savedItemDate}>Reported: {formattedDate}</Text>
                     </View>
-                    
                     <TouchableOpacity 
                         style={[styles.unsaveButton, isDeleting && styles.unsaveButtonLoading]}
                         onPress={(e) => { 
@@ -274,37 +287,42 @@ export default function FoundItemsScreen() {
         </View>
       </Modal>
       
+      {/* Category Modal - SCROLLABLE FIX */}
       <Modal visible={showCategoryModal} transparent={true} animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Select a Category</Text>
-            <TouchableOpacity
-              style={styles.categoryItem}
-              onPress={() => { setSelectedCategory(''); setShowCategoryModal(false); }}
-            >
-              <Text style={styles.categoryItemText}>All Categories</Text>
-            </TouchableOpacity>
-            {categories.map(cat => (
+            
+            <ScrollView style={{ width: '100%' }} showsVerticalScrollIndicator={false}>
               <TouchableOpacity
-                key={cat}
                 style={styles.categoryItem}
-                onPress={() => { setSelectedCategory(cat); setShowCategoryModal(false); }}
+                onPress={() => { setSelectedCategory(''); setShowCategoryModal(false); }}
               >
-                <Text style={styles.categoryItemText}>{cat}</Text>
+                <Text style={styles.categoryItemText}>All Categories</Text>
               </TouchableOpacity>
-            ))}
+              
+              {categories.map(cat => (
+                <TouchableOpacity
+                  key={cat}
+                  style={styles.categoryItem}
+                  onPress={() => { setSelectedCategory(cat); setShowCategoryModal(false); }}
+                >
+                  <Text style={styles.categoryItemText}>{cat}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
             <TouchableOpacity
-              style={{ marginTop: 10, alignSelf: 'center' }}
+              style={{ marginTop: 10, alignSelf: 'center', paddingVertical: 10 }}
               onPress={() => setShowCategoryModal(false)}
             >
-              <Text style={{ color: 'blue', fontWeight: 'bold' }}>Close</Text>
+              <Text style={{ color: 'blue', fontWeight: 'bold', fontSize: 16 }}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
       <BottomNavBar activeScreen="Found" />
-      
       <OfflinePanelComponent />
     </SafeAreaView>
   );
@@ -388,18 +406,17 @@ const styles = StyleSheet.create({
   reporterName: { fontWeight: 'bold', fontSize: 14 },
   reporterCourse: { fontSize: 12, color: '#888' },
   emptyText: { textAlign: 'center', marginTop: 50, color: '#666', fontSize: 16 },
-// UPDATED MODAL STYLES
   modalOverlay: { 
     flex: 1, 
-    backgroundColor: 'rgba(0,0,0,0.7)', // Darker overlay
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center', 
     alignItems: 'center' 
   }, 
   modalContainer: { 
     backgroundColor: 'white', 
-    borderRadius: 15, // Slightly more rounded
+    borderRadius: 15, 
     padding: 15,
-    maxHeight: '80%', // Increased max height
+    maxHeight: '80%', 
     width: '90%', 
     elevation: 10,
     shadowColor: '#000',
@@ -424,8 +441,6 @@ const styles = StyleSheet.create({
   modalCloseButton: {
     padding: 5,
   },
-  
-  // UPDATED SAVED ITEM ROW STYLES
   savedItemRow: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -447,7 +462,7 @@ const styles = StyleSheet.create({
   savedItemName: { 
     fontSize: 16, 
     fontWeight: 'bold',
-    color: '#143447', // Darker text color
+    color: '#143447', 
   },
   savedItemCategory: {
     fontSize: 12,
@@ -460,17 +475,17 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   unsaveButton: {
-    backgroundColor: '#FF6347', // Tomato red for unsave action
+    backgroundColor: '#FF6347', 
     borderRadius: 20,
     padding: 8,
     marginLeft: 10,
   },
   unsaveButtonLoading: {
-    // Optionally change color or border while loading
     opacity: 0.7,
   },
   savedListContent: {
     paddingBottom: 10,
-  },  categoryItem: { paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  },
+  categoryItem: { paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
   categoryItemText: { fontSize: 16, textAlign: 'center' },
 });

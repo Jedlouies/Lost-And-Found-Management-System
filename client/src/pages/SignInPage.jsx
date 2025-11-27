@@ -1,10 +1,10 @@
 import React, { useRef, useState, useEffect } from "react"; 
-import { Form, Card, Alert, Modal, Spinner, Button } from "react-bootstrap";
+import { Form, Card, Alert, Spinner } from "react-bootstrap";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { signInAnonymously } from "firebase/auth";
-import { auth, db } from "../firebase";
-import { doc, getDoc } from "firebase/firestore"; 
+import { auth, db } from "../firebase"; // Added db import
+import { doc, getDoc } from "firebase/firestore"; // Added Firestore imports
 import createVerificationCode from "../components/createVerificationCode.jsx";
 import VerificationModal from "../components/VerificationModal"; 
 import 'bootstrap-icons/font/bootstrap-icons.css'; 
@@ -13,7 +13,7 @@ function SignInPage() {
   const navigate = useNavigate();
   const API = "https://server.spotsync.site";
 
-  const { signup } = useAuth(); // Removed 'login' since we don't need it here anymore
+  const { signup } = useAuth(); 
 
   const handleLogin = () => { navigate("/log-in"); };
 
@@ -93,16 +93,17 @@ function SignInPage() {
       setShowVerifyModal(true);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
-  // --- FIX APPLIED HERE ---
+  // --- UPDATED AUTO-LOGIN LOGIC ---
   async function finalizeSignup() {
     try {
-      // 1. Create the user account 
-      // When this completes successfully, Firebase AUTOMATICALLY signs the user in.
+      setLoading(true);
+
+      // 1. Create the user account (Firebase automatically signs them in here)
       await signup(
         pendingUserData.email,
         pendingUserData.password,
@@ -112,30 +113,46 @@ function SignInPage() {
         pendingUserData.studentId
       );
       
-      // 2. Get the current user directly from Auth
-      // We use auth.currentUser because the signup process established the session.
+      // 2. Get the current authenticated user
       const user = auth.currentUser;
+      if (!user) throw new Error("Account created but session failed.");
 
-      if (!user) {
-         // Fallback just in case something weird happened with the session
-         throw new Error("Account created, but automatic sign-in failed.");
+      // 3. Fetch the newly created profile from Firestore to check Role
+      // This ensures we navigate to the correct place (Dashboard vs Home)
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      let role = 'user'; // Default role
+      let profileURL = '';
+
+      if (userDocSnap.exists()) {
+        const data = userDocSnap.data();
+        role = data.role || 'user';
+        profileURL = data.profileURL || '';
       }
-      
-      // 3. Set LocalStorage immediately (Optimistic)
-      localStorage.setItem('role', 'user'); 
+
+      // 4. Set LocalStorage (This effectively "Logs them in" on the frontend)
+      localStorage.setItem('role', role); 
       localStorage.setItem('firstName', pendingUserData.firstName);
       localStorage.setItem('lastName', pendingUserData.lastName);
       localStorage.setItem('uid', user.uid); 
       localStorage.setItem('email', pendingUserData.email); 
-      localStorage.setItem('profileURL', ''); 
+      localStorage.setItem('profileURL', profileURL); 
 
-      // 4. Navigate to Home
-      navigate(`/home/${user.uid}`);
+      // 5. Navigate based on Role
+      if (role === 'admin') {
+        navigate(`/dashboard/${user.uid}`);
+      } else {
+        navigate(`/home/${user.uid}`);
+      }
 
     } catch (err) {
       console.error("Signup error:", err);
-      setError("Account created, but there was an issue loading the home page. Please log in manually.");
-      navigate("/log-in");
+      setError("Account created, but automatic login failed. Please sign in manually.");
+      // Close modal so they can see the error, but don't force redirect to login yet
+      setShowVerifyModal(false); 
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -148,7 +165,6 @@ function SignInPage() {
       try {
         setGuestLoading(true);
         await signInAnonymously(auth);
-        console.log("Guest signed in:", auth.currentUser?.uid);
         setTimeout(() => {
           navigate(`/guest/email/${auth.currentUser?.uid}`);
         }, 500);
@@ -179,7 +195,6 @@ function SignInPage() {
 
       <div className="signin-body" style={styles.signInBody}>
         <div style={styles.formContainer}>
-          {/* Card Image with Centered Logo */}
           <div style={styles.cardImage}></div>
           
           <div style={styles.accountCard}>
@@ -289,7 +304,6 @@ function SignInPage() {
       </div>
 
        <style>{`
-          /* Base styles for the page and layout (for non-JSX elements) */
           .signin-body {
               background: linear-gradient(135deg, #475C6F 0%, #1c2c36 100%);
               height: 100vh;
@@ -310,7 +324,6 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
   },
-
   formContainer: {
     display: 'flex',
     borderRadius: '15px',
@@ -320,7 +333,6 @@ const styles = {
     width: '90%',
     minHeight: '500px',
   },
-
   cardImage: {
     flex: 1,
     background: 'url("/spotsync-logo.png") no-repeat center center / 80% auto #FFFFFF',
@@ -328,18 +340,15 @@ const styles = {
     display: 'block',
     minWidth: '300px',
   },
-
   accountCard: {
     flex: 1,
     backgroundColor: '#1f2937',
     padding: '20px',
     minWidth: '350px',
   },
-
   cardBody: {
     padding: '25px',
   },
-
   heading: {
     color: '#BDDDFC',
     textAlign: 'center',
@@ -347,13 +356,11 @@ const styles = {
     fontSize: '2em',
     fontWeight: '700',
   },
-
   inputGroup: {
     marginBottom: '15px',
     display: 'flex',
     width: '100%',
   },
-
   inputField: {
     width: '100%',
     padding: '12px 15px',
@@ -364,14 +371,12 @@ const styles = {
     fontSize: '1em',
     boxSizing: 'border-box',
   },
-
   passwordInputWrapper: {
     position: 'relative',
     display: 'flex',
     alignItems: 'center',
     width: '100%',
   },
-
   passwordToggleIcon: {
     position: 'absolute',
     right: '15px',
@@ -380,7 +385,6 @@ const styles = {
     fontSize: '1.2em',
     zIndex: 2,
   },
-
   passwordMatchIcon: {
     position: 'absolute',
     right: '45px',
@@ -388,7 +392,6 @@ const styles = {
     fontSize: '1.2em',
     zIndex: 2,
   },
-
   capsLockWarning: {
     color: '#ffc107',
     marginTop: '5px',
@@ -396,7 +399,6 @@ const styles = {
     textAlign: 'left',
     paddingLeft: '5px',
   },
-
   mainButton: {
     display: 'flex',
     alignItems: 'center',
@@ -414,35 +416,29 @@ const styles = {
     marginTop: '20px',
     transition: 'background-color 0.2s',
   },
-
   mainButtonHover: {
     backgroundColor: '#a8c8e8',
   },
-
   mainButtonDisabled: {
     backgroundColor: '#a8c8e8',
     cursor: 'not-allowed',
     opacity: 0.8,
   },
-
   loadingIcon: {
     width: '20px',
     height: '20px',
   },
-
   loginLink: {
     textAlign: 'center',
     marginTop: '15px',
     fontSize: '0.9em',
     color: '#BDDDFC',
   },
-
   loginLinkStrong: {
     color: 'white',
     cursor: 'pointer',
     textDecoration: 'underline',
   },
-
   guestLink: {
     marginTop: '15px',
     fontWeight: '500',
@@ -458,7 +454,6 @@ const styles = {
     backgroundColor: '#475C6F',
     width: '100%',
   },
-
   guestOverlay: {
     position: "fixed",
     top: 0,
@@ -475,7 +470,6 @@ const styles = {
     fontSize: "1.2em",
     fontWeight: '600',
   },
-
   guestLoadingImage: {
     width: "50px",
     height: "50px",
@@ -483,4 +477,5 @@ const styles = {
     filter: 'invert(1)',
   },
 };
+
 export default SignInPage;

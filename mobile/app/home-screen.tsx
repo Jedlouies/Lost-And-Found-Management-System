@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,10 +10,12 @@ import {
   FlatList,
   Dimensions,
   SafeAreaView,
-  Animated, // Added for floating alert
+  Animated,
+  BackHandler, // Import BackHandler
+  Alert 
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router'; 
 import { collection, doc, getDocs, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -22,7 +24,6 @@ import TopHeader from '../components/TopHeader';
 import BottomNavBar from '../components/BottomNavBar';
 import { ImageBackground } from 'expo-image';
 import { useOfflineNotifier } from '../hooks/useOfflineNotifier';
-import { useExitOnBack } from '../hooks/useExitonBack'
 import MessageAdminButton from '../components/MessageAdminButton'; 
 
 const { width } = Dimensions.get('window');
@@ -44,17 +45,14 @@ const LocalFloatingAlert = ({ message, type, visible, onClose }) => {
             duration: 500,
             useNativeDriver: true,
           }).start(onClose);
-        }, 3000); // Display for 3 seconds
+        }, 3000); 
       });
     }
-
-    // Cleanup function to clear the timeout if the component unmounts or state changes
     return () => {
       if (timer) clearTimeout(timer);
     };
   }, [visible]);
 
-  // Use a conditional render or a check on animation value to prevent layout shift
   if (!visible && fadeAnim.__getValue() === 0) return null;
 
   const backgroundColor = type === 'success' ? '#4CAF50' : '#F44336';
@@ -71,7 +69,6 @@ const LocalFloatingAlert = ({ message, type, visible, onClose }) => {
   );
 };
 
-// --- Styles for LocalFloatingAlert ---
 const localAlertStyles = StyleSheet.create({
   alertContainer: {
     position: 'absolute',
@@ -82,7 +79,7 @@ const localAlertStyles = StyleSheet.create({
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    zIndex: 99, // Below FAB, but above most content
+    zIndex: 99, 
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -98,13 +95,11 @@ const localAlertStyles = StyleSheet.create({
     flexShrink: 1,
   },
 });
-// ------------------------------------
 
 
 export default function HomeScreen() {
   const router = useRouter();
   const { currentUser } = useAuth();
-  useExitOnBack();
   const { notifyOffline, OfflinePanelComponent } = useOfflineNotifier();
 
   const [userData, setUserData] = useState(null);
@@ -114,9 +109,27 @@ export default function HomeScreen() {
   const [loadingFound, setLoadingFound] = useState(true);
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
   const [isPanelVisible, setIsPanelVisible] = useState(false);
-  // NEW State for managing the local alert/notification
   const [alert, setAlert] = useState({ message: '', type: 'success', visible: false });
 
+  // --- FIX: Correct Way to Remove Listener ---
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        Alert.alert('Exit App', 'Are you sure you want to exit?', [
+          { text: 'Cancel', onPress: () => null, style: 'cancel' },
+          { text: 'YES', onPress: () => BackHandler.exitApp() },
+        ]);
+        return true; 
+      };
+
+      // 1. Store the subscription
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      // 2. Use subscription.remove()
+      return () => subscription.remove();
+    }, [])
+  );
+  // -------------------------------------------
 
   useEffect(() => {
     if (!currentUser) return;
@@ -315,14 +328,11 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
       
-      {/* -------------------------------------- */}
-      {/* Render the new MessageAdminButton */}
-      {/* -------------------------------------- */}
       <MessageAdminButton 
         onSendSuccess={(message) => setAlert({ message, type: 'success', visible: true })}
         onSendError={(message) => setAlert({ message, type: 'error', visible: true })}
       />
-      {/* Render the local alert */}
+      
       <LocalFloatingAlert 
         message={alert.message}
         type={alert.type}

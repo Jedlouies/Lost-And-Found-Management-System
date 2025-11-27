@@ -233,7 +233,7 @@ const styles = {
         width: "100%",
     },
     postButton: (disabled) => ({
-        backgroundColor: disabled ? "#ccc" : "#143447", // Green for found, gray if disabled
+        backgroundColor: disabled ? "#ccc" : "#143447", 
         cursor: disabled ? "not-allowed" : "pointer",
         borderRadius: "8px",
         border: "none",
@@ -245,7 +245,7 @@ const styles = {
         gap: "5px",
         transition: "background-color 0.2s",
     }),
-    actionRow: { // NEW style for the single horizontal row
+    actionRow: { 
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -253,13 +253,7 @@ const styles = {
         width: '100%',
         paddingBottom: '10px',
     },
-    searchFilterWrapper: {
-        display: 'flex',
-        gap: '15px',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-    },
-    actionGroupRight: { // NEW style for grouping Post button and Saved icon
+    actionGroupRight: { 
         display: 'flex',
         alignItems: 'center',
         gap: '15px',
@@ -372,7 +366,6 @@ function UserFoundItemsPage() {
   const hasEmptyFields = userData
     ? requiredFields.some((field) => {
         const value = userData[field];
-        // Check if value is undefined, null, or whitespace/empty string
         return value === undefined || value === null || (typeof value === 'string' && value.trim() === "");
       })
     : true; 
@@ -590,7 +583,7 @@ function UserFoundItemsPage() {
                         <option value="Health & Personal Care">Health & Personal Care</option>
                         <option value="Toys & Games">Toys & Games</option>
                         <option value="Food & Beverages">Food & Beverages</option>
-                        <option value="Automotive">Automotive Items</option>
+                        <option value="Automotive Items">Automotive Items</option>
                         <option value="Musical Instruments">Musical Instruments</option>
                         <option value="Pet Items">Pet Items</option>
                         <option value="Others">Others</option>
@@ -599,6 +592,21 @@ function UserFoundItemsPage() {
 
                 <div style={styles.actionGroupRight}>
                     
+                    {/* VISIBLE WARNING IF PROFILE IS INCOMPLETE */}
+                    {hasEmptyFields && (
+                      <span style={{ 
+                          color: '#dc3545', 
+                          fontSize: '13px', 
+                          fontWeight: '600', 
+                          maxWidth: '120px', 
+                          textAlign: 'right', 
+                          lineHeight: '1.2',
+                          marginRight: '5px' 
+                      }}>
+                          You must complete your profile to post
+                      </span>
+                    )}
+
                     <button
                         onClick={() => {
                             if (!hasEmptyFields) {

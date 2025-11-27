@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import './styles/AdminAddInfoPanel.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // Added useLocation
 import { getAuth } from "firebase/auth";
 
 function AdminAddInfoPanel() {
   const [visible, setVisible] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -27,25 +27,119 @@ function AdminAddInfoPanel() {
 
   if (!visible) return null;
 
-  return (
-    <div className='admin-add-info-body'>
-      <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" fill="green" className="bi bi-person-check" viewBox="0 0 16 16">
-        <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7m1.679-4.493-1.335 2.226a.75.75 0 0 1-1.174.144l-.774-.773a.5.5 0 0 1 .708-.708l.547.548 1.17-1.951a.5.5 0 1 1 .858.514M11 5a3 3 0 1 1-6 0 3 3 0 0 1 6 0M8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4"/>
-        <path d="M8.256 14a4.5 4.5 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10q.39 0 .74.025c.226-.341.496-.65.804-.918Q8.844 9.002 8 9c-5 0-6 3-6 4s1 1 1 1z"/>
-      </svg>
-      
-      <p>
-        <h6><strong>Complete your Profile</strong></h6>
-        Personalizing your account with a profile picture, cover photo, and additional details can make your experience more engaging. Feel free to update them now or later.
-      </p>
+  // Inline Styles for Modern UI
+  const styles = {
+    container: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      backgroundColor: '#ffffff',
+      borderRadius: '12px',
+      padding: '24px',
+      boxShadow: '0 8px 24px rgba(149, 157, 165, 0.2)',
+      borderLeft: '5px solid #143447', // Brand accent color
+      flexWrap: 'wrap',
+      gap: '20px',
+      marginBottom: '20px',
+      width: '100%',
+      boxSizing: 'border-box',
+    },
+    contentGroup: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '20px',
+      flex: '1 1 300px', // Allow grow/shrink
+    },
+    iconContainer: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '60px',
+      height: '60px',
+      borderRadius: '50%',
+      backgroundColor: '#e3f2fd', // Light blue bg
+      color: '#143447',
+      flexShrink: 0,
+    },
+    textContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+    },
+    title: {
+      margin: '0 0 8px 0',
+      fontSize: '1.25rem',
+      fontWeight: '700',
+      color: '#143447',
+    },
+    description: {
+      margin: 0,
+      fontSize: '0.95rem',
+      color: '#546e7a',
+      lineHeight: '1.5',
+    },
+    actionGroup: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+    },
+    btnLater: {
+      background: 'none',
+      border: 'none',
+      color: '#78909c',
+      fontWeight: '600',
+      cursor: 'pointer',
+      padding: '10px 16px',
+      fontSize: '0.9rem',
+      transition: 'color 0.2s',
+    },
+    btnContinue: {
+      backgroundColor: '#143447',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      padding: '12px 24px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      fontSize: '0.95rem',
+      boxShadow: '0 4px 6px rgba(20, 52, 71, 0.2)',
+      transition: 'transform 0.2s, background-color 0.2s',
+    },
+  };
 
-      <div className='add-actions'>
-        <button className='later' onClick={handleLaterClick}>I'll do it later</button>
-        <button
-          className={`continue ${location.pathname === `/admin/settings/${user?.uid}` ? 'active' : ''}`}
-          onClick={() => handleNavigate(`/admin/settings/${user?.uid}`)}
+  return (
+    <div style={styles.container}>
+      <div style={styles.contentGroup}>
+        <div style={styles.iconContainer}>
+            {/* Shield/Check Icon */}
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
+              <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/>
+            </svg>
+        </div>
+        <div style={styles.textContainer}>
+          <h4 style={styles.title}>Secure Your Admin Profile</h4>
+          <p style={styles.description}>
+            Adding details helps verify your administrative identity. Update your profile picture and contact info for better visibility.
+          </p>
+        </div>
+      </div>
+
+      <div style={styles.actionGroup}>
+        <button 
+          style={styles.btnLater} 
+          onClick={handleLaterClick}
+          onMouseOver={(e) => e.target.style.color = '#455a64'}
+          onMouseOut={(e) => e.target.style.color = '#78909c'}
         >
-          Continue
+          Dismiss
+        </button>
+        <button
+          style={styles.btnContinue}
+          onClick={() => handleNavigate(`/admin/settings/${user?.uid}`)}
+          onMouseOver={(e) => {e.target.style.backgroundColor = '#0f2636'; e.target.style.transform = 'translateY(-2px)'}}
+          onMouseOut={(e) => {e.target.style.backgroundColor = '#143447'; e.target.style.transform = 'translateY(0)'}}
+        >
+          Complete Profile
         </button>
       </div>
     </div>

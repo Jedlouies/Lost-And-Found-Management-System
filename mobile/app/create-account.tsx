@@ -16,21 +16,22 @@ import VerificationModal from "../components/VerificationModal";
 import { useRouter, Link } from "expo-router";
 import { signInAnonymously } from "firebase/auth";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { auth } from "../firebase";
+// 1. Updated Import: Added 'db' for role checking
+import { auth, db } from "../firebase"; 
+// 2. Added Firestore imports
+import { doc, getDoc } from "firebase/firestore";
 import { Ionicons } from "@expo/vector-icons";
 
-// 1. IMPORT THE HOOK
-import { useOfflineNotifier } from "../hooks/useOfflineNotifier"; // Adjust path if needed
+// IMPORT THE HOOK
+import { useOfflineNotifier } from "../hooks/useOfflineNotifier"; 
 
 const PLACEHOLDER_COLOR = "#A9A9A9";
 
 export default function CreateAccountScreen() {
   const router = useRouter();
   const { signup } = useAuth();
-  // ✅ Corrected API URL (just in case)
   const API = "https://server.spotsync.site"; 
 
-  // 2. INSTANTIATE THE HOOK
   const { notifyOffline, OfflinePanelComponent } = useOfflineNotifier();
 
   const [formData, setFormData] = useState({
@@ -57,7 +58,6 @@ export default function CreateAccountScreen() {
     setFormData((prevState) => ({ ...prevState, [name]: value }));
   };
 
-  // --- 👇 [FIX #2 - More Robust Server Handling] ---
   async function sendVerificationEmail(userData, code) {
     try {
       const response = await fetch(`${API}/api/send-email`, {
@@ -71,17 +71,9 @@ export default function CreateAccountScreen() {
       });
 
       if (!response.ok) {
-        const errorBody = await response.text();
-        console.error("API Server Error:", response.status, errorBody);
-        
-        // --- UPDATED: Check for *any* 4xx client error ---
-        // This catches 400, 404, 422, etc.
         if (response.status >= 400 && response.status < 500) { 
           throw new Error("Invalid email address provided.");
         }
-        // --- End Update ---
-        
-        // All 5xx server errors will fall through
         throw new Error(`Email server failed. Please try again later. (Status: ${response.status})`);
       }
 
@@ -111,13 +103,10 @@ export default function CreateAccountScreen() {
       }
     }
 
-    // --- 👇 [FIX #1 - Client-Side Email Check] ---
-    // This regex checks for a basic email structure (e.g., user@domain.com)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       return setError("The email address is not valid.");
     }
-    // --- End Fix ---
 
     try {
       setError("");
@@ -155,11 +144,13 @@ export default function CreateAccountScreen() {
     }
   }
 
+  // --- UPDATED AUTO-LOGIN LOGIC ---
   async function finalizeSignup() {
     setIsFinalizing(true);
     try {
       if (!pendingUserData) throw new Error("No user data to process.");
 
+      // 1. Create account (Firebase automatically signs in the user here)
       await signup(
         pendingUserData.email,
         pendingUserData.password,
@@ -169,8 +160,34 @@ export default function CreateAccountScreen() {
         pendingUserData.studentId
       );
 
-      Alert.alert("Success", "Account created! You can now log in.");
-      router.replace("/login");
+      // 2. Get the current authenticated user
+      const user = auth.currentUser;
+      
+      if (user) {
+        // 3. Fetch the new user document to check role (Admin vs User)
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          const role = userData.role;
+
+          // 4. Navigate based on role
+          if (role === 'admin') {
+            router.replace(`/dashboard/${user.uid}`);
+          } else {
+            router.replace(`/home-screen`);
+          }
+        } else {
+          // Fallback: If doc isn't ready immediately, assume standard user
+          router.replace(`/home-screen`);
+        }
+      } else {
+        // Fallback: Account created but session not found? Go to login
+        Alert.alert("Success", "Account created. Please log in.");
+        router.replace("/login");
+      }
+
     } catch (err) {
       console.error("Finalize Signup error:", err.code, err.message);
       

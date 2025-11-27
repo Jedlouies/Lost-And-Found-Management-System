@@ -5,33 +5,29 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert, // Use React Native Alert
+  Alert, 
   ActivityIndicator,
-  SafeAreaView, // Use SafeAreaView for top/bottom padding
-  KeyboardAvoidingView, // Helps with keyboard overlap
+  SafeAreaView,
+  KeyboardAvoidingView, 
   Platform,
-  StatusBar, // For status bar styling
+  StatusBar, 
 } from "react-native";
-import { useNavigation } from '@react-navigation/native'; // Import navigation hook
-import { NativeStackNavigationProp } from '@react-navigation/native-stack'; // Type for navigation
-import { db } from "../firebase"; // Assuming firebase config is adapted
+import { useNavigation } from '@react-navigation/native'; 
+import { NativeStackNavigationProp } from '@react-navigation/native-stack'; 
+import { db } from "../firebase"; 
 import { setDoc, doc, collection, getDocs, query, where } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext"; // Assuming context is adapted
-import VerificationModal from "../components/VerificationModal"; // Assuming adapted RN component
-import createVerificationCode from "../utils/createVerificationCode"; // Assuming adapted RN helper
-import { MaterialCommunityIcons } from '@expo/vector-icons'; // Example icon library
+import { useAuth } from "../context/AuthContext"; 
+import VerificationModal from "../components/VerificationModal";
+import createVerificationCode from "../utils/createVerificationCode"; 
+import { MaterialCommunityIcons } from '@expo/vector-icons'; 
 import { router } from "expo-router";
 
-// Define your Stack Navigator Param List if you use one
-// Replace 'any' with your actual screen names if possible
 type RootStackParamList = {
-  GuestHome: { userId: string }; // Example target route
-  // Add other routes here
+  GuestHome: { userId: string }; 
 };
 type GuestEmailNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 
-// Define AlertType for better state management
 type AlertState = {
   message: string;
   type: 'success' | 'error' | 'info';
@@ -42,16 +38,15 @@ export default function GuestEmailRequestPage() {
   const navigation = useNavigation<GuestEmailNavigationProp>();
   const { currentUser } = useAuth();
   const [email, setEmail] = useState("");
-  const [error, setError] = useState(""); // For displaying errors inline
+  const [error, setError] = useState(""); 
   const [loading, setLoading] = useState(false);
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [pendingEmail, setPendingEmail] = useState("");
-  const [alert, setAlert] = useState<AlertState | null>(null); // For floating alerts
+  const [alert, setAlert] = useState<AlertState | null>(null); 
 
   // const API = "http://localhost:4000";
   const API = "https://server.spotsync.site";
 
-  // --- Helper Functions (Mostly Unchanged) ---
   async function sendVerificationEmail(user: { email: string }, code: string) {
     try {
         await fetch(`${API}/api/send-email`, {
@@ -70,16 +65,14 @@ export default function GuestEmailRequestPage() {
         });
     } catch (networkError) {
         console.error("Network error sending verification email:", networkError);
-        // Show an alert to the user about the network issue
          Alert.alert("Network Error", "Could not send verification email. Please check your connection and try again.");
-         throw networkError; // Re-throw to stop the process in handleSave
+         throw networkError; 
     }
   }
 
-  // --- Main Save/Submit Logic ---
   async function handleSave() {
-    setError(""); // Clear previous inline errors
-    setAlert(null); // Clear previous floating alerts
+    setError("");
+    setAlert(null); 
 
     if (!currentUser) {
       setError("No user session found. Please restart the app.");
@@ -89,7 +82,6 @@ export default function GuestEmailRequestPage() {
         setError("Please enter a valid email address.");
         return;
     }
-    // Basic email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
         setError("Invalid email format.");
@@ -98,10 +90,9 @@ export default function GuestEmailRequestPage() {
 
 
     setLoading(true);
-    const trimmedEmail = email.trim(); // Use trimmed email
+    const trimmedEmail = email.trim();
 
     try {
-      // Prevent duplicate emails (excluding other guests)
       const usersRef = collection(db, "users");
       const q = query(usersRef, where("email", "==", trimmedEmail));
       const querySnapshot = await getDocs(q);
@@ -109,7 +100,6 @@ export default function GuestEmailRequestPage() {
       let isDuplicate = false;
       querySnapshot.forEach((docSnap) => {
         const userData = docSnap.data();
-        // Check if the email exists and the user is NOT a guest
         if (userData.role && userData.role !== "guest") {
           isDuplicate = true;
         }
@@ -123,12 +113,12 @@ export default function GuestEmailRequestPage() {
 
       setPendingEmail(trimmedEmail);
       const fakeUser = { email: trimmedEmail }; 
-      const code = await createVerificationCode(fakeUser); // Assuming adapted for RN
-      await sendVerificationEmail(fakeUser, code); // Send email
+      const code = await createVerificationCode(fakeUser); 
+      await sendVerificationEmail(fakeUser, code); 
 
       setShowVerifyModal(true); 
 
-    } catch (err: any) { // Catch errors from checks or email sending
+    } catch (err: any) { 
       console.error("Error during email save process:", err);
       if (err.message?.includes("Network Error")) {
           setError("Failed to send verification email due to network issues.");
@@ -137,42 +127,38 @@ export default function GuestEmailRequestPage() {
       }
 
     } finally {
-      router.replace(`/GuestReportScreen`); // Navigate to GuestReportScreen after handling
-      setLoading(false); // Stop loading indicator
+      router.replace(`/GuestReportScreen`);
+      setLoading(false); 
     }
   }
 
-  // --- Called After Verification Success ---
   async function handleVerified() {
     if (!currentUser) {
         setError("Verification successful, but user session lost. Please restart.");
         setShowVerifyModal(false);
         return;
     }
-    setLoading(true); // Show loading while saving to Firestore
+    setLoading(true); 
     try {
-        // Save guest email and role to Firestore using the currentUser's UID
         await setDoc(
             doc(db, "users", currentUser.uid),
             {
-            email: pendingEmail || null, // Use the verified email
+            email: pendingEmail || null, 
             role: "guest",
-            createdAt: new Date(), // Use Firestore timestamp if preferred: serverTimestamp()
-            emailVerified: true, // Mark as verified
+            createdAt: new Date(),
+            emailVerified: true, 
             },
-            { merge: true } // Merge to avoid overwriting other potential guest data
+            { merge: true } 
         );
 
-        setShowVerifyModal(false); // Close modal
-        setPendingEmail(""); // Clear pending email
+        setShowVerifyModal(false); 
+        setPendingEmail(""); 
 
-        // Navigate to the next guest screen
-        navigation.navigate('GuestHome', { userId: currentUser.uid }); // Adjust route name as needed
+        navigation.navigate('GuestHome', { userId: currentUser.uid }); 
 
     } catch(firestoreError: any) {
         console.error("Error saving verified guest email:", firestoreError);
         setError("Verification successful, but failed to save email. Please try logging in later or contact support.");
-        // Keep modal open or close? Closing might be less confusing.
         setShowVerifyModal(false);
     } finally {
         setLoading(false);
@@ -186,22 +172,18 @@ export default function GuestEmailRequestPage() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.container}
       >
-        {/* Verification Modal */}
         {showVerifyModal && (
           <VerificationModal
             show={showVerifyModal}
             onClose={() => setShowVerifyModal(false)}
-            user={{ email: pendingEmail }} // Pass the email being verified
-            sendVerificationEmail={sendVerificationEmail} // Function to resend
-            onVerified={handleVerified} // Function to call on success
-            // Ensure VerificationModal is adapted for React Native
+            user={{ email: pendingEmail }} 
+            sendVerificationEmail={sendVerificationEmail}
+            onVerified={handleVerified} 
           />
         )}
 
-        {/* Floating Alert Display */}
         {alert?.visible && (
             <View style={styles.alertContainer}>
-                {/* Basic Alert Display - Replace with your FloatingAlert component */}
                 <Text style={[styles.alertText, { color: alert.type === 'error' ? 'red' : 'green' }]}>
                     {alert.message}
                 </Text>

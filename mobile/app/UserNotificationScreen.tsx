@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   SafeAreaView,
   View,
@@ -8,7 +8,9 @@ import {
   StyleSheet,
   ActivityIndicator,
   Modal, 
+  BackHandler, 
 } from "react-native";
+import { useRouter, useFocusEffect } from 'expo-router'; 
 import { getDatabase, ref, onValue, remove } from "firebase/database";
 import { getAuth, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
@@ -16,10 +18,6 @@ import { db } from "../firebase";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import BlankHeader from "../components/BlankHeader";
 import BottomNavBar from "../components/BottomNavBar";
-import { useExitOnBack } from '../hooks/useExitonBack'
-
-
-
 
 interface NotificationItem {
   id: string;
@@ -65,8 +63,6 @@ const FloatingAlert: React.FC<{ message: string; type: string }> = ({
   </View>
 );
 
-
-
 const FormattedMessage: React.FC<{ text: string; style: any }> = ({ text, style }) => {
   if (!text) return null;
   const parts = text.split(/(<b>.*?<\/b>)/g);
@@ -87,10 +83,24 @@ const FormattedMessage: React.FC<{ text: string; style: any }> = ({ text, style 
 };
 
 const UserNotificationScreen: React.FC = () => {
+  const router = useRouter(); 
   const [sections, setSections] = useState<
     { title: string; data: NotificationItem[] }[]
   >([]);
-  useExitOnBack();
+
+  // --- FIX: Correct Way to Remove Listener ---
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        router.replace('/home-screen');
+        return true; 
+      };
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => subscription.remove(); 
+    }, [router])
+  );
+  // -------------------------------------------
+
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState<{ message: string; type: string } | null>(
     null
