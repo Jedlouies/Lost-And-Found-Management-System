@@ -288,13 +288,13 @@ function ProfilePage() {
                             
                             <div style={styles.quickActionsBar}>
                                 <button 
-                                    onClick={() => handleEdit(`/users/settings/${user?.uid}`)}
+                                    onClick={() => handleEdit(`/admin/settings/${user?.uid}`)}
                                     style={{...styles.actionButton, ...styles.actionButtonSecondary}}
                                 >
                                     Change Password
                                 </button>
                                 <button 
-                                    onClick={() => handleEdit(`/users/settings/${user?.uid}`)}
+                                    onClick={() => handleEdit(`/admin/settings/${user?.uid}`)}
                                     style={styles.actionButton}
                                 >
                                     Edit Profile

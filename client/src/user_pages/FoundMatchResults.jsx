@@ -376,7 +376,7 @@ export default function FoundMatchResults() {
             <div style={styles.noMatchContainer}>
                 <p style={styles.noMatchText}>
                     No immediate close matches found. <br/> 
-                    You can still click **Continue** to proceed or **Match Another** to submit a new report.
+                    You can still click Continue to proceed or Match Another to submit a new report.
                 </p>
             </div>
         )}
