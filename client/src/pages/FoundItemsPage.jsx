@@ -20,12 +20,11 @@ import FloatingAlert from '../components/FloatingAlert';
 import { getDatabase, ref, push, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
 import Modal from 'react-bootstrap/Modal';
 import BlankHeader from '../components/BlankHeader';
-import { Spinner } from "react-bootstrap"; // Import Spinner
+import { Spinner } from "react-bootstrap"; 
 
 function FoundItemsPage() {
- //const API = "http://localhost:4000";
- const API = "https://server.spotsync.site";
- 
+  const API = "https://server.spotsync.site";
+  
   const [items, setItems] = useState([]); 
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,132 +35,159 @@ function FoundItemsPage() {
   const [selectedYear, setSelectedYear] = useState("All");
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
-  const [isArchiving, setIsArchiving] = useState(false); // NEW STATE ADDED
+  const [isArchiving, setIsArchiving] = useState(false); 
   
-
   const dbRealtime = getDatabase();
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState(null);
-  const [modal, setModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('');
-
 
   const navigate = useNavigate();
   const handleNavigate = (path) => {
     navigate(path);
   };
 
+  useEffect(() => {
+    const fetchLostItems = async () => {
+      try {
+        const q = query(
+          collection(db, "foundItems"),
+          where("archivedStatus", "==", false),
+          orderBy("createdAt", "desc")
+        );
 
-useEffect(() => {
-  const fetchLostItems = async () => {
-    try {
-      const q = query(
-        collection(db, "foundItems"),
-        where("archivedStatus", "==", false),
-        orderBy("createdAt", "desc")
-      );
+        const querySnapshot = await getDocs(q);
+        const foundItems = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
 
-      const querySnapshot = await getDocs(q);
-      const foundItems = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+        setItems(foundItems);
+      } catch (error) {
+        console.error("Error fetching lost items:", error);
+      } finally {
+        setLoading(false); 
+      }
+    };
 
-      setItems(foundItems);
-    } catch (error) {
-      console.error("Error fetching lost items:", error);
-    } finally {
-      setLoading(false); 
-    }
-  };
-
-  fetchLostItems();
-}, []);
-
+    fetchLostItems();
+  }, []);
 
   const notifyUser = async (uid, message, type = "match") => {
-  if (!uid) return;
-  const notifRef = ref(dbRealtime, `notifications/${uid}`);
-  const newNotifRef = push(notifRef);
-  await set(newNotifRef, {
-    message,
-    timestamp: rtdbServerTimestamp(),
-    type: "item",
-    read: false,
-  });
-};
+    if (!uid) return;
+    const notifRef = ref(dbRealtime, `notifications/${uid}`);
+    const newNotifRef = push(notifRef);
+    await set(newNotifRef, {
+      message,
+      timestamp: rtdbServerTimestamp(),
+      type: "item",
+      read: false,
+    });
+  };
 
+  const handleVerifyItem = async (foundDocId) => {
+    try {
+      setVerifying(true);
+      const foundDocRef = doc(db, "foundItems", foundDocId);
+      const foundDocSnap = await getDoc(foundDocRef);
 
+      if (!foundDocSnap.exists()) {
+        throw new Error(`No foundItems document with ID: ${foundDocId}`);
+      }
 
-const handleVerifyItem = async (foundDocId) => {
-  try {
-    setVerifying(true);
-    const foundDocRef = doc(db, "foundItems", foundDocId);
-    const foundDocSnap = await getDoc(foundDocRef);
+      const { itemId, status, itemName } = foundDocSnap.data();
 
-    if (!foundDocSnap.exists()) {
-      throw new Error(`No foundItems document with ID: ${foundDocId}`);
-    }
+      if (!itemId) {
+        throw new Error(`foundItems doc ${foundDocId} has no itemId field`);
+      }
 
-    const { itemId, status, itemName } = foundDocSnap.data();
+      if (status === "posted") {
+        setAlert({ message: "Item is already posted.", type: "warning" });
+        return;
+      }
 
-    if (!itemId) {
-      throw new Error(`foundItems doc ${foundDocId} has no itemId field`);
-    }
-
-    if (status === "posted") {
-      setAlert({ message: "Item is already posted.", type: "warning" });
-      return;
-    }
-
-    
-    await updateDoc(foundDocRef, { status: "posted" });
-
-   
-    const manageQuery = query(
-      collection(db, "itemManagement"),
-      where("itemId", "==", itemId)
+      if (status === "cancelled") {
+        setAlert({ message: "Cannot verify a cancelled item.", type: "warning" });
+        return;
+      }
       
-    );
-    const manageSnap = await getDocs(manageQuery);
-
-    if (manageSnap.empty) {
-      throw new Error(`No itemManagement document with itemId: ${itemId}`);
-    }
-
-    for (const docSnap of manageSnap.docs) {
-      const manageData = docSnap.data();
-      console.log(manageData);
-
-      
-      await updateDoc(docSnap.ref, { status: "posted" });
-
+      await updateDoc(foundDocRef, { status: "posted" });
      
-      const topMatches = manageData.topMatches || [];
+      const manageQuery = query(
+        collection(db, "itemManagement"),
+        where("itemId", "==", itemId)
+      );
+      const manageSnap = await getDocs(manageQuery);
 
-    
-      for (const match of topMatches) {
-          if (match.scores?.overallScore >= 75 && match.lostItem?.uid) {
+      if (manageSnap.empty) {
+        throw new Error(`No itemManagement document with itemId: ${itemId}`);
+      }
+
+      for (const docSnap of manageSnap.docs) {
+        const manageData = docSnap.data();
+        
+        await updateDoc(docSnap.ref, { status: "posted" });
+       
+        const topMatches = manageData.topMatches || [];
+      
+        for (const match of topMatches) {
+            if (match.scores?.overallScore >= 75 && match.lostItem?.uid) {
+              await notifyUser(
+                match.lostItem.uid,
+                `Your lost item <b>${match.lostItem.itemId}</b> - ${match.lostItem.itemName} 
+                may possibly match with a verified found item: <b>${itemName}</b>.
+                <p> With transastion Id of <b>${match.transactionId}</b>.
+                Matching rate: <b>${match.scores.overallScore}%</b> Please bring your ID and QR Code for Verification.`
+              );
+              try {
+                const emailRes = await fetch(`${API}/api/send-email`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    to: match.lostItem?.personalInfo?.email,   
+                    subject: "Possible Lost Match ",
+                    html: `<p>Your lost item <b>${match.lostItem.itemId}</b> - ${match.lostItem.itemName} </p>
+                    <p> may possibly match with a verified found item: <b>${itemName}</b>.</p>
+                      <p> With transastion Id of <b>${match.transactionId}</b>.</p>
+                      <p>Matching rate: <b>${match.scores.overallScore}%</b> Please bring your ID and QR Code for Verification.</p>
+                    `,
+                  }),
+                });
+
+                const emailData = await emailRes.json();
+                console.log("Email API response:", emailData);
+
+                if (!emailRes.ok) {
+                  console.error(`Failed to send email to ${match.lostItem?.personalInfo?.email}:`, emailData);
+                } else {
+                  console.log(`Email successfully sent to ${match.lostItem?.personalInfo?.email}`);
+                }
+              } catch (err) {
+                console.error(`Error sending email to ${match.lostItem?.personalInfo?.email}:`, err);
+              }
+            }
+          }
+          
+          if (manageData.uid) {
             await notifyUser(
-              match.lostItem.uid,
-              `Your lost item <b>${match.lostItem.itemId}</b> - ${match.lostItem.itemName} 
-              may possibly match with a verified found item: <b>${itemName}</b>.
-              <p> With transastion Id of <b>${match.transactionId}</b>.
-              Matching rate: <b>${match.scores.overallScore}%</b> Please bring your ID and QR Code for Verification.`
+              manageData.uid,
+              `Your found item <b>${itemName}</b> has been <b>verified and posted</b>. 
+              All possible owners with an 75%+ match score have been notified. 
+              Please wait for further instructions from the OSA.`, 
+              "info"
             );
+
             try {
               const emailRes = await fetch(`${API}/api/send-email`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                  to: match.lostItem?.personalInfo?.email,   
-                  subject: "Possible Lost Match ",
-                  html: `<p>Your lost item <b>${match.lostItem.itemId}</b> - ${match.lostItem.itemName} </p>
-                  <p> may possibly match with a verified found item: <b>${itemName}</b>.</p>
-                   <p> With transastion Id of <b>${match.transactionId}</b>.</p>
-                   <p>Matching rate: <b>${match.scores.overallScore}%</b> Please bring your ID and QR Code for Verification.</p>
-                  `,
+                  to: manageData.personalInfo?.email,  
+                  subject: "Item Verified",
+                  html:  `<p>Your found item <b>${itemName}</b> has been <b>verified and posted</b></p>. 
+              <p>All possible owners with an 75%+ match score have been notified.</p> 
+              <p>Please wait for further instructions from the OSA.</p>`,
                 }),
               });
 
@@ -169,94 +195,52 @@ const handleVerifyItem = async (foundDocId) => {
               console.log("Email API response:", emailData);
 
               if (!emailRes.ok) {
-                console.error(`Failed to send email to ${match.lostItem?.personalInfo?.email}:`, emailData);
+                console.error(`Failed to send email to ${manageData.personalInfo?.email}:`, emailData);
               } else {
-                console.log(`Email successfully sent to ${match.lostItem?.personalInfo?.email}`);
+                console.log(`Email successfully sent to ${manageData.personalInfo?.email}`);
               }
             } catch (err) {
-              console.error(`Error sending email to ${match.lostItem?.personalInfo?.email}:`, err);
+              console.error(`Error sending email to ${manageData.personalInfo?.email}:`, err);
             }
-
-
           }
-        }
+      }
 
-        
-        if (manageData.uid) {
-          await notifyUser(
-            manageData.uid,
-            `Your found item <b>${itemName}</b> has been <b>verified and posted</b>. 
-            All possible owners with an 75%+ match score have been notified. 
-            Please wait for further instructions from the OSA.`, 
-            "info"
-          );
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item.id === foundDocId ? { ...item, status: "posted" } : item
+        )
+      );
 
-          try {
-            const emailRes = await fetch(`${API}/api/send-email`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                to: manageData.personalInfo?.email,  
-                subject: "Item Verified",
-                html:  `<p>Your found item <b>${itemName}</b> has been <b>verified and posted</b></p>. 
-            <p>All possible owners with an 75%+ match score have been notified.</p> 
-            <p>Please wait for further instructions from the OSA.</p>`,
-              }),
-            });
+      setAlert({ message: "Item Verified & Notifications Sent!", type: "success" });
 
-            const emailData = await emailRes.json();
-            console.log("Email API response:", emailData);
+    } catch (error) {
+      console.error("Error verifying item:", error);
+      setAlert({ message: "Error verifying item. Try again.", type: "error" });
+    } finally {
+      setVerifying(false)
+    }
+  };
 
-            if (!emailRes.ok) {
-              console.error(`Failed to send email to ${manageData.personalInfo?.email}:`, emailData);
-            } else {
-              console.log(`Email successfully sent to ${manageData.personalInfo?.email}`);
-            }
-          } catch (err) {
-            console.error(`Error sending email to ${manageData.personalInfo?.email}:`, err);
-          }
+  const filteredItems = items.filter(item => {
+    const matchesSearch = item.itemName?.toLowerCase().includes(searchQuery.toLowerCase());
 
-        }
+    let itemYear = null;
+    if (item.dateFound) {
+      try {
+        itemYear = new Date(item.dateFound).getFullYear().toString();
+      } catch (err) {
+        console.warn("Invalid date format:", item.dateFound);
+      }
     }
 
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === foundDocId ? { ...item, status: "posted" } : item
-      )
-    );
+    const matchesCategory = selectedCategory === '' || item.category === selectedCategory;
 
-    setAlert({ message: "Item Verified & Notifications Sent!", type: "success" });
-
-  } catch (error) {
-    console.error("Error verifying item:", error);
-    setAlert({ message: "Error verifying item. Try again.", type: "error" });
-  } finally {
-    setVerifying(false)
-  }
-};
-
-const filteredItems = items.filter(item => {
-  const matchesSearch = item.itemName?.toLowerCase().includes(searchQuery.toLowerCase());
-
-  let itemYear = null;
-  if (item.dateFound) {
-    try {
-      itemYear = new Date(item.dateFound).getFullYear().toString();
-    } catch (err) {
-      console.warn("Invalid date format:", item.dateFound);
+    if (selectedYear === "All") {
+      return matchesSearch && matchesCategory;
     }
-  }
 
-  // Also filter by Category
-  const matchesCategory = selectedCategory === '' || item.category === selectedCategory;
-
-
-  if (selectedYear === "All") {
-    return matchesSearch && matchesCategory;
-  }
-
-  return matchesSearch && itemYear === selectedYear && matchesCategory;
-});
+    return matchesSearch && itemYear === selectedYear && matchesCategory;
+  });
 
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const displayedItems = filteredItems.slice(
@@ -270,274 +254,264 @@ const filteredItems = items.filter(item => {
     }
   };
 
-// --- START OF MODIFIED ARCHIVE ITEM FUNCTION ---
-const archiveItem = async (item) => {
-  if (!item.claimedBy || !item.claimedBy.uid) {
-    setAlert({ message: "You cannot archive unclaimed items.", type: "warning" });
-    return; 
-  }
-    
-  setIsArchiving(true); // START LOADING
-  
-  try {
-    // 2. Find the document reference in the main collection using its ID
-    const itemDocRef = doc(db, "foundItems", item.id); 
-
-    // 3. Update the archivedStatus field in the original document
-    await updateDoc(itemDocRef, {
-      archivedStatus: true,
-      archivedAt: new Date().toISOString(), // Add timestamp for archive date
-    });
-
-    // 4. Show success alert
-    setAlert({
-      show: true,
-      message: `Item ${item.itemId} successfully archived!`,
-      type: "success",
-    });
-
-    // 5. Update local state to remove the item from the current view
-    setItems((prev) => prev.filter((i) => i.id !== item.id));
-
-  } catch (error) {
-    console.error("Error archiving item:", error);
-    setAlert({
-      show: true,
-      message: "Failed to archive item. Please try again.",
-      type: "danger",
-    });
-  } finally {
-    setIsArchiving(false); // STOP LOADING
-  }
-};
-// --- END OF MODIFIED ARCHIVE ITEM FUNCTION ---
-
-
-const styles = {
-    foundItemBody: {
-      backgroundColor: '#f4f4f4',
-      padding: '20px',
-      minHeight: '100vh',
-    },
-    foundItemContainer: {
-      backgroundColor: 'white',
-      borderRadius: '12px',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-      padding: '30px',
-      maxWidth: '1200px',
-      margin: '20px auto', 
-    },
-    headerH1: {
-      fontSize: '1.8rem',
-      color: '#333',
-      marginBottom: '20px',
-    },
-    filterRow: {
-        display: 'flex',
-        alignItems: 'center',
-        marginBottom: '20px',
-        justifyContent: 'space-between',
-    },
-    searchBar: {
-      display: 'flex',
-      alignItems: 'center',
-      backgroundColor: '#f9f9f9',
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      padding: '8px 15px',
-      width: '350px',
-      marginRight: 'auto',
-    },
-    searchInput: {
-      border: 'none',
-      outline: 'none',
-      backgroundColor: 'transparent',
-      marginLeft: '10px',
-      fontSize: '1rem',
-      flexGrow: 1,
-      color: '#000',
-    },
-    actionsGroup: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '15px',
-    },
-    actionButton: {
-        backgroundColor: '#007bff',
-        color: 'white',
-        border: 'none',
-        padding: '8px 15px',
-        borderRadius: '6px',
-        fontWeight: '500',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        transition: 'background-color 0.2s',
-    },
-    actionButtonPrimary: {
-        backgroundColor: 'navy',
-        fontWeight: 'bold',
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'separate',
-      borderSpacing: '0 8px',
-    },
-    tableHead: {
-      backgroundColor: '#9EBAD6',
-      borderRadius: '8px',
-      fontSize: '0.9rem',
-      textTransform: 'uppercase',
-      color: '#000',
-    },
-    tableHeaderCell: {
-      padding: '15px 10px',
-      textAlign: 'left',
-      fontWeight: '600',
-    },
-    tableRow: {
-      backgroundColor: '#fff',
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
-      transition: 'transform 0.2s',
-    },
-    tableDataCell: {
-      padding: '15px 10px',
-      borderTop: '1px solid #eee',
-      borderBottom: '1px solid #eee',
-      fontSize: '0.95rem',
-      color: '#333',
-      verticalAlign: 'middle',
-    },
-    tableFirstCell: {
-      borderLeft: '1px solid #eee',
-      borderTopLeftRadius: '8px',
-      borderBottomLeftRadius: '8px',
-    },
-    tableLastCell: {
-      borderRight: '1px solid #eee',
-      borderTopRightRadius: '8px',
-      borderBottomRightRadius: '8px',
-    },
-    personDetails: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '10px',
-    },
-    profileImage: {
-      width: "50px",
-      height: "50px",
-      borderRadius: "50%",
-      objectFit: "cover",
-    },
-    profilePlaceholder: {
-      width: "50px",
-      height: "50px",
-      borderRadius: "50%",
-      backgroundColor: "#007bff", 
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "white",
-      fontWeight: "bold",
-      fontSize: "14px",
-    },
-    navyPlaceholder: {
-      width: "50px",
-      height: "50px",
-      borderRadius: "50%",
-      backgroundColor: "navy", 
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      color: "white",
-      fontWeight: "bold",
-      fontSize: "14px",
-    },
-    personalInfo: {
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-    },
-    infoP: {
-        fontSize: '13px',
-        fontWeight: 'bold',
-        color: 'black',
-        margin: 0,
-        lineHeight: 1.2
-    },
-    infoItalicP: {
-        fontStyle: 'italic',
-        color: 'black',
-        margin: 0,
-        fontSize: '12px'
-    },
-    dropdownToggleWrapper: {
-        
-        backgroundColor: '#fff',
-        position: 'absolute',
-        top: '50%',
-        right: '10px',
-        transform: 'translateY(-50%)',
-        zIndex: 10,
-    },
-    dropdownToggleDiv: {
-        
-        width: '25px',
-        height: '25px',
-        opacity: 0,
-        cursor: 'pointer',
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        zIndex: 10,
-    },
-    dropdownSvg: {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        cursor: 'pointer',
-    },
-    paginationContainer: {
-        textAlign: 'center',
-        padding: '20px 0',
-        backgroundColor: '#f9f9f9', 
-        borderTop: '1px solid #ddd',
-        borderBottomLeftRadius: '12px',
-        borderBottomRightRadius: '12px',
-        marginTop: '10px',
-    },
-    paginationButton: {
-        background: 'none',
-        border: '1px solid #ccc',
-        borderRadius: '4px',
-        padding: '8px 12px',
-        margin: '0 5px',
-        cursor: 'pointer',
-        transition: 'background-color 0.2s',
-        color: '#333',
-    },
-    paginationButtonActive: {
-        backgroundColor: '#007bff',
-        color: 'white',
-        fontWeight: 'bold',
-        border: '1px solid #007bff',
-    },
-    globalLoadingOverlay: { // NEW STYLE
-        position: "fixed",
-        top: 0, left: 0, right: 0, bottom: 0,
-        backgroundColor: "rgba(0,0,0,0.7)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 9999,
-        flexDirection: "column",
-        color: "white",
-        fontSize: "20px",
-        fontWeight: "bold"
+  const archiveItem = async (item) => {
+    if (!item.claimedBy || !item.claimedBy.uid) {
+      setAlert({ message: "You cannot archive unclaimed items.", type: "warning" });
+      return; 
     }
-};
-  
+      
+    setIsArchiving(true); 
+    
+    try {
+      const itemDocRef = doc(db, "foundItems", item.id); 
 
+      await updateDoc(itemDocRef, {
+        archivedStatus: true,
+        archivedAt: new Date().toISOString(),
+      });
+
+      setAlert({
+        show: true,
+        message: `Item ${item.itemId} successfully archived!`,
+        type: "success",
+      });
+
+      setItems((prev) => prev.filter((i) => i.id !== item.id));
+
+    } catch (error) {
+      console.error("Error archiving item:", error);
+      setAlert({
+        show: true,
+        message: "Failed to archive item. Please try again.",
+        type: "danger",
+      });
+    } finally {
+      setIsArchiving(false);
+    }
+  };
+
+  const styles = {
+      foundItemBody: {
+        backgroundColor: '#f4f4f4',
+        padding: '20px',
+        minHeight: '100vh',
+      },
+      foundItemContainer: {
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+        padding: '30px',
+        maxWidth: '1200px',
+        margin: '20px auto', 
+      },
+      headerH1: {
+        fontSize: '1.8rem',
+        color: '#333',
+        marginBottom: '20px',
+      },
+      filterRow: {
+          display: 'flex',
+          alignItems: 'center',
+          marginBottom: '20px',
+          justifyContent: 'space-between',
+      },
+      searchBar: {
+        display: 'flex',
+        alignItems: 'center',
+        backgroundColor: '#f9f9f9',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        padding: '8px 15px',
+        width: '350px',
+        marginRight: 'auto',
+      },
+      searchInput: {
+        border: 'none',
+        outline: 'none',
+        backgroundColor: 'transparent',
+        marginLeft: '10px',
+        fontSize: '1rem',
+        flexGrow: 1,
+        color: '#000',
+      },
+      actionsGroup: {
+          display: 'flex',
+          alignItems: 'center',
+          gap: '15px',
+      },
+      actionButton: {
+          backgroundColor: '#007bff',
+          color: 'white',
+          border: 'none',
+          padding: '8px 15px',
+          borderRadius: '6px',
+          fontWeight: '500',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          transition: 'background-color 0.2s',
+      },
+      actionButtonPrimary: {
+          backgroundColor: 'navy',
+          fontWeight: 'bold',
+      },
+      table: {
+        width: '100%',
+        borderCollapse: 'separate',
+        borderSpacing: '0 8px',
+      },
+      tableHead: {
+        backgroundColor: '#9EBAD6',
+        borderRadius: '8px',
+        fontSize: '0.9rem',
+        textTransform: 'uppercase',
+        color: '#000',
+      },
+      tableHeaderCell: {
+        padding: '15px 10px',
+        textAlign: 'left',
+        fontWeight: '600',
+      },
+      tableRow: {
+        backgroundColor: '#fff',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+        transition: 'transform 0.2s',
+      },
+      tableDataCell: {
+        padding: '15px 10px',
+        borderTop: '1px solid #eee',
+        borderBottom: '1px solid #eee',
+        fontSize: '0.95rem',
+        color: '#333',
+        verticalAlign: 'middle',
+      },
+      tableFirstCell: {
+        borderLeft: '1px solid #eee',
+        borderTopLeftRadius: '8px',
+        borderBottomLeftRadius: '8px',
+      },
+      tableLastCell: {
+        borderRight: '1px solid #eee',
+        borderTopRightRadius: '8px',
+        borderBottomRightRadius: '8px',
+      },
+      personDetails: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+      },
+      profileImage: {
+        width: "50px",
+        height: "50px",
+        borderRadius: "50%",
+        objectFit: "cover",
+      },
+      profilePlaceholder: {
+        width: "50px",
+        height: "50px",
+        borderRadius: "50%",
+        backgroundColor: "#007bff", 
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "white",
+        fontWeight: "bold",
+        fontSize: "14px",
+      },
+      navyPlaceholder: {
+        width: "50px",
+        height: "50px",
+        borderRadius: "50%",
+        backgroundColor: "navy", 
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "white",
+        fontWeight: "bold",
+        fontSize: "14px",
+      },
+      personalInfo: {
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+      },
+      infoP: {
+          fontSize: '13px',
+          fontWeight: 'bold',
+          color: 'black',
+          margin: 0,
+          lineHeight: 1.2
+      },
+      infoItalicP: {
+          fontStyle: 'italic',
+          color: 'black',
+          margin: 0,
+          fontSize: '12px'
+      },
+      dropdownToggleWrapper: {
+          backgroundColor: '#fff',
+          position: 'absolute',
+          top: '50%',
+          right: '10px',
+          transform: 'translateY(-50%)',
+          zIndex: 10,
+      },
+      dropdownToggleDiv: {
+          width: '25px',
+          height: '25px',
+          opacity: 0,
+          cursor: 'pointer',
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          zIndex: 10,
+      },
+      dropdownSvg: {
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          cursor: 'pointer',
+      },
+      paginationContainer: {
+          textAlign: 'center',
+          padding: '20px 0',
+          backgroundColor: '#f9f9f9', 
+          borderTop: '1px solid #ddd',
+          borderBottomLeftRadius: '12px',
+          borderBottomRightRadius: '12px',
+          marginTop: '10px',
+      },
+      paginationButton: {
+          background: 'none',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          padding: '8px 12px',
+          margin: '0 5px',
+          cursor: 'pointer',
+          transition: 'background-color 0.2s',
+          color: '#333',
+      },
+      paginationButtonActive: {
+          backgroundColor: '#007bff',
+          color: 'white',
+          fontWeight: 'bold',
+          border: '1px solid #007bff',
+      },
+      globalLoadingOverlay: {
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.7)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          zIndex: 9999,
+          flexDirection: "column",
+          color: "white",
+          fontSize: "20px",
+          fontWeight: "bold"
+      }
+  };
+    
   return (
     <>
         {/* GLOBAL LOADING OVERLAY */}
@@ -584,7 +558,7 @@ const styles = {
               <button 
                 className="btn btn-secondary" 
                 onClick={() => setShowConfirm(false)}
-                disabled={isArchiving} // Disable Cancel during processing
+                disabled={isArchiving} 
               >
                 Cancel
               </button>
@@ -596,7 +570,7 @@ const styles = {
                   }
                   setShowConfirm(false);
                 }}
-                disabled={isArchiving} // Disable Archive during processing
+                disabled={isArchiving}
               >
                 {isArchiving ? <Spinner animation="border" size="sm" /> : "Archive"}
               </button>
@@ -711,13 +685,14 @@ const styles = {
                   <th style={styles.tableHeaderCell}>Location Found</th>
                   <th style={styles.tableHeaderCell}>Founder</th>
                   <th style={styles.tableHeaderCell}>Owner</th>
+                  <th style={styles.tableHeaderCell}>Verified</th>
                   <th style={{...styles.tableHeaderCell, ...styles.tableLastCell}}>Claim Status</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: "center", padding: "40px", ...styles.tableRow }}>
+                    <td colSpan="9" style={{ textAlign: "center", padding: "40px", ...styles.tableRow }}>
                       <img src="/Spin_black.gif" alt="Loading..." style={{ width: "50px" }} />
                       <p style={{ marginTop: '10px' }}>Loading Found Items...</p>
                     </td>
@@ -742,8 +717,8 @@ const styles = {
                       <td style={styles.tableDataCell}>{item.itemName}</td>
                       <td style={styles.tableDataCell}>{item.dateFound}</td>
                       <td style={styles.tableDataCell}>{item.locationFound?.length > 20 
-                            ? item.locationFound.slice(0, 20) + "..." 
-                            : item.locationFound}
+                          ? item.locationFound.slice(0, 20) + "..." 
+                          : item.locationFound}
                       </td>
 
                     <td style={styles.tableDataCell}>
@@ -832,6 +807,42 @@ const styles = {
                             )}
                         </div>
                     </td>
+
+                    <td style={styles.tableDataCell}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                        
+                        {/* POSTED = VERIFIED */}
+                        {item.status === 'posted' && (
+                          <>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="#28a745" className="bi bi-patch-check-fill" viewBox="0 0 16 16">
+                              <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.896.011a2.89 2.89 0 0 0-2.924 2.924l.01.896-.636.622a2.89 2.89 0 0 0 0 4.134l.638.622-.011.896a2.89 2.89 0 0 0 2.924 2.924l.896-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.638.896-.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.896.636-.622a2.89 2.89 0 0 0 0-4.134l-.638-.622.011-.896a2.89 2.89 0 0 0-2.924-2.924l-.896.01zm.93 4.29a.5.5 0 0 0-.695-.695L6.75 8.01 5.23 6.49a.5.5 0 0 0-.706.708l1.875 1.875a.5.5 0 0 0 .707 0z"/>
+                            </svg>
+                            <span style={{ fontSize: '11px', color: '#28a745', fontWeight: 'bold' }}>Verified</span>
+                          </>
+                        )}
+
+                        {/* PENDING = NOT VERIFIED */}
+                        {item.status === 'pending' && (
+                          <>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="#ffc107" className="bi bi-exclamation-circle-fill" viewBox="0 0 16 16">
+                              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4m.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2"/>
+                            </svg>
+                            <span style={{ fontSize: '11px', color: '#ffc107', fontWeight: 'bold' }}>Pending</span>
+                          </>
+                        )}
+
+                        {/* CANCELLED */}
+                        {item.status === 'cancelled' && (
+                          <>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="#dc3545" className="bi bi-x-circle-fill" viewBox="0 0 16 16">
+                              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
+                            </svg>
+                            <span style={{ fontSize: '11px', color: '#dc3545', fontWeight: 'bold' }}>Cancelled</span>
+                          </>
+                        )}
+
+                      </div>
+                    </td>
                   
                       <td style={{...styles.tableDataCell, ...styles.tableLastCell, position: 'relative' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -891,14 +902,14 @@ const styles = {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: 'center', padding: '20px' }}>No lost items found.</td>
+                    <td colSpan="9" style={{ textAlign: 'center', padding: '20px' }}>No lost items found.</td>
                   </tr>
                 )}
               </tbody>
 
               <tfoot>
                 <tr className='footer1'>
-                  <td colSpan="8" style={styles.paginationContainer}>
+                  <td colSpan="9" style={styles.paginationContainer}>
                     <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                       <button 
                         onClick={() => handlePageChange(currentPage - 1)} 

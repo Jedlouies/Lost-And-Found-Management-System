@@ -3,13 +3,12 @@ import { View, Text, Image, TouchableOpacity, StyleSheet, Modal, TouchableWithou
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { signOut } from 'firebase/auth'; // ✅ Import signOut
-import { auth } from '../firebase'; // ✅ Import your auth instance
+import { signOut } from 'firebase/auth'; 
+import { auth } from '../firebase'; 
 
 export default function TopHeader({ userData }) {
   const { currentUser } = useAuth();
   const router = useRouter();
-  // ✅ 1. State to manage dropdown visibility
   const [isDropdownVisible, setDropdownVisible] = useState(false);
 
   const getInitials = () => {
@@ -18,12 +17,10 @@ export default function TopHeader({ userData }) {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
-  // ✅ 2. Function to handle user logout
   const handleLogout = async () => {
     try {
       await signOut(auth);
       setDropdownVisible(false);
-      // Use replace to prevent the user from navigating back to the home screen
       router.replace('/login');
     } catch (error) {
       console.error("Logout error:", error);
@@ -39,7 +36,7 @@ export default function TopHeader({ userData }) {
 
       <TouchableOpacity
         style={styles.profileButton}
-        onPress={() => setDropdownVisible(true)} // Toggle dropdown on press
+        onPress={() => setDropdownVisible(true)} 
       >
         {userData?.profileURL ? (
           <Image source={{ uri: userData.profileURL }} style={styles.profileImage} />
@@ -50,7 +47,6 @@ export default function TopHeader({ userData }) {
         )}
       </TouchableOpacity>
 
-      {/* ✅ 3. Dropdown Modal */}
       <Modal
         transparent={true}
         visible={isDropdownVisible}

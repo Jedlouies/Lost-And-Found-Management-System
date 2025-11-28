@@ -11,11 +11,10 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-// import { signOut } from 'firebase/auth'; // No longer needed here
-// import { auth } from '../firebase'; // No longer needed here
+import { signOut } from 'firebase/auth'; 
+import { auth } from '../firebase'; 
 
 export default function BlankHeader({ userData }) {
-  // ✅ MODIFIED: Get the new logout function from context
   const { currentUser, logout } = useAuth();
   const router = useRouter();
   const [isDropdownVisible, setDropdownVisible] = useState(false);
@@ -26,12 +25,11 @@ export default function BlankHeader({ userData }) {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
-  // ✅ MODIFIED: Use the context's logout function
   const handleLogout = async () => {
     try {
-      await logout(); // This will sign out and clear session
+       await signOut(auth);
       setDropdownVisible(false);
-      // No router.replace needed. AuthContext will handle the state change.
+        router.replace('/login');
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -43,11 +41,9 @@ export default function BlankHeader({ userData }) {
 
   return (
     <View style={styles.headerContainer}>
-      {/* Post Button */}
       <View>
         <Image source={require("../assets/images/spotsync-slogan-white.png")} style={styles.logo} />
       </View>
-      {/* Profile Section */}
       <TouchableOpacity
         style={styles.profileButton}
         onPress={() => setDropdownVisible(true)}
@@ -61,7 +57,6 @@ export default function BlankHeader({ userData }) {
         )}
       </TouchableOpacity>
 
-      {/* Dropdown Menu */}
       <Modal transparent={true} visible={isDropdownVisible} animationType="fade">
         <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
           <View style={styles.modalOverlay}>

@@ -85,7 +85,6 @@ function ItemManagementScreen() {
   const { currentUser } = useAuth();
   const router = useRouter();
 
-  // --- FIX: Correct Way to Remove Listener ---
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
@@ -93,10 +92,9 @@ function ItemManagementScreen() {
         return true; 
       };
       const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-      return () => subscription.remove(); // Correct way
+      return () => subscription.remove();
     }, [router])
   );
-  // -------------------------------------------
 
   const [items, setItems] = useState<Item[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -133,13 +131,20 @@ function ItemManagementScreen() {
 
     fetchUserData();
     
-    // Fetch Item Management Data
     const q = query(collection(db, 'itemManagement'), where("uid", "==", currentUser.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const managementItems = snapshot.docs.map(doc => ({
         id: doc.data().itemId,
         ...doc.data()
       })) as Item[];
+
+      managementItems.sort((a, b) => {
+        const dateA = a.createdAt?.seconds || 0;
+        const dateB = b.createdAt?.seconds || 0;
+        
+        return dateB - dateA; 
+      });
+
       setItems(managementItems);
       setLoading(false);
     }, (error) => {

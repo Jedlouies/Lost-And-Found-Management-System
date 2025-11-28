@@ -9,38 +9,85 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { collection, query, where, getDocs, Timestamp } from "firebase/firestore";
+import { collection, query, where, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import createVerificationCode from "../utils/createVerificationCode";
 
-// Define placeholder color
 const PLACEHOLDER_COLOR = "#A9A9A9";
+const EXPIRY_SECONDS = 600; // 10 minutes
 
-// 1. Re-add `show` to the props
 function VerificationModal({ show, user, onVerified, onClose, sendVerificationEmail }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-  const [expiryCountdown, setExpiryCountdown] = useState(120);
-  const [verifying, setVerifying] = useState(false);
-  const [verified, setVerified] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+  const [countdown, setCountdown] = useState(EXPIRY_SECONDS);
   
-  const timerRef = useRef(null); // Use a ref to hold the timer ID
+  // Store all valid codes found in real-time
+  const [availableCodes, setAvailableCodes] = useState([]);
 
-  // Function to start/restart the timer
-  const startTimer = () => {
-    // Clear any old timer
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
+  const timerRef = useRef(null);
+
+  // --- 1. Real-Time Database Listener ---
+  useEffect(() => {
+    let unsubscribe = () => {};
+
+    if (show && user) {
+      console.log(`[RealTime] Starting listener for: ${user.email}`);
+      
+      // Listen for ANY codes for this email (Ordered by time would be better, but this is robust)
+      const q = query(
+        collection(db, "verifications"),
+        where("email", "==", user.email)
+      );
+
+      unsubscribe = onSnapshot(q, (snapshot) => {
+        const codes = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          // Store code and creation time
+          codes.push({
+            code: String(data.code).trim(), // Force string & trim
+            createdAt: data.createdAt,
+            id: doc.id
+          });
+        });
+        
+        console.log(`[RealTime] Update! Found ${codes.length} codes in DB.`);
+        // Optional: Log the latest one for debugging
+        if (codes.length > 0) {
+            console.log("Latest codes available:", codes.map(c => c.code));
+        }
+        
+        setAvailableCodes(codes);
+      }, (err) => {
+        console.error("[RealTime] Listener Error:", err);
+      });
+
+      // Reset UI
+      setCode("");
+      setError("");
+      setSuccessMessage("");
+      setIsVerified(false);
+      setLoading(false);
+      startTimer();
     }
-    // Reset the countdown
-    setExpiryCountdown(120);
-    
-    // Start a new timer
+
+    return () => {
+      unsubscribe();
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [show, user]);
+
+  // --- Timer Logic ---
+  const startTimer = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setCountdown(EXPIRY_SECONDS);
     timerRef.current = setInterval(() => {
-      setExpiryCountdown((prev) => {
+      setCountdown((prev) => {
         if (prev <= 1) {
-          clearInterval(timerRef.current); // Stop timer when it hits 0
+          clearInterval(timerRef.current);
           return 0;
         }
         return prev - 1;
@@ -48,98 +95,75 @@ function VerificationModal({ show, user, onVerified, onClose, sendVerificationEm
     }, 1000);
   };
 
-  useEffect(() => {
-    // 2. Add `show` to the effect's condition
-    // Only run if the modal is being shown and a user is present
-    if (show && user) {
-      // Reset all state when modal is opened
-      setCode("");
-      setError("");
-      setMessage("");
-      setVerified(false);
-      startTimer(); // Call the timer function
-    }
-
-    // This cleanup runs when the modal is closed
-    if (!show) {
-        if (timerRef.current) {
-            clearInterval(timerRef.current);
-        }
-    }
-
-    // This cleanup runs if the component unmounts
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [show, user]); // 3. Add `show` to the dependency array
-
+  // --- 2. Verification Logic (Instant Check) ---
   const handleVerify = async () => {
-    if (!code) return;
-    setVerifying(true);
+    if (!code) {
+      setError("Please enter the code.");
+      return;
+    }
+
+    setLoading(true);
     setError("");
 
-    try {
-      const q = query(
-        collection(db, "verifications"),
-        // Note: You may want to query by UID instead of email if emails can be changed
-        where("email", "==", user.email), 
-        where("code", "==", code)
-      );
-      const snap = await getDocs(q);
+    // Simulate a small delay for UX (optional)
+    setTimeout(async () => {
+      const inputCode = code.toString().trim();
+      
+      console.log(`[Verify] Checking input '${inputCode}' against ${availableCodes.length} available codes.`);
 
-      if (!snap.empty) {
-        const data = snap.docs[0].data();
+      // Find match in our REAL-TIME list
+      const match = availableCodes.find(c => c.code === inputCode);
+
+      if (match) {
+        // Check Expiry
         const now = Timestamp.now();
+        const secondsElapsed = now.seconds - match.createdAt.seconds;
 
-        if (now.seconds - data.createdAt.seconds > 120) {
-          setError("Code expired. Please request a new one.");
-          setVerifying(false);
+        if (secondsElapsed > EXPIRY_SECONDS) {
+          setError("This code has expired. Please request a new one.");
+          setLoading(false);
           return;
         }
 
-        setVerified(true);
+        console.log("✅ [Verify] Success!");
+        setIsVerified(true);
+        if (timerRef.current) clearInterval(timerRef.current);
+
         if (onVerified) {
-            await onVerified(); // Call the onVerified callback from props
+          await onVerified();
         }
 
-        // Keep the success message for a moment before closing
-        setTimeout(() => {
-          onClose();
-        }, 2000);
+        setTimeout(() => onClose(), 2000);
+
       } else {
-        setError("Invalid code.");
+        console.log("❌ [Verify] No match found.");
+        setError("Invalid code. Please wait a moment if you just requested it.");
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Verification error:", err);
-      setError("Verification failed. Please try again.");
-    } finally {
-      setVerifying(false);
-    }
+    }, 500);
   };
 
   const handleResend = async () => {
-    try {
-      setError("");
-      setMessage("");
-      setVerifying(true);
+    if (loading) return;
+    setLoading(true);
+    setError("");
+    setSuccessMessage("");
+    setCode("");
 
+    try {
       const newCode = await createVerificationCode(user.uid, user.email);
       if (sendVerificationEmail) {
         await sendVerificationEmail(user, newCode);
+        setSuccessMessage(`New code sent to ${user.email}`);
+        startTimer();
       } else {
-        console.warn("`sendVerificationEmail` function not provided.");
-        Alert.alert("Dev Info", `New code is ${newCode}.`);
+        setError("System error: Cannot send email.");
       }
-
-      setMessage("New code has been sent to your email.");
-      startTimer(); // Restart the timer
     } catch (err) {
-      console.error("Resend error:", err);
-      setError("Failed to resend verification code.");
+      console.error("[Resend] Error:", err);
+      setError("Failed to resend code.");
     } finally {
-      setVerifying(false);
+      setLoading(false);
     }
   };
 
@@ -150,57 +174,72 @@ function VerificationModal({ show, user, onVerified, onClose, sendVerificationEm
   };
 
   return (
-    // 4. Use the `show` prop for the `visible` attribute
-    <Modal transparent={true} visible={show} animationType="fade" onRequestClose={onClose}>
+    <Modal visible={show} transparent={true} animationType="fade" onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
-          {verified ? (
-            <View style={styles.verifiedContainer}>
-              <Text style={styles.verifiedText}>Verified Successfully!</Text>
+          {isVerified ? (
+            <View style={styles.centerContent}>
+              <Text style={styles.successTitle}>✅ Verified!</Text>
+              <Text style={styles.subtitle}>Redirecting...</Text>
             </View>
           ) : (
             <>
               <Text style={styles.title}>Email Verification</Text>
               <Text style={styles.subtitle}>
-                We sent a 6-digit code to <Text style={{ fontWeight: "bold" }}>{user?.email}</Text>.
+                Enter the 6-digit code sent to{"\n"}
+                <Text style={{ fontWeight: "bold" }}>{user?.email}</Text>
               </Text>
+
               <TextInput
                 style={styles.input}
-                placeholder="Enter 6-digit code"
+                placeholder="000000"
                 placeholderTextColor={PLACEHOLDER_COLOR}
                 keyboardType="number-pad"
                 maxLength={6}
                 value={code}
                 onChangeText={setCode}
-                editable={!verifying && expiryCountdown > 0}
+                editable={!loading && countdown > 0}
               />
 
-              <Text style={[styles.timerText, { color: expiryCountdown > 0 ? "gray" : "red" }]}>
-                {expiryCountdown > 0
-                  ? `Code expires in ${formatTime(expiryCountdown)}`
+              <Text style={[styles.timerText, { color: countdown > 0 ? "#666" : "red" }]}>
+                {countdown > 0
+                  ? `Code expires in ${formatTime(countdown)}`
                   : "Code expired. Please request a new one."}
               </Text>
 
-              {error && <Text style={styles.errorText}>{error}</Text>}
-              {message && <Text style={styles.messageText}>{message}</Text>}
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+              {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
 
               <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.buttonSecondary} onPress={onClose} disabled={verifying}>
+                <TouchableOpacity 
+                  style={styles.buttonSecondary} 
+                  onPress={onClose} 
+                  disabled={loading}
+                >
                   <Text style={styles.buttonTextSecondary}>Cancel</Text>
                 </TouchableOpacity>
+
                 <TouchableOpacity
-                  style={[styles.buttonPrimary, (expiryCountdown <= 0 || verifying) && styles.buttonDisabled]}
+                  style={[
+                    styles.buttonPrimary,
+                    (countdown <= 0 || loading) && styles.buttonDisabled
+                  ]}
                   onPress={handleVerify}
-                  disabled={expiryCountdown <= 0 || verifying}
+                  disabled={countdown <= 0 || loading}
                 >
-                  {verifying ? (
-                    <ActivityIndicator color="#FFF" />
+                  {loading ? (
+                    <ActivityIndicator color="#FFF" size="small" />
                   ) : (
                     <Text style={styles.buttonTextPrimary}>Verify</Text>
                   )}
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity onPress={handleResend} disabled={verifying}>
+
+              <TouchableOpacity 
+                style={styles.resendButton} 
+                onPress={handleResend} 
+                disabled={loading}
+              >
                 <Text style={styles.resendText}>Resend Code</Text>
               </TouchableOpacity>
             </>
@@ -212,102 +251,24 @@ function VerificationModal({ show, user, onVerified, onClose, sendVerificationEm
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContainer: {
-    width: "90%",
-    backgroundColor: "white",
-    borderRadius: 15,
-    padding: 20,
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 10,
-    color: "#333",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#555",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  input: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 15,
-    textAlign: "center",
-    fontSize: 18,
-    letterSpacing: 5,
-  },
-  timerText: {
-    marginTop: 10,
-    fontSize: 12,
-  },
-  errorText: {
-    color: "red",
-    marginTop: 10,
-  },
-  messageText: {
-    color: "green",
-    marginTop: 10,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    marginTop: 20,
-  },
-  buttonPrimary: {
-    backgroundColor: "#007BFF",
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    flex: 1,
-    marginLeft: 5,
-  },
-  buttonSecondary: {
-    backgroundColor: "#E9ECEF",
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    flex: 1,
-    marginRight: 5,
-  },
-  buttonTextPrimary: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  buttonTextSecondary: {
-    color: "#333",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  buttonDisabled: {
-    backgroundColor: "#AECBFA",
-  },
-  resendText: {
-    color: "#007BFF",
-    marginTop: 20,
-    fontWeight: "bold",
-  },
-  verifiedContainer: {
-    padding: 40,
-  },
-  verifiedText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "green",
-    textAlign: "center",
-  },
+  modalOverlay: { flex: 1, backgroundColor: "rgba(0, 0, 0, 0.6)", justifyContent: "center", alignItems: "center" },
+  modalContainer: { width: "85%", backgroundColor: "white", borderRadius: 16, padding: 24, alignItems: "center", elevation: 5 },
+  centerContent: { alignItems: 'center', paddingVertical: 20 },
+  title: { fontSize: 20, fontWeight: "bold", marginBottom: 10, color: "#333" },
+  successTitle: { fontSize: 22, fontWeight: "bold", color: "#28a745", marginBottom: 10 },
+  subtitle: { fontSize: 14, color: "#666", textAlign: "center", marginBottom: 20, lineHeight: 20 },
+  input: { width: "100%", backgroundColor: "#f9f9f9", borderWidth: 1, borderColor: "#ddd", borderRadius: 8, padding: 15, textAlign: "center", fontSize: 24, fontWeight: "bold", letterSpacing: 8, color: "#333" },
+  timerText: { marginTop: 12, fontSize: 13, fontWeight: "500" },
+  errorText: { color: "#dc3545", marginTop: 10, fontSize: 13, textAlign: 'center' },
+  successText: { color: "#28a745", marginTop: 10, fontSize: 13, textAlign: 'center' },
+  buttonRow: { flexDirection: "row", justifyContent: "space-between", width: "100%", marginTop: 25, gap: 10 },
+  buttonPrimary: { backgroundColor: "#007AFF", paddingVertical: 12, borderRadius: 8, alignItems: "center", flex: 1 },
+  buttonSecondary: { backgroundColor: "#e4e6eb", paddingVertical: 12, borderRadius: 8, alignItems: "center", flex: 1 },
+  buttonDisabled: { backgroundColor: "#b3d7ff" },
+  buttonTextPrimary: { color: "white", fontWeight: "bold", fontSize: 16 },
+  buttonTextSecondary: { color: "#444", fontWeight: "bold", fontSize: 16 },
+  resendButton: { marginTop: 20, padding: 10 },
+  resendText: { color: "#007AFF", fontWeight: "600", fontSize: 14 },
 });
 
 export default VerificationModal;

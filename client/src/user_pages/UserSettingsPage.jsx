@@ -72,6 +72,10 @@ const [showCourseDropdown, setShowCourseDropdown] = useState(false)
 const [pendingPassword, setPendingPassword] = useState(null);
 const [yearLevel, setYearLevel] = useState(localStorage.getItem('yearLevel') || '');
 
+const [is2FAEnabled, setIs2FAEnabled] = useState(false);
+  const [verificationPurpose, setVerificationPurpose] = useState(null);
+  const [exporting, setExporting] = useState(false);
+
 
 const [selectedCourse, setSelectedCourse] = useState(() => {
     try {
@@ -82,6 +86,177 @@ const [selectedCourse, setSelectedCourse] = useState(() => {
         return null;
     }
 });
+
+const handleDataExport = async () => {
+    if (!currentUser) return;
+
+    setExporting(true);
+    try {
+      // 1. Fetch Item Management History
+      const itemMgmtQ = query(
+        collection(db, 'itemManagement'),
+        where('uid', '==', currentUser.uid)
+      );
+      const itemMgmtSnap = await getDocs(itemMgmtQ);
+      const itemMgmtData = itemMgmtSnap.docs.map(doc => doc.data());
+
+      // 2. Fetch Active Lost Items
+      const lostItemsQ = query(
+        collection(db, 'lostItems'),
+        where('archivedStatus', '==', false),
+        where('status', 'in', ['Posted', 'posted'])
+      );
+      const lostItemsSnap = await getDocs(lostItemsQ);
+      // Filter in memory for claimStatus to match mobile logic if complex, or simple mapping
+      const lostItemsData = lostItemsSnap.docs
+        .map(doc => doc.data())
+        .filter(item => item.claimStatus !== 'claimed' && item.uid === currentUser.uid); // Ensure we only get current user's items
+
+      // 3. Fetch Active Found Items
+      const foundItemsQ = query(
+        collection(db, 'foundItems'),
+        where('archivedStatus', '==', false),
+        where('status', 'in', ['Posted', 'posted'])
+      );
+      const foundItemsSnap = await getDocs(foundItemsQ);
+      const foundItemsData = foundItemsSnap.docs
+        .map(doc => doc.data())
+        .filter(item => item.claimStatus !== 'claimed' && item.uid === currentUser.uid);
+
+      // 4. Generate HTML (Identical to Mobile, but formatted for Web Print)
+      const html = `
+        <html>
+          <head>
+            <title>SpotSync Data Export</title>
+            <style>
+                body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 20px; }
+                h1 { color: #007AFF; text-align: center; margin-bottom: 5px; }
+                h2 { color: #333; border-bottom: 2px solid #ddd; padding-bottom: 5px; margin-top: 30px; }
+                p { font-size: 12px; color: #666; }
+                .meta { text-align: center; font-size: 12px; color: #888; margin-bottom: 30px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+                th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; font-weight: bold; }
+                tr:nth-child(even) { background-color: #f9f9f9; }
+                .empty { font-style: italic; color: #999; padding: 10px; }
+                @media print {
+                    @page { margin: 0.5cm; }
+                    body { -webkit-print-color-adjust: exact; }
+                }
+            </style>
+          </head>
+          <body>
+            <h1>SpotSync Data Export</h1>
+            <div class="meta">
+                User: ${firstName} ${lastName}<br/>
+                Email: ${email}<br/>
+                Date: ${new Date().toLocaleDateString()}
+            </div>
+
+            <h2>Item Management (My History)</h2>
+            ${itemMgmtData.length > 0 ? `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item ID</th>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Location</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                ${itemMgmtData.map(item => `
+                <tr>
+                    <td>${item.itemId || '-'}</td>
+                    <td>${item.itemName || '-'}</td>
+                    <td>${item.type || '-'}</td>
+                    <td>${item.category || '-'}</td>
+                    <td>${item.locationLost || item.locationFound || '-'}</td>
+                    <td>${item.createdAt?.toDate ? item.createdAt.toDate().toLocaleDateString() : '-'}</td>
+                    <td>${item.status || '-'}</td>
+                </tr>
+                `).join('')}
+                </tbody>
+            </table>` : '<div class="empty">No item management history found.</div>'}
+
+            <h2>Active Lost Items (Public)</h2>
+            ${lostItemsData.length > 0 ? `
+            <table>
+                 <thead>
+                    <tr>
+                        <th>Item ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Date Lost</th>
+                        <th>Description</th>
+                    </tr>
+                 </thead>
+                 <tbody>
+                ${lostItemsData.map(item => `
+                <tr>
+                    <td>${item.itemId || '-'}</td>
+                    <td>${item.itemName || '-'}</td>
+                    <td>${item.category || '-'}</td>
+                    <td>${item.dateFound || '-'}</td>
+                    <td>${item.itemDescription || '-'}</td>
+                </tr>
+                `).join('')}
+                </tbody>
+            </table>` : '<div class="empty">No active lost items found.</div>'}
+
+            <h2>Active Found Items (Public)</h2>
+            ${foundItemsData.length > 0 ? `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Date Found</th>
+                        <th>Location Found</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                ${foundItemsData.map(item => `
+                <tr>
+                    <td>${item.itemId || '-'}</td>
+                    <td>${item.itemName || '-'}</td>
+                    <td>${item.category || '-'}</td>
+                    <td>${item.dateFound || '-'}</td>
+                    <td>${item.locationFound || '-'}</td>
+                    <td>${item.itemDescription || '-'}</td>
+                </tr>
+                `).join('')}
+                </tbody>
+            </table>` : '<div class="empty">No active found items found.</div>'}
+            
+            <script>
+                window.onload = function() { window.print(); }
+            </script>
+          </body>
+        </html>
+      `;
+
+      // 5. Open in New Window and Print
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+          printWindow.document.write(html);
+          printWindow.document.close();
+      } else {
+          setAlert({ message: "Pop-up blocked. Please allow pop-ups for this site to export data.", type: "error" });
+      }
+
+    } catch (error) {
+      console.error("Export Error:", error);
+      setAlert({ message: "Could not generate the data export.", type: "error" });
+    } finally {
+      setExporting(false);
+    }
+  };
 
 
    const courseList = [
@@ -472,6 +647,7 @@ const handleUpdate = async () => {
             setCoverURL(userData.coverURL);
             localStorage.setItem('coverURL', userData.coverURL);
           }
+            setIs2FAEnabled(userData.is2FAEnabled || false);
         }
       } catch (err) {
         console.error('Failed to fetch user images:', err);
@@ -752,6 +928,30 @@ const filteredCourses = courseList.filter((c) => {
   }
     };
 
+    const handleToggle2FA = async () => {
+    const action = is2FAEnabled ? "Disable" : "Enable";
+    
+    // Simple confirmation before sending code
+    const confirm = window.confirm(`Do you want to ${action} Two-Factor Authentication? You will need to verify your email.`);
+    if (!confirm) return;
+
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (!user) return;
+
+      // Generate code and send email
+      const code = await createVerificationCode(user);
+      await sendVerificationEmail(user, code);
+      
+      setVerificationPurpose('2FA_TOGGLE');
+      setShowVerificationModal(true);
+    } catch (error) {
+      console.error(error);
+      setAlert({ message: "Failed to initiate verification.", type: "error" });
+    }
+  };
+
   return (
     <>
       {updatingProfileInfo && (
@@ -778,26 +978,43 @@ const filteredCourses = courseList.filter((c) => {
       <UserNavigationBar />
 <VerificationModal
   show={showVerificationModal}
-  onClose={() => setShowVerificationModal(false)}
+  onClose={() => {setShowVerificationModal(false);
+    setVerificationPurpose(null);}
+}
   user={currentUser}
   sendVerificationEmail={sendVerificationEmail}
   onVerified={async () => {
     try {
-      const auth = getAuth();
-      const user = auth.currentUser;
+      if (verificationPurpose === 'PASSWORD_CHANGE' && pendingPassword) {
+      try {
+        const credential = EmailAuthProvider.credential(user.email, password);
+        await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, pendingPassword);
+        setAlert({ message: "Password updated successfully!", type: "success" });
+        setPendingPassword(null);
+        setPassword(""); setNewPassword(""); setConfirmNewPassword("");
+      } catch (err) {
+        setAlert({ message: "Failed to update password.", type: "error" });
+      }
+    } 
+    // NEW 2FA LOGIC
+    else if (verificationPurpose === '2FA_TOGGLE') {
+      try {
+        const newValue = !is2FAEnabled;
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, { is2FAEnabled: newValue });
+        setIs2FAEnabled(newValue);
+        setAlert({ 
+          message: `Two-Factor Authentication ${newValue ? 'Enabled' : 'Disabled'}`, 
+          type: "success" 
+        });
+      } catch (err) {
+        console.error(err);
+        setAlert({ message: "Failed to update 2FA settings.", type: "error" });
+      }
+    }
 
-      const credential = EmailAuthProvider.credential(user.email, password);
-      await reauthenticateWithCredential(user, credential);
-
-      await updatePassword(user, pendingPassword);
-
-      setAlert({ message: "Password updated successfully!", type: "success" });
-      setPendingPassword(null);
-      setShowVerificationModal(false);
-
-      setPassword("");
-      setNewPassword("");
-      setConfirmNewPassword("");
+    setShowVerificationModal(false);
 
     } catch (err) {
       console.error("Error updating password:", err);
@@ -1024,11 +1241,8 @@ const filteredCourses = courseList.filter((c) => {
                 </select>
               </div>
               
-              {/* PASTE THIS BLOCK */}
                 <div style={styles.dropdownWrapper}>
                 <input
-                    // FIXED: Added width: '100%' because it is inside a div now.
-                    // FIXED: Added color: '#333' to ensure text is visible against background.
                     style={{...styles.formInput, width: '100%', color: '#333'}} 
                     placeholder="Search Course (e.g., BSIT)"
                     value={courseSearch}
@@ -1036,7 +1250,6 @@ const filteredCourses = courseList.filter((c) => {
                     setCourseSearch(e.target.value);
                     setShowCourseDropdown(true);
                     
-                    // Strict Mode: clear selection if text differs from the saved object
                     if (selectedCourse && e.target.value !== `${selectedCourse.abbr} - ${selectedCourse.name}`) {
                         setSelectedCourse(null); 
                     }
@@ -1046,7 +1259,6 @@ const filteredCourses = courseList.filter((c) => {
                     setTimeout(() => {
                         setShowCourseDropdown(false);
 
-                        // STRICT VALIDATION LOGIC
                         const match = courseList.find(c => 
                         `${c.abbr} - ${c.name}` === courseSearch || 
                         c.abbr.toLowerCase() === courseSearch.toLowerCase()
@@ -1056,7 +1268,6 @@ const filteredCourses = courseList.filter((c) => {
                         setSelectedCourse(match);
                         setCourseSearch(`${match.abbr} - ${match.name}`);
                         } else {
-                        // If invalid, revert or clear
                         if (!selectedCourse) {
                             setCourseSearch('');
                             setSelectedCourse(null);
@@ -1116,13 +1327,36 @@ const filteredCourses = courseList.filter((c) => {
             >
               Change Password
             </p>                
-            <p style={styles.otherSettingsP}>Two-Factor Authentication</p>
+                <div 
+                style={{...styles.otherSettingsP, display: 'flex', alignItems: 'center', justifyContent: 'space-between'}} 
+                onClick={handleToggle2FA}
+                >
+                <span>Two-Factor Authentication</span>
+                <div style={{
+                    backgroundColor: is2FAEnabled ? '#e6f4ea' : '#f1f3f4',
+                    color: is2FAEnabled ? '#1e8e3e' : '#5f6368',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    fontSize: '0.8rem',
+                    fontWeight: 'bold',
+                    marginLeft: '10px'
+                }}>
+                    {is2FAEnabled ? "ON" : "OFF"}
+                </div>
+                </div>
             <h4>Database Management</h4>
-            <p style={styles.otherSettingsP}>Back up and Restore</p>
-            <p style={styles.otherSettingsP}>Data Export</p>
-            <h4>Notification</h4>
-            <p style={styles.otherSettingsP}>Allow User Messages</p>
-          </div>
+            <div 
+                style={{...styles.otherSettingsP, display: 'flex', alignItems: 'center', justifyContent: 'space-between'}} 
+                onClick={!exporting ? handleDataExport : null}
+            >
+                <span>Data Export</span>
+                {exporting ? (
+                    <Spinner as="span" animation="border" size="sm" variant="primary" />
+                ) : (
+                    <span style={{ fontSize: '1.2rem', color: '#007bff' }}>&rsaquo;</span> // Or use an icon like chevron-right
+                )}
+            </div>
+             </div>
         </div>
       </div>
     <CropperModal

@@ -149,6 +149,54 @@ const styles = {
     }
 };
 
+const formatDate = (dateValue) => {
+    // DEBUG: Log the incoming value to see exactly what it is
+    console.log("formatDate received:", dateValue, typeof dateValue);
+
+    if (!dateValue) return "N/A";
+
+    // 1. Handle Firestore Timestamp (has .toDate() method)
+    if (typeof dateValue.toDate === 'function') {
+        return dateValue.toDate().toLocaleDateString();
+    }
+
+    // 2. Handle standard Date object
+    if (dateValue instanceof Date) {
+        return dateValue.toLocaleDateString();
+    }
+
+    // 3. Handle String
+    if (typeof dateValue === 'string') {
+        // Attempt to parse standard formats
+        const dateObj = new Date(dateValue);
+        if (!isNaN(dateObj.getTime())) {
+             return dateObj.toLocaleDateString();
+        }
+        
+        // 4. Fallback for "November 22, 2025 at..." format
+        if (dateValue.includes(' at ')) {
+            return dateValue.split(' at ')[0];
+        }
+
+        // 5. Fallback for "November 22, 2025, 7:03..." (comma separation)
+        if (dateValue.includes(',')) {
+             // Sometimes standard parsing fails on specific timezones, 
+             // so we just return the string if it looks like a date string
+             return dateValue.split(',')[0] + ", " + dateValue.split(',')[1].split(' at')[0]; 
+             // Or simpler: just return the string if all else fails
+        }
+        
+        return dateValue;
+    }
+
+    // 4. Handle Numeric Timestamp (milliseconds)
+    if (typeof dateValue === 'number') {
+        return new Date(dateValue).toLocaleDateString();
+    }
+
+    return "N/A";
+};
+
 function ItemViewDetailsPage() {
     const { uid } = useParams();
     const location = useLocation();
@@ -254,14 +302,7 @@ function ItemViewDetailsPage() {
                             />
                         </div>
 
-                        {showClaimButton && (
-                            <button 
-                                onClick={handleClaim}
-                                style={styles.claimButton}
-                            >
-                                {type === "lost" ? "Report Item Found" : "Report Item Lost"}
-                            </button>
-                        )}
+                        
                     </div>
                     
                     <div style={styles.detailsSection}>
@@ -280,6 +321,11 @@ function ItemViewDetailsPage() {
                             {type === "lost" 
                                 ? item.dateLost ? new Date(item.dateLost).toLocaleDateString() : "N/A"
                                 : item.dateFound ? new Date(item.dateFound).toLocaleDateString() : "N/A"}
+                        </p>
+
+                        <h3 style={styles.detailH3}>Date Posted:</h3>
+                        <p style={styles.detailP}>
+                            {formatDate(item.createdAt || item.timestamp || item.datePosted)} 
                         </p>
 
                         <h3 style={styles.detailH3}>Location:</h3>

@@ -190,11 +190,9 @@ function FoundMatchResults() {
 
          {/* Action buttons */}
          <View style={styles.actionButtonContainer}>
-             {/* ✨ FIX: Added back the "Report Another Item" button */}
             <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/ReportFoundItemScreen')}>
                 <Text style={styles.secondaryButtonText}>Report Another</Text>
             </TouchableOpacity>
-            {/* ✨ FIX: "Done" button still triggers the rating modal */}
             <TouchableOpacity style={styles.primaryButton} onPress={() => setShowRatingModal(true)}>
                 <Text style={styles.primaryButtonText}>Done & Rate</Text>
             </TouchableOpacity>

@@ -83,6 +83,11 @@ const handleVerifyItem = async (foundDocId, itemName, dbRealtime, setAlert, setI
             return true; 
         }
 
+        if (status === "cancelled") {
+            setAlert({ message: "Cannot verify a cancelled item.", type: "warning" });
+            return true;
+        }
+
         if (!itemId) {
             throw new Error(`foundItems doc ${foundDocId} has no itemId field`);
         }
@@ -971,7 +976,6 @@ useEffect(() => {
                                                     </div>
                                                 </td>
                                                 <td style={styles.verifyTableDataCell}>
-                                                    {/* Date Formatting using Utility Function */}
                                                     {formatFirestoreTimestamp(item.createdAt)}
                                                 </td>
                                                 <td style={{...styles.verifyTableDataCell, textAlign: 'center'}}>
@@ -1020,7 +1024,7 @@ useEffect(() => {
             <div style={styles.sideChartsWrapper}>
                 
                 <div style={{...styles.card, height: '400px'}}>
-                    <h4 style={{marginBottom: '15px'}}>Active Weekly Users</h4>
+                    <h4 style={{marginBottom: '15px'}}>Weekly Registered Users</h4>
                     <WeeklyUsersCard />
                 </div>
                 

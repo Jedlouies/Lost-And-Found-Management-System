@@ -26,6 +26,11 @@ function LogInPage() {
 
   const [showPassword, setShowPassword] = useState(false);
   const [passwordValue, setPasswordValue] = useState(""); 
+  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [twoFACode, setTwoFACode] = useState(''); // The code user enters
+  const [generatedCode, setGeneratedCode] = useState(''); // The real code
+  const [tempUserUid, setTempUserUid] = useState(null); // Store UID while verifying
+  const [tempRole, setTempRole] = useState(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -71,6 +76,38 @@ function LogInPage() {
       if (userDocSnap.exists()) {
         const userData = userDocSnap.data();
         const role = userData.role;
+
+        if (userData.is2FAEnabled) {
+          const code = Math.floor(100000 + Math.random() * 900000).toString();
+          setGeneratedCode(code);
+          setTempUserUid(user.uid);
+          setTempRole(role); // Store role for later
+
+          try {
+             await fetch("https://server.spotsync.site/api/send-email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    to: userData.email,
+                    subject: "Login Verification Code",
+                    html: `
+                        <h2>Security Verification</h2>
+                        <p>Your login verification code is:</p>
+                        <h1 style="letter-spacing: 5px;">${code}</h1>
+                        <p>If this wasn't you, please reset your password immediately.</p>
+                    `,
+                }),
+            });
+            setShow2FAModal(true);
+            setLoading(false); // Stop the login button spinner
+            return; // STOP HERE, DO NOT NAVIGATE YET
+          } catch (emailErr) {
+            console.error("Failed to send 2FA email", emailErr);
+            setError("Failed to send verification email. Please try again.");
+            setLoading(false);
+            return;
+          }
+        }
 
         localStorage.setItem('role', userData.role || '');
         localStorage.setItem('firstName', userData.firstName || '');
@@ -118,6 +155,47 @@ function LogInPage() {
      setCapsLock(capsLockOn);
   };
 
+const handleVerify2FA = async () => {
+    if (loading) return; // Prevent multiple clicks/enters
+    setLoading(true);
+    setError(''); // Clear previous errors
+
+    try {
+      if (twoFACode === generatedCode) {
+        // Code Matches! 
+        
+        // Re-fetch minimal data
+        const userDocRef = doc(db, 'users', tempUserUid);
+        const userDocSnap = await getDoc(userDocRef);
+        const userData = userDocSnap.data();
+
+        localStorage.setItem('role', userData.role || '');
+        localStorage.setItem('firstName', userData.firstName || '');
+        localStorage.setItem('lastName', userData.lastName || '');
+        localStorage.setItem('uid', tempUserUid); 
+        localStorage.setItem('email', userData.email || ''); 
+        localStorage.setItem('profileURL', userData.profileURL || '');
+
+        setShow2FAModal(false);
+        
+        // No need to setLoading(false) here as we are navigating away
+        if (tempRole === 'admin') {
+            navigate(`/dashboard/${tempUserUid}`);
+          } else { 
+            navigate(`/home/${tempUserUid}`);
+        }
+      } else {
+        // Code Invalid
+        setError("Invalid Code. Please try again.");
+        setLoading(false); // Stop loading so user can try again
+      }
+    } catch (err) {
+      console.error("2FA Error:", err);
+      setError("Verification failed. Please try again.");
+      setLoading(false);
+    }
+  };
+  
   const handlePasswordReset = async () => {
       setResetting(true);
       setResetMessage(''); 
@@ -130,7 +208,6 @@ function LogInPage() {
       }
 
       try {
-          // This logic correctly uses the studentIndex for password reset
           const studentDocRef = doc(db, 'studentIndex', forgotId.trim());
           const studentDocSnap = await getDoc(studentDocRef);
 
@@ -256,6 +333,81 @@ function LogInPage() {
           </div>
         </div>
 
+{/* 2FA Verification Modal */}
+        <Modal
+          show={show2FAModal}
+          onHide={() => {
+              if (!loading) setShow2FAModal(false);
+          }}
+          centered
+          className="custom-modal"
+          backdrop="static"
+          keyboard={false}
+        >
+          <Modal.Header style={styles.modalHeader}>
+            <Modal.Title style={styles.modalTitle}>Two-Factor Authentication</Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body style={styles.modalBody}>
+            <p style={styles.modalText}>
+              For your security, we've sent a 6-digit code to your email. Please enter it below.
+            </p>
+            <Form.Control
+              type='text'
+              placeholder='Enter 6-digit code'
+              value={twoFACode}
+              onChange={(e) => setTwoFACode(e.target.value)}
+              disabled={loading} // Disable input while loading
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !loading) { // Check !loading
+                  e.preventDefault();
+                  if (twoFACode.length >= 6) {
+                    handleVerify2FA();
+                  }
+                }
+              }}
+              style={{...styles.modalInput, textAlign: 'center', letterSpacing: '5px', fontSize: '1.2em'}}
+              maxLength={6}
+            />
+            {error && error.includes("Invalid Code") && (
+                <p style={{color: 'red', textAlign: 'center', marginTop: '10px'}}>{error}</p>
+            )}
+          </Modal.Body>
+
+          <Modal.Footer style={styles.modalFooter}>
+             <Button 
+                variant="secondary" 
+                onClick={() => {setShow2FAModal(false); setLoading(false);}} 
+                style={styles.modalCancelButton}
+                disabled={loading} // Disable cancel while verifying
+             >
+                Cancel
+             </Button>
+            <Button
+              variant="primary"
+              onClick={handleVerify2FA}
+              disabled={loading || twoFACode.length < 6}
+              style={styles.modalPrimaryButton}
+            >
+              {loading ? (
+                <>
+                  <Spinner
+                    as="span"
+                    animation="border"
+                    size="sm"
+                    role="status"
+                    aria-hidden="true"
+                    style={{ marginRight: '5px' }}
+                  />
+                  Verifying...
+                </>
+              ) : (
+                'Verify Identity'
+              )}
+            </Button>
+          </Modal.Footer>
+        </Modal>
+        
         <Modal
           show={showForgotModal}
           onHide={() => {

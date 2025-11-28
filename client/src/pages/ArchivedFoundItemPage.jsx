@@ -21,7 +21,6 @@ function ArchivedFoundItemsPage() {
   const itemsPerPage = 6;
   const navigate = useNavigate();
 
-  // --- START: Copied Styles from FoundItemsPage.jsx ---
   const styles = {
     foundItemBody: {
       backgroundColor: '#f4f4f4',
@@ -228,7 +227,7 @@ function ArchivedFoundItemsPage() {
 
   useEffect(() => {
     const q = query(
-      collection(db, "archivedFoundItems"), // NOTE: Changed from "foundItems" to "archivedFoundItems" if a separate collection is used for archives
+      collection(db, "foundItems"), // NOTE: Changed from "foundItems" to "archivedFoundItems" if a separate collection is used for archives
       // Reverting to the logic found in the original file for security and consistency:
       where("archivedStatus", "==", true) 
     );

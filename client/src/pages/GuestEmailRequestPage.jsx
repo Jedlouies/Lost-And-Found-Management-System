@@ -85,13 +85,6 @@ export default function GuestEmailRequestPage() {
     }
   }
 
-  /*
-  // Removed: handleVerified is no longer needed
-  async function handleVerified() { ... }
-  */
-  // --- End: Helper Functions ---
-
-  // --- Start: Inline Styles ---
   const styles = {
     // Background and centering container
     mainContainer: {

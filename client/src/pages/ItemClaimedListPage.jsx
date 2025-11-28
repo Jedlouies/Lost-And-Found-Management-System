@@ -312,7 +312,7 @@ function ItemClaimedListPage() {
                         </div>
                       </td>
                       <td style={styles.tableDataCell}>{item.itemName}</td>
-                      <td style={styles.tableDataCell}>{new Date(item.dateClaimed).toLocaleDateString()}</td>
+                      <td style={styles.tableDataCell}>{new Date(item.dateClaimed).toLocaleString()}</td>
                       
                       {/* Founder Details Cell */}
                       <td style={styles.tableDataCell}>

@@ -11,8 +11,8 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-// import { signOut } from 'firebase/auth'; // No longer needed here
-// import { auth } from '../firebase'; // No longer needed here
+import { signOut } from 'firebase/auth'; // No longer needed here
+import { auth } from '../firebase'; // No longer needed here
 
 export default function LostHeader({ userData }) {
   const { currentUser, logout } = useAuth();
@@ -45,8 +45,10 @@ export default function LostHeader({ userData }) {
 
   const handleLogout = async () => {
     try {
-      await logout(); // This will sign out and clear session
-      setDropdownVisible(false);
+      await signOut(auth);
+            setDropdownVisible(false);
+            // Use replace to prevent the user from navigating back to the home screen
+            router.replace('/login');
     } catch (error) {
       console.error('Logout error:', error);
     }

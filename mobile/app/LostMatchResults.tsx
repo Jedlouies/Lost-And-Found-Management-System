@@ -115,7 +115,6 @@ const MatchCard = ({ match, index, itemType }: { match: Match; index: number; it
   );
 };
 
-// --- Main Screen Component ---
 function LostMatchResults() { // Renamed component
   const params = useLocalSearchParams();
   const router = useRouter();
@@ -153,7 +152,7 @@ function LostMatchResults() { // Renamed component
         });
         Alert.alert("Success", "Thank you for your feedback!");
         setShowRatingModal(false);
-        router.push('/home'); // Navigate home after successful rating
+        router.push('/ItemManagementScreen'); 
     } catch (error) {
         console.error("Failed to submit rating:", error);
         Alert.alert("Error", "Could not submit your rating. Please try again.");
@@ -174,7 +173,6 @@ function LostMatchResults() { // Renamed component
     );
   }
 
-  // Matches for a Lost item report are Found items
   const filteredMatches = itemData.topMatches || [];
 
   return (
@@ -187,7 +185,7 @@ function LostMatchResults() { // Renamed component
                 key={match.transactionId || index}
                 match={match}
                 index={index}
-                itemType={itemData.type.toLowerCase()} // Pass 'lost'
+                itemType={itemData.type.toLowerCase()} 
               />
             ))
           ) : (
@@ -195,13 +193,10 @@ function LostMatchResults() { // Renamed component
           )}
         </View>
 
-         {/* Action buttons */}
          <View style={styles.actionButtonContainer}>
-            {/* Navigate back to Report Lost Item Screen */}
-            <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/reportLostItem')}>
+            <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/ReportLostItemScreen')}>
                 <Text style={styles.secondaryButtonText}>Report Another</Text>
             </TouchableOpacity>
-            {/* Done button triggers rating */}
             <TouchableOpacity style={styles.primaryButton} onPress={() => setShowRatingModal(true)}>
                 <Text style={styles.primaryButtonText}>Done & Rate</Text>
             </TouchableOpacity>

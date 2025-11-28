@@ -5,7 +5,6 @@ import { getAuth } from "firebase/auth";
 import { db } from "../firebase";
 import UserNavigationBar from "../user_components/UserNavigationBar";
 import UserBlankHeader from "../user_components/UserBlankHeader"
-// import './styles/ItemMoreDetailsPage.css'; // Using inline styles
 
 // Define modern, responsive styles (COPIED FROM ItemViewDetailsPage.jsx)
 const styles = {
@@ -169,6 +168,41 @@ const renderUser = (userData, isGuest = false) => {
     }
 };
 
+// 📅 HELPER: Robust Date Formatter to fix "Invalid Date"
+const formatDate = (dateValue) => {
+    if (!dateValue) return "N/A";
+
+    // 1. Handle Firestore Timestamp
+    if (dateValue?.toDate) {
+        return dateValue.toDate().toLocaleDateString();
+    }
+
+    // 2. Handle standard Date object
+    if (dateValue instanceof Date) {
+        return dateValue.toLocaleDateString();
+    }
+
+    // 3. Handle String
+    if (typeof dateValue === 'string') {
+        // Try to create a real date
+        const dateObj = new Date(dateValue);
+        if (!isNaN(dateObj.getTime())) {
+             return dateObj.toLocaleDateString();
+        }
+        
+        // 4. Fallback for your specific format: "November 22, 2025 at 7:03:22 PM UTC+8"
+        // If JS can't parse it, we just split it to get the "November 22, 2025" part.
+        if (dateValue.includes(' at ')) {
+            return dateValue.split(' at ')[0];
+        }
+
+        // Final fallback: just return the string as is
+        return dateValue;
+    }
+
+    return "N/A";
+};
+
 
 function ItemMoreDetailsPage() {
   const { uid } = useParams();
@@ -277,11 +311,14 @@ function ItemMoreDetailsPage() {
                         : item.howItemFound || "No details provided"}
                 </p>
                 
-                <h3 style={styles.detailH3}>Date:</h3>
+                <h3 style={styles.detailH3}>Date {type === "lost" ? "Lost" : "Found"}:</h3>
                 <p style={styles.detailP}>
-                    {type === "lost" 
-                        ? item.dateLost ? new Date(item.dateLost).toLocaleDateString() : "N/A"
-                        : item.dateFound ? new Date(item.dateFound).toLocaleDateString() : "N/A"}
+                    {formatDate(type === "lost" ? item.dateLost : item.dateFound)}
+                </p>
+
+                <h3 style={styles.detailH3}>Date Posted:</h3>
+                <p style={styles.detailP}>
+                    {formatDate(item.createdAt)}
                 </p>
 
                 <h3 style={styles.detailH3}>Location:</h3>

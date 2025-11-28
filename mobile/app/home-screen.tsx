@@ -183,6 +183,8 @@ export default function HomeScreen() {
 
   const recentFoundItems = foundItems
     .filter(item => item.claimStatus !== "claimed" && item.archivedStatus !== true && item.status !== "pending")
+    .filter(item => item.status !== "cancelled") 
+    .filter(item => item.status === "posted")
     .sort((a, b) => new Date(b.dateFound) - new Date(a.dateFound))
     .slice(0, 10);
 

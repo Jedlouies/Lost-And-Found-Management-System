@@ -211,7 +211,6 @@ const styles = {
         
         border: '1px solid #333',
         color: '#ffffffff',
-        border: 'none',
         padding: '8px 15px',
         borderRadius: '6px',
         fontWeight: '500',
