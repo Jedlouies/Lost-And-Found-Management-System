@@ -159,12 +159,12 @@ function HelpPage() {
       title: "Item Status Guide",
       content: (
         <ul style={{paddingLeft: '20px', ...styles.contentStyle}}>
-          <li>**Lost** – Item reported missing</li>
-          <li>**Found** – Item reported discovered</li>
-          <li>**Matched** – Potential owner identified</li>
-          <li>**For Verification** – OSA checking ownership</li>
-          <li>**Claimed** – Item successfully returned</li>
-          <li>**Archived** – Old or resolved reports stored</li>
+          <li>Lost – Item reported missing</li>
+          <li>Found – Item reported discovered</li>
+          <li>Matched – Potential owner identified</li>
+          <li>For Verification – OSA checking ownership</li>
+          <li>Claimed – Item successfully returned</li>
+          <li>Archived – Old or resolved reports stored</li>
         </ul>
       ),
     },

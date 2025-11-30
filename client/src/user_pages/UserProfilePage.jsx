@@ -171,8 +171,8 @@ function UserProfilePage() {
     const [gender, setGender] = useState(localStorage.getItem('gender') || '');
     const [email, setEmail] = useState(localStorage.getItem('email') || '');
     const [contactNumber, setContactNumber] = useState(localStorage.getItem('contactNumber') || '');
-    const [address, setAddress] = localStorage.getItem('address') || '';
-    const [designation, setDesignation] = useState(localStorage.getItem('designation') || '');
+    const [address, setAddress] = useState(localStorage.getItem('address') || ''); 
+   const [designation, setDesignation] = useState(localStorage.getItem('designation') || '');
     const [role, setRole] = useState(localStorage.getItem('role') || '');
     const [studentId, setStudentId] = useState(localStorage.getItem('studentId') || '');
     const [uid, setUid] = useState(localStorage.getItem('uid') || '');
@@ -236,6 +236,7 @@ function UserProfilePage() {
                     setCourse(courseData); // Set state to the object
                     setYearLevel(userData.yearLevel);
                     setSection(userData.section);
+                    setAddress(userData.address || '');
 
                     // Store all values in localStorage
                     localStorage.setItem('role', userData.role || '');

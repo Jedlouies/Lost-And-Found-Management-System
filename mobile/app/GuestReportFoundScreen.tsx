@@ -20,9 +20,6 @@ import { db, realtimeDB } from '../firebase';
 import { getAuth } from 'firebase/auth';
 // 1. Import useRouter from expo-router
 import { useRouter } from 'expo-router'; 
-// 2. Remove React Navigation imports
-// import { useNavigation } from '@react-navigation/native';
-// import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { ref, push, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -30,8 +27,6 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
 // --- Type Definitions ---
-// (React Navigation types removed)
-
 interface UserData {
   firstName?: string;
   lastName?: string;
@@ -84,7 +79,7 @@ const CATEGORIES = [ /* ... Full list of categories ... */
 // --- Main Screen Component ---
 function GuestReportFoundPage() {
   const { currentUser } = useAuth();
-  const router = useRouter(); // 4. Use Expo Router hook
+  const router = useRouter(); 
   const auth = getAuth();
 
   // Form State
@@ -97,25 +92,24 @@ function GuestReportFoundPage() {
   const [howItemFound, setHowItemFound] = useState('');
   const [images, setImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
 
-  // --- 🔑 FIX: Initialize optional fields to '' (empty string) ---
+  // User Data State (pre-filled for guest)
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [middleName, setMiddleName] = useState(''); // Was 'Guest'
+  const [middleName, setMiddleName] = useState(''); 
   const [email, setEmail] = useState('');
-  const [contactNumber, setContactNumber] = useState(''); // Was 'Guest'
-  const [address, setAddress] = useState(''); // Was 'Guest'
-  const [profileURL, setProfileURL] = useState(''); // Was 'Guest'
-  const [coverURL, setCoverURL] = useState(''); // Was 'Guest'
-  const [course, setCourse] = useState(''); // Was 'Guest'
-  const [section, setSection] = useState(''); // Was 'Guest'
-  const [yearLevel, setYearLevel] = useState(''); // Was 'Guest'
-  const [birthdate, setBirthdate] = useState(''); // Was 'Guest'
-  const [founder, setFounder] = useState(''); // Was 'Guest'
-  // --- End Fix ---
+  const [contactNumber, setContactNumber] = useState('');
+  const [address, setAddress] = useState('');
+  const [profileURL, setProfileURL] = useState('');
+  const [coverURL, setCoverURL] = useState('');
+  const [course, setCourse] = useState('');
+  const [section, setSection] = useState('');
+  const [yearLevel, setYearLevel] = useState('');
+  const [birthdate, setBirthdate] = useState('');
+  const [founder, setFounder] = useState(''); 
 
   // UI State
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isMatching, setIsMatching] = useState(false);
+  const [isMatching, setIsMatching] = useState(false); // <--- ADDED
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -123,6 +117,7 @@ function GuestReportFoundPage() {
   const [categorySearch, setCategorySearch] = useState('');
   const [isModerating, setIsModerating] = useState(false);
   const [showImageSourceModal, setShowImageSourceModal] = useState(false);
+  const [progress, setProgress] = useState(0); // <--- ADDED
 
   // Fetch Guest Info (mainly for email)
   useEffect(() => {
@@ -134,17 +129,15 @@ function GuestReportFoundPage() {
         if (userSnap.exists()) {
           const userData = userSnap.data() as UserData;
 
-          // --- 🔑 FIX: Populate all fields from DB, fallback to '' or "Guest" for name ---
           setEmail(userData.email || "");
           
           const fName = userData.firstName || "Guest";
-          const lName = userData.lastName || ""; // Use empty string if no last name
+          const lName = userData.lastName || ""; 
 
           setFirstName(fName);
           setLastName(lName);
-          setFounder(`${fName} ${lName}`.trim()); // Sets founder to "Guest" or "Guest [LastName]"
+          setFounder(`${fName} ${lName}`.trim()); 
 
-          // Set all other fields to '' if not present
           setMiddleName(userData.middleName || "");
           setContactNumber(userData.contactNumber || "");
           setAddress(userData.address || "");
@@ -154,19 +147,18 @@ function GuestReportFoundPage() {
           setSection(userData.section || "");
           setYearLevel(userData.yearLevel || "");
           setBirthdate(userData.birthdate || "");
-          // --- End Fix ---
 
         } else {
           console.warn("Guest user document not found in Firestore.");
-          setFounder("Guest"); // Fallback if doc is missing
+          setFounder("Guest"); 
         }
       } catch (err) {
         console.error("Error fetching guest user info:", err);
-        setFounder("Guest"); // Fallback on error
+        setFounder("Guest"); 
       }
     };
     fetchGuestInfo();
-  }, [currentUser]); // Dependency is correct
+  }, [currentUser]); 
 
   // --- Image Moderation (identical to GuestReportLostPage) ---
   const checkImageModeration = async (imageBase64: string): Promise<boolean | null> => {
@@ -262,7 +254,7 @@ function GuestReportFoundPage() {
     });
   };
 
-  // --- Submit Logic (from original file) ---
+  // --- Submit Logic (MODIFIED) ---
   const handleSubmit = async () => {
     if (!itemName || !dateFound || !locationFound || !category || !itemDescription || !howItemFound) {
       return Alert.alert('Error', 'Please fill all required fields.');
@@ -275,7 +267,10 @@ function GuestReportFoundPage() {
     }
 
     setIsSubmitting(true);
-    setIsMatching(true);
+    setIsMatching(true); // <--- START MATCHING
+    setProgress(0); // <--- Reset Progress
+
+    let interval: NodeJS.Timeout | null = null; 
 
     try {
       const user = auth.currentUser;
@@ -293,8 +288,7 @@ function GuestReportFoundPage() {
       const customItemId = `ITM-${Math.floor(100 + Math.random() * 900)}-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(100 + Math.random() * 900)}`;
 
       // 3. Save to foundItems
-      // 🔑 FIX: The personalInfo object now uses the states that default to ''
-      const docRef = await addDoc(collection(db, 'foundItems'), {
+      const foundItemData = {
         itemId: customItemId,
         uid,
         images: imageURLs,
@@ -303,76 +297,81 @@ function GuestReportFoundPage() {
         locationFound,
         archivedStatus: false,
         isGuest: true,
-        founder: founder, // Guest's name (e.g., "Guest" or "Guest Smith")
+        founder: founder, 
         owner: 'Unknown',
         claimStatus: 'unclaimed',
         category,
         itemDescription,
         howItemFound,
-        status: 'pending', // Found items start as pending
+        status: 'pending', 
         personalInfo: {
           firstName, middleName, lastName, email, contactNumber,
           address, profileURL, coverURL, course, section, yearLevel, birthdate,
         },
         createdAt: serverTimestamp(),
+      };
+      
+      const docRef = await addDoc(collection(db, 'foundItems'), foundItemData);
+
+
+      // 4. Trigger Matching & Progress Bar
+      interval = setInterval(() => {
+          setProgress((oldProgress) => {
+              if (oldProgress >= 90) return 90;
+              const diff = Math.random() * 10;
+              return Math.min(oldProgress + diff, 90);
+          });
+      }, 500); 
+
+      const matchResponse = await fetch(`${API}/api/match/found-to-lost`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uidFound: docRef.id }),
       });
 
-      // 4. Trigger Matching
-      if (currentUser) {
-        const matchResponse = await fetch(`${API}/api/match/found-to-lost`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ uidFound: docRef.id }),
-        });
+      if (interval) clearInterval(interval); // Stop interval on API response
+      setProgress(100); // Complete progress bar
 
-        if (!matchResponse.ok) throw new Error("Matching failed");
-        const matches = await matchResponse.json();
-
-        // Notify guest (finder) that item is pending
-        const notifyMsg = `Hello <b>${firstName}</b>! Your found item <b>${itemName}</b> has been submitted. Please surrender it to the OSA for verification. The item is pending for 24 hours.`;
-        await notifyUser(currentUser.uid, notifyMsg, "item"); // Use "item" type
-
-        // Send email to guest (finder)
-        if(email) { // Only send if email was provided
-          try {
-            await fetch(`${API}/api/send-email`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                to: email,
-                subject: "Instructions for Your Found Item Report",
-                html: `<p>Hello ${firstName},</p>
-                       <p>Your found item <b>${itemName}</b> has been submitted.</p>
-                       <p>Please surrender it to the OSA for verification.</p>
-                       <p>The item is currently on a pending status for 24 hours. Once verified, the system will notify possible owners and post the item.</p>`
-              })
-            });
-          } catch (emailError) {
-            console.error("Failed to send email to guest:", emailError);
-            // Don't block the user flow, just log the error
-          }
-        }
-        
-        // 5. Navigate to results page using router.replace
-        router.replace({
-            pathname: "/GuestFoundMatchResults", // Adjust path if nested, e.g., /guest/found/results
-            params: { matches: JSON.stringify(matches) }
-        });
-      
+      let matches = [];
+      if (!matchResponse.ok) {
+        console.error("Matching failed on guest report:", await matchResponse.text());
+        Alert.alert("Notice", "Report submitted, but AI matching encountered an issue. It will be processed later.");
       } else {
-        // Fallback
-        Alert.alert("Thank you for reporting!", "Please surrender the item to the OSA.");
-        router.replace(`/guest/${user.uid}`); // Use replace for fallback nav
+        matches = await matchResponse.json();
       }
+      
+      // Notify guest (finder) that item is pending (moved outside of the matching block)
+      const notifyMsg = `Hello <b>${firstName}</b>! Your found item <b>${itemName}</b> has been submitted. Please surrender it to the OSA for verification. The item is pending for 24 hours.`;
+      await notifyUser(currentUser!.uid, notifyMsg, "item"); 
 
-      // 6. Save to itemManagement
-      const expiryTime = Date.now() + 24 * 60 * 60 * 1000; // 24 hours expiry
-      await addDoc(collection(db, 'itemManagement'), {
+      // Send email to guest (finder)
+      if(email) {
+        try {
+          await fetch(`${API}/api/send-email`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              to: email,
+              subject: "Instructions for Your Found Item Report",
+              html: `<p>Hello ${firstName},</p>
+                     <p>Your found item <b>${itemName}</b> has been submitted.</p>
+                     <p>Please surrender it to the OSA for verification.</p>
+                     <p>The item is currently on a pending status for 24 hours. Once verified, the system will notify possible owners and post the item.</p>`
+            })
+          });
+        } catch (emailError) {
+          console.error("Failed to send email to guest:", emailError);
+        }
+      }
+      
+      // 5. Save to itemManagement
+      const expiryTime = Date.now() + 24 * 60 * 60 * 1000; 
+      const itemManagementData = {
         itemId: customItemId,  
         uid,
         images: imageURLs,
         itemName,
-        expiryTime: new Date(expiryTime), // Store as Date object
+        expiryTime: new Date(expiryTime), 
         archivedStatus: false,
         dateSubmitted: new Date().toISOString(),
         itemDescription,
@@ -381,28 +380,37 @@ function GuestReportFoundPage() {
         category,
         status: "Pending",
         createdAt: serverTimestamp(),
+      };
+
+      await addDoc(collection(db, 'itemManagement'), itemManagementData);
+
+      // 6. Navigate to results page
+      router.replace({
+          pathname: "/GuestFoundMatchResults",
+          params: { matches: JSON.stringify(matches) }
       });
+      
+      Alert.alert("Success", "Report submitted! Please surrender the item to OSA.");
 
     } catch (error: any) {
       console.error(error);
+      if (interval) clearInterval(interval); 
       Alert.alert('Submission Failed', error.message || 'Could not submit the report.');
     } finally {
       setIsSubmitting(false);
-      setIsMatching(false);
+      setIsMatching(false); // <--- STOP MATCHING
     }
   };
 
 
-  // --- Helper Functions ---
-  // 🔑 Corrected limitWords helper
+  // --- Helper Functions (Identical) ---
   const limitWords = (newText: string, currentText: string, setFn: (value: string) => void, limit: number) => {
     const words = newText.split(/\s+/).filter(Boolean);
     if (words.length > limit) {
-        // Only enforce limit if user is typing *more* characters
         if (newText.length > currentText.length) {
             setFn(words.slice(0, limit).join(" "));
         } else {
-             setFn(newText); // Allow deleting
+             setFn(newText);
         }
     } else {
         setFn(newText);
@@ -410,21 +418,16 @@ function GuestReportFoundPage() {
   };
   const countWords = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
   
-  // 🔑 Corrected onDateChange handler
   const onDateChange = (event: DateTimePickerEvent, selectedDateValue?: Date) => {
-    // Always close the picker modal/view after an action on both platforms
     setShowDatePicker(false); 
-
-    // Only update the state if the user confirmed a date ("set" event)
     if (event.type === 'set' && selectedDateValue) {
         setSelectedDate(selectedDateValue);
-        setDateFound(selectedDateValue.toISOString().split('T')[0]); // Format YYYY-MM-DD
+        setDateFound(selectedDateValue.toISOString().split('T')[0]); 
     }
-    // If event.type is 'dismissed' (Android cancel) or 'cancel' (iOS), do nothing
   };
 
 
-  // Modal Renderer
+  // Modal Renderer (Identical)
   const renderPickerModal = (
     visible: boolean, onClose: () => void, title: string, data: string[],
     onSelect: (value: string) => void, search: string, setSearch: (value: string) => void
@@ -454,6 +457,23 @@ function GuestReportFoundPage() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* --- ADDED MATCHING MODAL --- */}
+      <Modal visible={isMatching} transparent={true} animationType="fade">
+          <View style={styles.matchingOverlay}>
+            <View style={styles.matchingContent}>
+              <ActivityIndicator size="large" color="#BDDDFC" style={{ marginBottom: 20 }} />
+              <Text style={styles.matchingText}>Searching for Matches...</Text>
+              
+              <View style={styles.progressContainer}>
+                <View style={[styles.progressBar, { width: `${progress}%` }]} />
+              </View>
+              
+              <Text style={styles.progressPercentage}>{Math.round(progress)}%</Text>
+            </View>
+          </View>
+      </Modal>
+      {/* --- END MATCHING MODAL --- */}
+
       {/* Moderation Loading Modal */}
       <Modal visible={isModerating} transparent={true} animationType="fade">
         <View style={styles.loadingOverlay}>
@@ -542,7 +562,6 @@ function GuestReportFoundPage() {
             <Text style={styles.sectionTitle}>2. Location & Time</Text>
 
             <Text style={styles.label}>Date Found</Text>
-            {/* 🔑 FIX: Simplified Date Picker logic */}
             <TouchableOpacity style={styles.pickerButton} onPress={() => setShowDatePicker(true)}>
                 <Text style={[styles.pickerButtonText, !dateFound && styles.placeholderText]}>{dateFound || "Select Date"}</Text>
             </TouchableOpacity>
@@ -557,7 +576,6 @@ function GuestReportFoundPage() {
                 maximumDate={new Date()}
               />
             )}
-            {/* 🔑 END FIX */}
 
             <Text style={styles.label}>Location Found</Text>
             <TouchableOpacity style={styles.pickerButton} onPress={() => setShowLocationModal(true)}>
@@ -646,22 +664,21 @@ function GuestReportFoundPage() {
   );
 }
 
-// --- 🔑 Corrected Helper Function ---
+// --- Helper Functions ---
 const limitWords = (newText: string, currentText: string, setFn: (value: string) => void, limit: number) => {
     const words = newText.split(/\s+/).filter(Boolean);
     if (words.length > limit) {
-        // Only enforce limit if user is typing *more* characters
         if (newText.length > currentText.length) {
             setFn(words.slice(0, limit).join(" "));
         } else {
-             setFn(newText); // Allow deleting
+             setFn(newText); 
         }
     } else {
         setFn(newText);
     }
 };
 
-// --- Styles (Borrowed from ReportFoundItemScreen.tsx) ---
+// --- Styles (MODIFIED) ---
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f0f2f5', paddingTop: Platform.OS === 'android' ? 25 : 0 },
   scrollContent: { paddingBottom: 100 },
@@ -725,7 +742,7 @@ const styles = StyleSheet.create({
     borderColor: '#ddd', 
     justifyContent: 'center', 
     marginBottom: 20,
-    minHeight: 50, // Ensure consistent height
+    minHeight: 50,
   },
   pickerButtonText: { 
     fontSize: 16, 
@@ -832,6 +849,46 @@ const styles = StyleSheet.create({
   imageSourceOption: { flexDirection: 'row', alignItems: 'center', padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee', width: '100%', justifyContent: 'flex-start' },
   imageSourceOptionText: { fontSize: 16, color: '#333' },
   imageSourceModalClose: { marginTop: 15, padding: 10, backgroundColor: '#6c757d', borderRadius: 8, width: '100%', alignItems: 'center' },
+  
+  // --- ADDED MATCHING STYLES ---
+  matchingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)', 
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 9999,
+  },
+  matchingContent: {
+    width: '80%',
+    maxWidth: 400,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  matchingText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: '#BDDDFC',
+    textAlign: 'center',
+  },
+  progressContainer: {
+    width: '100%',
+    height: 20,
+    backgroundColor: '#475C6F',
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#BDDDFC',
+    borderRadius: 10,
+  },
+  progressPercentage: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: 'white',
+  },
 });
 
 export default GuestReportFoundPage;

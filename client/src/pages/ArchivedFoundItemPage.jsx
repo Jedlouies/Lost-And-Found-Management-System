@@ -223,16 +223,13 @@ function ArchivedFoundItemsPage() {
         </div>
     );
   };
-  // --- End Person Renderer ---
 
   useEffect(() => {
     const q = query(
-      collection(db, "foundItems"), // NOTE: Changed from "foundItems" to "archivedFoundItems" if a separate collection is used for archives
-      // Reverting to the logic found in the original file for security and consistency:
+      collection(db, "foundItems"), 
       where("archivedStatus", "==", true) 
     );
 
-    // Using onSnapshot for real-time archives. The original found item page used getDocs, but this uses onSnapshot. Keeping onSnapshot logic.
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const archivedItems = snapshot.docs.map((doc) => ({
         id: doc.id,

@@ -53,6 +53,8 @@ export default function CreateAccountScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const [initialVerificationCode, setInitialVerificationCode] = useState(null);
+
   const handleInputChange = (name, value) => {
     setError("");
     setFormData((prevState) => ({ ...prevState, [name]: value }));
@@ -112,11 +114,15 @@ export default function CreateAccountScreen() {
       setError("");
       setLoading(true);
       const userData = { ...formData };
+      
+      const tempId = userData.studentId;
 
-      const code = await createVerificationCode(userData.email); 
+      // Call createVerificationCode with the temporary ID
+      const code = await createVerificationCode(userData.email, tempId); 
       await sendVerificationEmail(userData, code);
 
       setPendingUserData(userData);
+      setInitialVerificationCode(code);
       setShowVerifyModal(true);
     } catch (err) {
       console.error("Handle submit error:", err);
@@ -253,11 +259,13 @@ export default function CreateAccountScreen() {
     <>
       {showVerifyModal && (
         <VerificationModal
+         show={showVerifyModal}
           user={pendingUserData}
           onVerified={finalizeSignup}
           onClose={() => setShowVerifyModal(false)}
           sendVerificationEmail={sendVerificationEmail}
           isVerifying={isFinalizing}
+          initialCode={initialVerificationCode}
         />
       )}
 

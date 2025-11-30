@@ -1,18 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 // Removed: import './styles/FoundMatchResults.css'; - styles are now inline
 import UserFoundItemsPage from './UserFoundItemsPage';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from "firebase/auth";
 import RatingModal from "../components/RatingModal";
 
-
-
 export default function FoundMatchResults() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const matches = (state?.matches || [])
-    .sort((a, b) => (b.scores?.overallScore || 0) - (a.scores?.overallScore || 0))
-    .slice(0, 4); 
+  
+  // 1. GET ALL MATCHES (Sorted, but NOT sliced yet)
+  const allMatches = (state?.matches || [])
+    .sort((a, b) => (b.scores?.overallScore || 0) - (a.scores?.overallScore || 0));
 
   const auth = getAuth();
   const user = auth.currentUser; 
@@ -20,6 +19,11 @@ export default function FoundMatchResults() {
   const [selectedItem, setSelectedItem] = React.useState(null);
   const [showRatingModal, setShowRatingModal] = React.useState(false);
   
+  // 2. NEW STATE for toggling the view
+  const [showAll, setShowAll] = useState(false);
+
+  // 3. DETERMINE WHICH MATCHES TO DISPLAY
+  const displayedMatches = showAll ? allMatches : allMatches.slice(0, 4);
   
   const handleNavigate = () => {
     setShowRatingModal(true)
@@ -237,7 +241,7 @@ export default function FoundMatchResults() {
         backgroundColor: '#384d5c',
     },
 
-    // Floating Panel (Detail Modal) styles remain largely the same for detail readability
+    // Floating Panel (Detail Modal)
     floatingPanel: {
         position: 'fixed',
         top: 0,
@@ -294,7 +298,7 @@ export default function FoundMatchResults() {
         marginBottom: '8px',
         color: '#333'
     },
-     // Footer Buttons styles remain the same
+     // Footer Buttons styles
     footerContainer: {
         position: 'fixed',
         bottom: 0,
@@ -329,6 +333,21 @@ export default function FoundMatchResults() {
         backgroundColor: '#BDDDFC',
         color: '#475C6F',
         border: '1px solid #475C6F',
+    },
+    
+    // NEW STYLE FOR THE SEE ALL BUTTON
+    seeAllButton: {
+        display: 'block',
+        margin: '20px auto',
+        backgroundColor: 'transparent',
+        color: '#475C6F',
+        border: '2px solid #475C6F',
+        padding: '10px 20px',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        fontSize: '16px',
+        transition: 'all 0.3s ease',
     },
   };
 
@@ -372,7 +391,8 @@ export default function FoundMatchResults() {
     <div style={styles.resultsContainer}>
         <h1 style={styles.heading}>Matching Found Item Results</h1>
 
-        {matches.length === 0 && (
+        {/* 4. Use allMatches length for empty check */}
+        {allMatches.length === 0 && (
             <div style={styles.noMatchContainer}>
                 <p style={styles.noMatchText}>
                     No immediate close matches found. <br/> 
@@ -382,7 +402,8 @@ export default function FoundMatchResults() {
         )}
 
       <div style={styles.matchCardGrid}>
-        {matches.map((match, index) => {
+        {/* 5. Map over displayedMatches */}
+        {displayedMatches.map((match, index) => {
             const lostItem = match.lostItem || {};
             const posterInfo = lostItem.personalInfo || {};
             const scores = match.scores || {};
@@ -516,6 +537,25 @@ export default function FoundMatchResults() {
             );
         })}
       </div>
+
+      {/* 6. ADD TOGGLE BUTTON */}
+      {allMatches.length > 4 && (
+        <button 
+            style={styles.seeAllButton}
+            onClick={() => setShowAll(!showAll)}
+            onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#475C6F';
+                e.target.style.color = 'white';
+            }}
+            onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.color = '#475C6F';
+            }}
+        >
+            {showAll ? "Show Less" : `See All Matches (${allMatches.length})`}
+        </button>
+      )}
+
       </div>
       
       {/* Footer Buttons */}

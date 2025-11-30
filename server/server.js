@@ -206,6 +206,7 @@ app.post("/api/moderate-image", async (req, res) => {
     res.status(statusCode).json({ error: errorMessage, isSafe: false }); 
   }
 });
+
 app.post("/api/match/found-to-lost", async (req, res) => {
   try {
     const { uidFound } = req.body;
@@ -218,7 +219,9 @@ app.post("/api/match/found-to-lost", async (req, res) => {
 
     for (const lostDoc of lostSnapshot.docs) {
       const lostItem = lostDoc.data();
-      if (["claimed", "pending", "canceled"].includes(lostItem.status) || lostItem.archivedStatus) continue;
+      if (["claimed", "pending", "cancelled"].includes(lostItem.status) || lostItem.archivedStatus) continue;
+
+      if (lostItem.uid === foundItem.uid) continue;
 
       const scores = await calculateMatchScore(lostItem, foundItem);
 
@@ -235,7 +238,7 @@ app.post("/api/match/found-to-lost", async (req, res) => {
     }
 
     matches.sort((a, b) => b.scores.overallScore - a.scores.overallScore);
-    const filteredMatches = matches.filter(m => m.scores.overallScore >= 60);
+    const filteredMatches = matches.filter(m => m.scores.overallScore >= 10);
     res.json(filteredMatches);
 
   } catch (error) {
@@ -256,7 +259,9 @@ app.post("/api/match/lost-to-found", async (req, res) => {
 
     for (const foundDoc of foundSnapshot.docs) {
       const foundItem = foundDoc.data();
-      if (["claimed", "pending", "canceled"].includes(foundItem.status) || foundItem.archivedStatus) continue;
+      if (["claimed", "pending", "cancelled"].includes(foundItem.status) || foundItem.archivedStatus) continue;
+
+      if (foundItem.uid === lostItem.uid) continue;
 
       const scores = await calculateMatchScore(lostItem, foundItem);
 
@@ -273,7 +278,7 @@ app.post("/api/match/lost-to-found", async (req, res) => {
     }
 
     matches.sort((a, b) => b.scores.overallScore - a.scores.overallScore);
-    const filteredMatches = matches.filter(m => m.scores.overallScore >= 60);
+    const filteredMatches = matches.filter(m => m.scores.overallScore >= 10);
     res.json(filteredMatches);
   } catch (error) {
     console.error("Error in /api/match/lost-to-found:", error);

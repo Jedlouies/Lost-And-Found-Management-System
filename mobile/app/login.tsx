@@ -45,6 +45,7 @@ export default function LoginScreen() {
   // --- 2FA Verification States ---
   const [showVerificationModal, setShowVerificationModal] = useState(false);
   const [pendingUser, setPendingUser] = useState<User | null>(null);
+  const [initialVerificationCode, setInitialVerificationCode] = useState(null);
 
   const handleInputChange = (name: string, value: string) => {
     setError(""); 
@@ -124,6 +125,7 @@ export default function LoginScreen() {
                  await sendVerificationEmail(user, code);
                  
                  setPendingUser(user); // Save user to state
+                 setInitialVerificationCode(code);
                  setShowVerificationModal(true); // Open Modal
              } else {
                  setError("User email not found for 2FA.");
@@ -204,6 +206,7 @@ export default function LoginScreen() {
         }}
         user={pendingUser} // Pass the user we just logged in
         sendVerificationEmail={sendVerificationEmail}
+        initialCode={initialVerificationCode}
         onVerified={async () => {
             // Once 2FA is verified, finish the login
             if (pendingUser) {

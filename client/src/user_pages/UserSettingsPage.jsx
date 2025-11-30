@@ -92,7 +92,6 @@ const handleDataExport = async () => {
 
     setExporting(true);
     try {
-      // 1. Fetch Item Management History
       const itemMgmtQ = query(
         collection(db, 'itemManagement'),
         where('uid', '==', currentUser.uid)
@@ -100,19 +99,16 @@ const handleDataExport = async () => {
       const itemMgmtSnap = await getDocs(itemMgmtQ);
       const itemMgmtData = itemMgmtSnap.docs.map(doc => doc.data());
 
-      // 2. Fetch Active Lost Items
       const lostItemsQ = query(
         collection(db, 'lostItems'),
         where('archivedStatus', '==', false),
         where('status', 'in', ['Posted', 'posted'])
       );
       const lostItemsSnap = await getDocs(lostItemsQ);
-      // Filter in memory for claimStatus to match mobile logic if complex, or simple mapping
       const lostItemsData = lostItemsSnap.docs
         .map(doc => doc.data())
-        .filter(item => item.claimStatus !== 'claimed' && item.uid === currentUser.uid); // Ensure we only get current user's items
+        .filter(item => item.claimStatus !== 'claimed' && item.uid === currentUser.uid); 
 
-      // 3. Fetch Active Found Items
       const foundItemsQ = query(
         collection(db, 'foundItems'),
         where('archivedStatus', '==', false),
@@ -123,7 +119,6 @@ const handleDataExport = async () => {
         .map(doc => doc.data())
         .filter(item => item.claimStatus !== 'claimed' && item.uid === currentUser.uid);
 
-      // 4. Generate HTML (Identical to Mobile, but formatted for Web Print)
       const html = `
         <html>
           <head>
@@ -241,7 +236,6 @@ const handleDataExport = async () => {
         </html>
       `;
 
-      // 5. Open in New Window and Print
       const printWindow = window.open('', '_blank');
       if (printWindow) {
           printWindow.document.write(html);
@@ -331,7 +325,6 @@ const handleDataExport = async () => {
   { abbr: "MPS-PPS", name: "Master in Public Sector Innovation Major in Public Policy Studies" },
 ];
 
-// NEW FUNCTION: Updates personalInfo field across item collections
 const updateRelatedItemInfo = async (uid, updatedData) => {
   const collectionsToUpdate = ['foundItems', 'lostItems', 'itemManagement'];
 

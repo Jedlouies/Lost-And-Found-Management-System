@@ -1,28 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 // Removed: import '../user_pages/styles/FoundMatchResults.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from "firebase/auth";
 import GuestRatingModal from "../components/GuestRatingModal"
 
-
-
 export default function GuestFoundMatchResults(foundItem) {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const matches = (state?.matches || [])
-    .sort((a, b) => (b.scores?.overallScore || 0) - (a.scores?.overallScore || 0))
-    .slice(0, 4); 
+  
+  // 1. GET ALL MATCHES (Sorted, but NOT sliced yet)
+  const allMatches = (state?.matches || [])
+    .sort((a, b) => (b.scores?.overallScore || 0) - (a.scores?.overallScore || 0));
 
   const auth = getAuth();
   const user = auth.currentUser;
   const currentUser = auth.currentUser;
  
-
-  const [selectedItem, setSelectedItem] = React.useState(null);
-  const [showRatingModal, setShowRatingModal] = React.useState(false);
-  const [copiedMessage, setCopiedMessage] = React.useState(false); // Added for copy functionality
-
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [copiedMessage, setCopiedMessage] = useState(false); 
   
+  // 2. NEW STATE for toggling the view
+  const [showAll, setShowAll] = useState(false);
+
+  // 3. DETERMINE WHICH MATCHES TO DISPLAY
+  const displayedMatches = showAll ? allMatches : allMatches.slice(0, 4);
+
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text).then(() => {
       setCopiedMessage("Transaction ID Copied!");
@@ -325,7 +328,21 @@ export default function GuestFoundMatchResults(foundItem) {
       zIndex: 1001,
       transition: 'opacity 0.3s ease-in-out',
     },
-     // Footer Buttons styles remain the same
+    // NEW BUTTON STYLE
+    seeAllButton: {
+        display: 'block',
+        margin: '20px auto',
+        backgroundColor: 'transparent',
+        color: '#475C6F',
+        border: '2px solid #475C6F',
+        padding: '10px 20px',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        fontSize: '16px',
+        transition: 'all 0.3s ease',
+    },
+     // Footer Buttons 
     footerContainer: {
         position: 'fixed',
         bottom: 0,
@@ -366,7 +383,7 @@ export default function GuestFoundMatchResults(foundItem) {
 
   return (
     <>
-          {selectedItem && (
+        {selectedItem && (
         <div style={styles.floatingPanel}>
           <div style={styles.floatingPanelContent}>
             <button style={styles.closeButton} onClick={() => setSelectedItem(null)}>
@@ -403,7 +420,7 @@ export default function GuestFoundMatchResults(foundItem) {
     <div style={styles.resultsContainer}>
         <h1 style={styles.heading}>Guest Matching Found Item Results</h1>
 
-        {matches.length === 0 && (
+        {allMatches.length === 0 && (
           <div style={styles.noMatchContainer}>
             <p style={styles.noMatchText}>
               No immediate close matches found. <br/> 
@@ -413,7 +430,7 @@ export default function GuestFoundMatchResults(foundItem) {
         )}
 
       <div style={styles.matchCardGrid}>
-        {matches.map((match, index) => {
+        {displayedMatches.map((match, index) => {
             const lostItem = match.lostItem || {};
             const posterInfo = lostItem.personalInfo || {};
             const scores = match.scores || {};
@@ -555,6 +572,25 @@ export default function GuestFoundMatchResults(foundItem) {
             );
         })}
       </div>
+
+      {/* NEW: See All Matches Button */}
+      {allMatches.length > 4 && (
+        <button 
+            style={styles.seeAllButton}
+            onClick={() => setShowAll(!showAll)}
+            onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#475C6F';
+                e.target.style.color = 'white';
+            }}
+            onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.color = '#475C6F';
+            }}
+        >
+            {showAll ? "Show Less" : `See All Matches (${allMatches.length})`}
+        </button>
+      )}
+
       </div>
       
       {/* Footer Buttons */}

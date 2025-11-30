@@ -3,6 +3,7 @@ import { Form, Card, Alert, Spinner } from "react-bootstrap";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import { signInAnonymously } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth"; // Added import
 import { auth, db } from "../firebase"; // Added db import
 import { doc, getDoc } from "firebase/firestore"; // Added Firestore imports
 import createVerificationCode from "../components/createVerificationCode.jsx";
@@ -99,12 +100,13 @@ function SignInPage() {
   }
 
   // --- UPDATED AUTO-LOGIN LOGIC ---
+// --- UPDATED AUTO-LOGIN LOGIC ---
   async function finalizeSignup() {
     try {
       setLoading(true);
 
       // 1. Create the user account (Firebase automatically signs them in here)
-      await signup(
+      const userCredential = await signup(
         pendingUserData.email,
         pendingUserData.password,
         pendingUserData.firstName,
@@ -112,14 +114,37 @@ function SignInPage() {
         pendingUserData.contactNumber,
         pendingUserData.studentId
       );
+
+      // --- NEW: Wait for Auth State Confirmation ---
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+            unsub(); 
+            // Rejecting here will be caught below
+            reject(new Error("Auth state confirmation timed out after sign-up."));
+        }, 5000); 
+        const unsub = onAuthStateChanged(auth, (user) => {
+          if (user && user.uid === userCredential.user.uid) {
+            clearTimeout(timeout);
+            unsub();
+            resolve(user);
+          } else if (!user && userCredential.user) {
+             clearTimeout(timeout);
+             unsub();
+             reject(new Error("Auth state inconsistency detected after sign-up."));
+          }
+        });
+      });
+      // --- END NEW: Wait for Auth State Confirmation ---
       
-      // 2. Get the current authenticated user
+      // Now, auth.currentUser should be reliable.
       const user = auth.currentUser;
       if (!user) throw new Error("Account created but session failed.");
 
       // 3. Fetch the newly created profile from Firestore to check Role
       // This ensures we navigate to the correct place (Dashboard vs Home)
       const userDocRef = doc(db, 'users', user.uid);
+      // NOTE: A slight delay might still be necessary if the Firestore write is slow, 
+      // but waiting for auth state is the primary fix.
       const userDocSnap = await getDoc(userDocRef);
 
       let role = 'user'; // Default role
@@ -145,12 +170,22 @@ function SignInPage() {
       } else {
         navigate(`/home/${user.uid}`);
       }
+      
+      // Close modal on success
+      setShowVerifyModal(false); 
 
     } catch (err) {
       console.error("Signup error:", err);
-      setError("Account created, but automatic login failed. Please sign in manually.");
-      // Close modal so they can see the error, but don't force redirect to login yet
+      // More descriptive error handling for the user
+      if (err.message.includes("Auth state")) {
+          setError("Account created, but automatic login failed due to a session issue. Please sign in manually.");
+      } else {
+          setError("Account created, but automatic login failed. Please sign in manually.");
+      }
+      // Close modal so they can see the error
       setShowVerifyModal(false); 
+      
+      // **Crucially, import onAuthStateChanged from 'firebase/auth' and use it.**
     } finally {
       setLoading(false);
     }

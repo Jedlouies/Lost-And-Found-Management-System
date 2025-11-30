@@ -1,27 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 // Removed: import '../user_pages/styles/FoundMatchResults.css';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signOut } from "firebase/auth";
 import GuestRatingModal from "../components/GuestRatingModal"
 
-
-
 export default function GuestLostMatchResults(lostItem){
   const { state } = useLocation();
   const navigate = useNavigate();
-  const matches = (state?.matches || [])
-    .sort((a, b) => (b.scores?.overallScore || 0) - (a.scores?.overallScore || 0))
-    .slice(0, 4); 
+  
+  // 1. GET ALL MATCHES (Sorted, but NOT sliced yet)
+  const allMatches = (state?.matches || [])
+    .sort((a, b) => (b.scores?.overallScore || 0) - (a.scores?.overallScore || 0));
 
   const auth = getAuth();
   const user = auth.currentUser; 
   const currentUser = auth.currentUser;
 
-  const [selectedItem, setSelectedItem] = React.useState(null);
-  const [showRatingModal, setShowRatingModal] = React.useState(false);
-  const [copiedMessage, setCopiedMessage] = React.useState(false); // Added for copy functionality
-
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [copiedMessage, setCopiedMessage] = useState(false);
   
+  // 2. NEW STATE for toggling the view
+  const [showAll, setShowAll] = useState(false);
+
+  // 3. DETERMINE WHICH MATCHES TO DISPLAY
+  const displayedMatches = showAll ? allMatches : allMatches.slice(0, 4);
+
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text).then(() => {
       setCopiedMessage("Transaction ID Copied!");
@@ -357,7 +361,21 @@ export default function GuestLostMatchResults(lostItem){
       boxShadow: '0px 2px 8px rgba(0,0,0,0.2)',
       zIndex: 1001,
       transition: 'opacity 0.3s ease-in-out',
-    }
+    },
+    // NEW BUTTON STYLE
+    seeAllButton: {
+        display: 'block',
+        margin: '20px auto',
+        backgroundColor: 'transparent',
+        color: '#475C6F',
+        border: '2px solid #475C6F',
+        padding: '10px 20px',
+        borderRadius: '8px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        fontSize: '16px',
+        transition: 'all 0.3s ease',
+    },
   };
 
 
@@ -373,7 +391,7 @@ export default function GuestLostMatchResults(lostItem){
             {selectedItem.images?.[0] && (
               <img 
                 src={selectedItem.images[0]} 
-                alt="Found Item" 
+                alt="Lost Item" 
                 style={styles.detailImage} 
               />
             )}
@@ -382,14 +400,14 @@ export default function GuestLostMatchResults(lostItem){
               
               <p style={styles.detailItem}><b>Item ID:</b> {selectedItem.itemId}</p>
               <p style={styles.detailItem}><b>Category:</b> {selectedItem.category}</p>
-              <p style={styles.detailItem}><b>Location Found:</b> {selectedItem.locationFound}</p>
+              <p style={styles.detailItem}><b>Location Lost:</b> {selectedItem.locationLost}</p>
               <p style={styles.detailItem}>
-                <b>Date Found:</b> {selectedItem.dateFound 
-                  ? new Date(selectedItem.dateFound).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) 
+                <b>Date Lost:</b> {selectedItem.dateLost 
+                  ? new Date(selectedItem.dateLost).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) 
                   : "N/A"}
               </p>
               <p style={styles.detailItem}><b>Description:</b> {selectedItem.itemDescription || "No detailed description provided"}</p>
-              <p style={styles.detailItem}><b>How Found:</b> {selectedItem.howItemFound || "N/A"}</p>
+              <p style={styles.detailItem}><b>How Lost:</b> {selectedItem.howItemLost || "N/A"}</p>
             </div>
           </div>
         </div>
@@ -400,7 +418,7 @@ export default function GuestLostMatchResults(lostItem){
     <div style={styles.resultsContainer}>
         <h1 style={styles.heading}>Guest Matching Lost Item Results</h1>
 
-        {matches.length === 0 && (
+        {allMatches.length === 0 && (
           <div style={styles.noMatchContainer}>
             <p style={styles.noMatchText}>
               No immediate close matches found. <br/> 
@@ -410,7 +428,7 @@ export default function GuestLostMatchResults(lostItem){
         )}
 
       <div style={styles.matchCardGrid}>
-        {matches.map((match, index) => {
+        {displayedMatches.map((match, index) => {
             const foundItem = match.foundItem || {};
             const posterInfo = foundItem.personalInfo || {};
             const scores = match.scores || {};
@@ -424,7 +442,7 @@ export default function GuestLostMatchResults(lostItem){
             const locationScore = formatScore(scores.locationScore);
 
             const isGuest = foundItem.isGuest === true;
-            const posterName = isGuest ? "Guest Founder" : `${posterInfo.firstName || ''} ${posterInfo.lastName || ''}`.trim();
+            const posterName = isGuest ? "Guest Owner" : `${posterInfo.firstName || ''} ${posterInfo.lastName || ''}`.trim();
             const posterCourse = isGuest ? "N/A" : (posterInfo.course && posterInfo.course.abbr || "N/A");
 
 
@@ -552,6 +570,25 @@ export default function GuestLostMatchResults(lostItem){
             );
         })}
       </div>
+
+      {/* NEW: See All Matches Button */}
+      {allMatches.length > 4 && (
+        <button 
+            style={styles.seeAllButton}
+            onClick={() => setShowAll(!showAll)}
+            onMouseEnter={(e) => {
+                e.target.style.backgroundColor = '#475C6F';
+                e.target.style.color = 'white';
+            }}
+            onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent';
+                e.target.style.color = '#475C6F';
+            }}
+        >
+            {showAll ? "Show Less" : `See All Matches (${allMatches.length})`}
+        </button>
+      )}
+
       </div>
       
       {/* Footer Buttons */}

@@ -5,15 +5,13 @@ import { Timestamp, doc, updateDoc, addDoc, collection, serverTimestamp } from '
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 
-// Import the converted RatingModal
 import RatingModal from '../components/RatingModal';
 
-// --- Type Definitions ---
 interface PersonalInfo {
     firstName?: string;
     lastName?: string;
     profileURL?: string;
-    course?: { abbr: string; name: string }; // Added course for display
+    course?: { abbr: string; name: string }; 
     [key: string]: any;
 }
 
@@ -28,8 +26,8 @@ interface MatchItemDetails {
 
 interface Match {
   transactionId: string;
-  lostItem?: MatchItemDetails; // Details of the original lost item report
-  foundItem?: MatchItemDetails; // Details of the potential found item match
+  lostItem?: MatchItemDetails; 
+  foundItem?: MatchItemDetails; 
   scores: {
     overallScore: number;
     descriptionScore: number;
@@ -37,7 +35,7 @@ interface Match {
   };
 }
 
-interface ItemManagementData { // Data for the item the user JUST reported (Lost)
+interface ItemManagementData { 
   itemId: string;
   itemName: string;
   images?: string[];
@@ -48,17 +46,16 @@ interface ItemManagementData { // Data for the item the user JUST reported (Lost
   category: string;
   status: string;
   itemDescription?: string;
-  topMatches?: Match[]; // Matches contain foundItem details
-  personalInfo?: PersonalInfo; // User who reported the lost item
+  topMatches?: Match[]; 
+  personalInfo?: PersonalInfo; 
   createdAt: Timestamp | { seconds: number; nanoseconds: number };
   [key: string]: any;
 }
 
 // --- Reusable Components ---
 const MatchCard = ({ match, index, itemType }: { match: Match; index: number; itemType: string }) => {
-  // Since this is LostMatchResults, itemType will be 'lost', so we show foundItem
   const matchItem = match.foundItem;
-  if (!matchItem) return null; // Should not happen if API returns correctly
+  if (!matchItem) return null; 
 
   const reporterInitials = `${matchItem.personalInfo?.firstName?.[0] || '?'}${matchItem.personalInfo?.lastName?.[0] || ''}`.toUpperCase();
 
@@ -105,7 +102,6 @@ const MatchCard = ({ match, index, itemType }: { match: Match; index: number; it
                 </View>
             )}
             <Text style={styles.reporterName}>{matchItem.personalInfo?.firstName} {matchItem.personalInfo?.lastName || 'Unknown User'}</Text>
-            {/* Display course if available */}
             {matchItem.personalInfo?.course?.abbr && (
                  <Text style={styles.reporterCourse}> - {matchItem.personalInfo.course.abbr}</Text>
             )}
@@ -115,7 +111,7 @@ const MatchCard = ({ match, index, itemType }: { match: Match; index: number; it
   );
 };
 
-function LostMatchResults() { // Renamed component
+function LostMatchResults() { 
   const params = useLocalSearchParams();
   const router = useRouter();
   const { currentUser } = useAuth();
@@ -124,6 +120,9 @@ function LostMatchResults() { // Renamed component
   const [loading, setLoading] = useState(true);
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+
+  // 1. ADD STATE FOR TOGGLING
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     if (params.itemData) {
@@ -173,14 +172,16 @@ function LostMatchResults() { // Renamed component
     );
   }
 
-  const filteredMatches = itemData.topMatches || [];
+  // 2. LOGIC FOR SLICING MATCHES
+  const allMatches = itemData.topMatches || [];
+  const displayedMatches = showAll ? allMatches : allMatches.slice(0, 4);
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.matchesSection}>
-          {filteredMatches.length > 0 ? (
-            filteredMatches.map((match, index) => (
+          {allMatches.length > 0 ? (
+            displayedMatches.map((match, index) => (
               <MatchCard
                 key={match.transactionId || index}
                 match={match}
@@ -192,6 +193,17 @@ function LostMatchResults() { // Renamed component
             <View style={styles.card}><Text style={styles.noMatchesText}>No potential matches found by the AI.</Text></View>
           )}
         </View>
+
+        {allMatches.length > 4 && (
+            <TouchableOpacity 
+                style={styles.seeAllButton} 
+                onPress={() => setShowAll(!showAll)}
+            >
+                <Text style={styles.seeAllButtonText}>
+                    {showAll ? "Show Less" : `See All Matches (${allMatches.length})`}
+                </Text>
+            </TouchableOpacity>
+        )}
 
          <View style={styles.actionButtonContainer}>
             <TouchableOpacity style={styles.secondaryButton} onPress={() => router.push('/ReportLostItemScreen')}>
@@ -238,7 +250,7 @@ const styles = StyleSheet.create({
   initialsContainer: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#007AFF', justifyContent: 'center', alignItems: 'center', marginRight: 8 },
   initialsText: { color: '#fff', fontSize: 12, fontWeight: 'bold' },
   reporterName: { fontSize: 14, color: '#333' },
-  reporterCourse: { fontSize: 12, color: '#666'}, // Style for course abbr
+  reporterCourse: { fontSize: 12, color: '#666'}, 
   actionButtonContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -270,7 +282,23 @@ const styles = StyleSheet.create({
       color: '#666',
       textAlign: 'center',
       paddingVertical: 20,
+  },
+  // New Styles for See All Button
+  seeAllButton: {
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 8,
+      borderColor: '#475C6F',
+      borderWidth: 1,
+      alignSelf: 'center',
+      marginTop: 10,
+      marginBottom: 20,
+  },
+  seeAllButtonText: {
+      color: '#475C6F',
+      fontSize: 14,
+      fontWeight: 'bold',
   }
 });
 
-export default LostMatchResults; // Renamed export
+export default LostMatchResults;
