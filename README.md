@@ -1,3 +1,5 @@
+![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
+
 1. Project Overview
 This is a management system created intended for the university of science and technology of southern philippines, cagayan de oro in order to address the current problem towards the items that are lost and found reporting it to a non certralized platforms that is why spotsync developed a lost and found management systems that carries out the reporting and matching of items using artificial intelligence in comparing to subjects. with the supervision of the campus student's affairs organizations.
 
